@@ -54,7 +54,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const CatIcon = cat.icon;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: cat.light }}>
+    <div className="min-h-screen w-full" style={{ backgroundColor: cat.light }}>
       <div className="max-w-lg mx-auto flex flex-col items-center">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
@@ -81,7 +81,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
 
         {/* Progress */}
         <div className="w-full px-6 mb-8">
-          <div className="h-1.5 w-full bg-white rounded-full overflow-hidden border border-slate-200">
+          <div className="h-1.5 w-full bg-white/50 rounded-full overflow-hidden border border-slate-200/50">
             <div 
               className="h-full transition-all duration-500 ease-out rounded-full"
               style={{ 
@@ -93,7 +93,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
 
         {/* Card Arena with Carousel */}
-        <div className="w-full mb-16">
+        <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
             <CarouselContent className="-ml-0">
               {cards.map((card, i) => (
@@ -212,7 +212,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                           )}
                         </div>
 
-                        {/* Footer */}
+                        {/* Footer Card Part */}
                         <div className="p-6 pt-0 bg-white">
                           <button 
                             onClick={(e) => { e.stopPropagation(); setFlipped(false); }}
@@ -232,9 +232,9 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        {/* Footer text with consistent background and gap */}
-        <footer className="w-full text-center pb-8 mt-4">
-          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+        {/* Footer text - No background, merged into page flow */}
+        <footer className="w-full text-center mt-12 pb-4">
+          <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
             © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
           </p>
         </footer>
