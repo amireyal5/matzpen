@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,7 +29,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
 
-  // Sync index with carousel
   useEffect(() => {
     if (!api) return;
 
@@ -48,8 +48,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const CatIcon = cat.icon;
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto" style={{ backgroundColor: cat.light }}>
-      <div className="max-w-lg mx-auto flex flex-col items-center">
+    <div className="min-h-screen w-full flex flex-col" style={{ backgroundColor: cat.light }}>
+      <div className="max-w-lg mx-auto w-full flex flex-col items-center">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
           <button 
@@ -226,6 +226,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
       </div>
+      {/* Absolute clean end of page - no footer area */}
+      <div className="flex-1 min-h-[4rem]" />
     </div>
   );
 }
