@@ -93,7 +93,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
 
         {/* Card Arena with Carousel */}
-        <div className="w-full mb-20"> {/* Increased margin bottom for more space */}
+        <div className="w-full mb-16">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
             <CarouselContent className="-ml-0">
               {cards.map((card, i) => (
@@ -232,7 +232,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        <footer className="w-full text-center pb-6"> {/* Reduced bottom padding */}
+        {/* Footer text with consistent background and gap */}
+        <footer className="w-full text-center pb-8 mt-4">
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
             © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
           </p>
