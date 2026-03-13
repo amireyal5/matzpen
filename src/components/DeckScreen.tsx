@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -53,7 +54,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const CatIcon = cat.icon;
 
   return (
-    <div className="min-h-screen bg-background pb-12" style={{ backgroundColor: cat.light }}>
+    <div className="min-h-screen" style={{ backgroundColor: cat.light }}>
       <div className="max-w-lg mx-auto flex flex-col items-center">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
@@ -92,7 +93,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
 
         {/* Card Arena with Carousel */}
-        <div className="w-full mb-12">
+        <div className="w-full mb-20"> {/* Increased margin bottom for more space */}
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
             <CarouselContent className="-ml-0">
               {cards.map((card, i) => (
@@ -231,7 +232,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        <footer className="w-full text-center">
+        <footer className="w-full text-center pb-6"> {/* Reduced bottom padding */}
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
             © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
           </p>
