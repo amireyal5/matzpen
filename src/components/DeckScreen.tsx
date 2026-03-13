@@ -25,11 +25,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [flipped, setFlipped] = useState(false);
   const [backTab, setBackTab] = useState<"why" | "steps" | "tip">("why");
   const [api, setApi] = useState<CarouselApi>();
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
@@ -54,7 +49,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const CatIcon = cat.icon;
 
   return (
-    <div className="min-h-screen w-full" style={{ backgroundColor: cat.light }}>
+    <div className="min-h-screen w-full pb-10" style={{ backgroundColor: cat.light }}>
       <div className="max-w-lg mx-auto flex flex-col items-center">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
@@ -231,13 +226,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
             </CarouselContent>
           </Carousel>
         </div>
-
-        {/* Footer text - No background, merged into page flow */}
-        <footer className="w-full text-center mt-12 pb-4">
-          <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
-          </p>
-        </footer>
       </div>
     </div>
   );
