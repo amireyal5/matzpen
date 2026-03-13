@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Anchor } from "lucide-react";
 
 interface LandingScreenProps {
@@ -10,6 +10,11 @@ interface LandingScreenProps {
 export default function LandingScreen({ onComplete }: LandingScreenProps) {
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"m" | "f">("m");
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const handleSubmit = () => {
     if (name.trim()) {
@@ -22,14 +27,14 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
       <div className="absolute top-[10%] right-[10%] w-48 h-48 rounded-full border border-indigo-500/10 pointer-events-none" />
       <div className="absolute bottom-[15%] left-[5%] w-72 h-72 rounded-full border border-indigo-500/5 pointer-events-none" />
 
-      <div className="w-full max-w-sm relative z-10 flex flex-col gap-8 animate-fade-in-up">
+      <div className="w-full max-sm relative z-10 flex flex-col gap-8 animate-fade-in-up">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_20px_60px_rgba(99,102,241,0.4)]">
             <Anchor size={36} className="text-white" />
           </div>
           <div>
-            <h1 className="font-headline text-4xl font-black text-slate-50 tracking-tight leading-none">עוגן שקט</h1>
-            <p className="text-slate-400 text-sm mt-2 tracking-wide font-medium">כלים פסיכולוגיים לרגעי קושי</p>
+            <h1 className="font-headline text-4xl font-black text-slate-50 tracking-tight leading-none">המצפן הרגשי 🧭</h1>
+            <p className="text-slate-400 text-sm mt-2 tracking-wide font-medium">ארגז הכלים לחוסן ושקט נפשי</p>
           </div>
           <div className="flex gap-3 mt-2">
             {["CBT", "ACT", "EMDR", "Mindfulness"].map((t) => (
@@ -90,10 +95,16 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
                   : "bg-indigo-500/20 text-indigo-300/30 cursor-not-allowed"
               }`}
             >
-              להטיל עוגן
+              להפעיל את המצפן
             </button>
           </div>
         </div>
+
+        <footer className="text-center py-4 opacity-80">
+          <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">
+            © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
+          </p>
+        </footer>
       </div>
     </div>
   );

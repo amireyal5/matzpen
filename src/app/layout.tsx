@@ -2,8 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'עוגן שקט | Ogen Shaket',
-  description: 'כלים פסיכולוגיים לחוסן ושקט פנימי',
+  title: 'המצפן הרגשי 🧭 | Emotional Compass',
+  description: 'ארגז הכלים לחוסן ושקט נפשי',
 };
 
 export default function RootLayout({

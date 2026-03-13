@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Anchor } from "lucide-react";
+import { Compass } from "lucide-react";
 
 interface HomeScreenProps {
   name: string;
@@ -31,7 +31,7 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
             onClick={onBack}
             className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors"
           >
-            <Anchor size={20} />
+            <Compass size={20} />
           </button>
         </div>
 
@@ -73,8 +73,8 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
         </div>
 
         <footer className="text-center py-8 opacity-80">
-          <p className="text-[10px] font-bold tracking-widest text-slate-700 uppercase">
-            © {currentYear} עוגן שקט • כל הזכויות עמיר אייל
+          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+            © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
           </p>
         </footer>
       </div>

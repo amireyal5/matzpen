@@ -91,7 +91,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       </div>
 
       {/* Card Arena with Carousel */}
-      <div className="flex-1 w-full max-w-lg overflow-hidden flex items-center justify-center mb-8">
+      <div className="flex-1 w-full max-w-lg overflow-hidden flex items-center justify-center">
         <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
           <CarouselContent className="-ml-0">
             {cards.map((card, i) => (
@@ -111,7 +111,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                         >
                           <CatIcon size={28} style={{ color: cat.hue }} />
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">עוגן {i + 1}</span>
+                        <span className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">כרטיסייה {i + 1}</span>
                       </div>
 
                       <div className="flex-1 flex items-center justify-center px-2">
@@ -230,9 +230,9 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </Carousel>
       </div>
 
-      <footer className="w-full py-6 text-center opacity-80">
-        <p className="text-[10px] font-bold tracking-widest text-slate-700 uppercase">
-          © {currentYear} עוגן שקט • כל הזכויות עמיר אייל
+      <footer className="w-full py-8 text-center opacity-80">
+        <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+          © {currentYear} המצפן הרגשי • כל הזכויות עמיר אייל
         </p>
       </footer>
     </div>
