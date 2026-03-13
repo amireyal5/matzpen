@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { 
-  ArrowRight, RotateCcw, ChevronRight, ChevronLeft, 
-  Zap, ListChecks, BookOpen, Check 
+  ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check 
 } from "lucide-react";
-import { BANK, CATS, TIP_MAP, CardContent } from "@/lib/data";
+import { BANK, CATS, TIP_MAP } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import {
   Carousel,
@@ -25,6 +24,11 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [flipped, setFlipped] = useState(false);
   const [backTab, setBackTab] = useState<"why" | "steps" | "tip">("why");
   const [api, setApi] = useState<CarouselApi>();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
@@ -87,7 +91,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       </div>
 
       {/* Card Arena with Carousel */}
-      <div className="flex-1 w-full max-w-lg overflow-hidden flex items-center justify-center">
+      <div className="flex-1 w-full max-w-lg overflow-hidden flex items-center justify-center mb-8">
         <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
           <CarouselContent className="-ml-0">
             {cards.map((card, i) => (
@@ -226,37 +230,11 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </Carousel>
       </div>
 
-      {/* Navigation Controls (Synced with Carousel) */}
-      <div className="w-full max-w-lg px-6 py-10 flex items-center justify-between gap-6">
-        <button 
-          onClick={() => api?.scrollNext()}
-          className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-md active:scale-90 transition-transform disabled:opacity-30"
-          disabled={!api?.canScrollNext()}
-        >
-          <ChevronRight size={24} className="text-slate-400" />
-        </button>
-
-        <div className="flex gap-1.5 overflow-x-auto px-2 py-2 hide-scrollbar">
-          {cards.map((_, i) => (
-            <div 
-              key={i} 
-              className={cn(
-                "h-2 rounded-full transition-all duration-300",
-                i === idx ? "w-8" : "w-2"
-              )}
-              style={{ backgroundColor: i === idx ? cat.hue : `${cat.hue}30` }}
-            />
-          ))}
-        </div>
-
-        <button 
-          onClick={() => api?.scrollPrev()}
-          className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-md active:scale-90 transition-transform disabled:opacity-30"
-          disabled={!api?.canScrollPrev()}
-        >
-          <ChevronLeft size={24} className="text-slate-400" />
-        </button>
-      </div>
+      <footer className="w-full py-6 text-center opacity-80">
+        <p className="text-[10px] font-bold tracking-widest text-slate-700 uppercase">
+          © {currentYear} עוגן שקט • כל הזכויות עמיר אייל
+        </p>
+      </footer>
     </div>
   );
 }

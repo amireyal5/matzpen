@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
 import { Anchor } from "lucide-react";
 
@@ -10,6 +11,12 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScreenProps) {
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-xl mx-auto space-y-8 py-4 animate-fade-in-up">
@@ -65,9 +72,9 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
           })}
         </div>
 
-        <footer className="text-center py-8 opacity-20 hover:opacity-100 transition-opacity">
-          <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
-            © 2026 עוגן שקט • פסיכולוגיה של חוסן
+        <footer className="text-center py-8 opacity-80">
+          <p className="text-[10px] font-bold tracking-widest text-slate-700 uppercase">
+            © {currentYear} עוגן שקט • כל הזכויות עמיר אייל
           </p>
         </footer>
       </div>
