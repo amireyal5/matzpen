@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -22,62 +23,71 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_50%,#0F172A_100%)]">
-      <div className="absolute top-[10%] right-[10%] w-48 h-48 rounded-full border border-indigo-500/10 pointer-events-none" />
-      <div className="absolute bottom-[15%] left-[5%] w-72 h-72 rounded-full border border-indigo-500/5 pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center p-6 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_50%,#0F172A_100%)] overflow-y-auto">
+      {/* Decorative background elements */}
+      <div className="fixed top-[10%] right-[10%] w-48 h-48 rounded-full border border-indigo-500/10 pointer-events-none" />
+      <div className="fixed bottom-[15%] left-[5%] w-72 h-72 rounded-full border border-indigo-500/5 pointer-events-none" />
 
-      <div className="w-full max-sm relative z-10 flex flex-col gap-8 animate-fade-in-up">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="pt-4">
-            <h1 className="font-headline text-4xl font-black text-slate-50 tracking-tight leading-none"> המצפן הרגשי 🧭</h1>
-            <p className="text-slate-400 text-sm mt-3 tracking-wide font-medium">ארגז הכלים לחוסן ושקט נפשי</p>
+      <div className="w-full max-w-md relative z-10 flex flex-col gap-8 py-12 animate-fade-in-up">
+        
+        {/* Therapist Welcome Section */}
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="relative w-28 h-28 rounded-full border-4 border-indigo-500/30 overflow-hidden shadow-2xl">
+            <Image 
+              src="https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg"
+              alt="עמיר אייל"
+              fill
+              className="object-cover"
+            />
           </div>
-          <div className="flex gap-3 mt-2">
-            {["CBT", "ACT", "EMDR", "Mindfulness"].map((t) => (
-              <span
-                key={t}
-                className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20"
-              >
-                {t}
-              </span>
-            ))}
+          <div className="space-y-2">
+            <h1 className="font-headline text-3xl font-black text-slate-50 tracking-tight leading-none">
+              המצפן הרגשי 🧭
+            </h1>
+            <p className="text-indigo-400 font-bold text-sm">ברוכים הבאים למרחב התמיכה שלכם</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-right">
+            <p className="text-slate-200 text-sm leading-relaxed font-medium">
+              שלום, אני עמיר. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו. כאן תמצאו כלים פרקטיים לניהול רגשות, בניית חוסן ומציאת שקט נפשי בכל רגע שתזדקקו לו.
+            </p>
           </div>
         </div>
 
-        <div className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] p-8 border border-indigo-500/20 shadow-2xl">
+        {/* Onboarding Form */}
+        <div className="bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-indigo-500/20 shadow-2xl">
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block">שמך</label>
+              <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block pr-1">איך נקרא לך?</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="איך נקרא לך?..."
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-indigo-500/20 bg-slate-900/50 text-slate-50 text-lg font-semibold focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-slate-600"
+                placeholder="הכנס/י שם..."
+                className="w-full px-5 py-4 rounded-2xl border-2 border-indigo-500/20 bg-slate-900/50 text-slate-50 text-lg font-semibold focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block">פנייה</label>
+              <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block pr-1">איך לפנות אליך?</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setGender("m")}
-                  className={`py-3.5 rounded-2xl text-base font-bold transition-all border-2 ${
+                  className={`py-4 rounded-2xl text-base font-bold transition-all border-2 ${
                     gender === "m"
                       ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20"
                       : "bg-transparent border-slate-700 text-slate-500 hover:border-indigo-500/40"
                   }`}
                 >
-                  זכר
+                  לשון זכר
                 </button>
                 <button
                   onClick={() => setGender("f")}
-                  className={`py-3.5 rounded-2xl text-base font-bold transition-all border-2 ${
+                  className={`py-4 rounded-2xl text-base font-bold transition-all border-2 ${
                     gender === "f"
                       ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20"
                       : "bg-transparent border-slate-700 text-slate-500 hover:border-indigo-500/40"
                   }`}
                 >
-                  נקבה
+                  לשון נקבה
                 </button>
               </div>
             </div>
@@ -85,9 +95,9 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
             <button
               onClick={handleSubmit}
               disabled={!name.trim()}
-              className={`w-full py-4 rounded-2xl text-lg font-black transition-all shadow-xl ${
+              className={`w-full py-5 rounded-2xl text-xl font-black transition-all shadow-xl ${
                 name.trim()
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30 active:scale-[0.98]"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30 active:scale-[0.98] hover:brightness-110"
                   : "bg-indigo-500/20 text-indigo-300/30 cursor-not-allowed"
               }`}
             >
