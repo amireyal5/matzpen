@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -49,7 +48,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const CatIcon = cat.icon;
 
   return (
-    <div className="min-h-screen w-full pb-10" style={{ backgroundColor: cat.light }}>
+    <div className="min-h-screen w-full overflow-y-auto" style={{ backgroundColor: cat.light }}>
       <div className="max-w-lg mx-auto flex flex-col items-center">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
@@ -88,7 +87,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
 
         {/* Card Arena with Carousel */}
-        <div className="w-full">
+        <div className="w-full mb-12">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
             <CarouselContent className="-ml-0">
               {cards.map((card, i) => (
