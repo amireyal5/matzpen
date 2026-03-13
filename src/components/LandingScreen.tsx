@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Anchor } from "lucide-react";
+import { Compass } from "lucide-react";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -30,7 +30,7 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
       <div className="w-full max-sm relative z-10 flex flex-col gap-8 animate-fade-in-up">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_20px_60px_rgba(99,102,241,0.4)]">
-            <Anchor size={36} className="text-white" />
+            <Compass size={36} className="text-white" />
           </div>
           <div>
             <h1 className="font-headline text-4xl font-black text-slate-50 tracking-tight leading-none">המצפן הרגשי 🧭</h1>
