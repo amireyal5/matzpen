@@ -48,7 +48,7 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
           </div>
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-right">
             <p className="text-slate-200 text-sm leading-relaxed font-medium">
-              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו. כאן תמצאו כלים פרקטיים לניהול רגשות, בניית חוסן ומציאת שקט נפשי בכל רגע שתזדקקו לו.
+              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו. כאן תמצאו כלים פרקטיים לניהול רגשות, בניית חוסן ומציאת שקט נפשי בכל רגע שתזדקקו לו.
             </p>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
 
         <footer className="text-center py-4 opacity-80">
           <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר</a> אייל
+            © {currentYear} המצפן הרגשי • כל הזכויות <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>

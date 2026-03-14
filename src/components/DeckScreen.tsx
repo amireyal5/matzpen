@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,6 +24,11 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [flipped, setFlipped] = useState(false);
   const [backTab, setBackTab] = useState<"why" | "steps" | "tip">("why");
   const [api, setApi] = useState<CarouselApi>();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
@@ -225,9 +229,14 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
             </CarouselContent>
           </Carousel>
         </div>
+
+        {/* Clean, Uniform Footer */}
+        <footer className="w-full text-center py-8 opacity-60">
+          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+            © {currentYear} המצפן הרגשי • כל הזכויות <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
+          </p>
+        </footer>
       </div>
-      {/* Absolute clean end of page - no footer area */}
-      <div className="flex-1 min-h-[4rem]" />
     </div>
   );
 }
