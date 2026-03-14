@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,16 +7,18 @@ import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
 import AboutScreen from "@/components/AboutScreen";
 import SplashScreen from "@/components/SplashScreen";
+import GuidedSession from "@/components/GuidedSession";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [showSplash, setShowSplash] = useState(true);
   const [activeCatKey, setActiveCatKey] = useState("SOS");
+  const [activePracticeIdx, setActivePracticeIdx] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
   
   const { user, isUserLoading } = useUser();
@@ -50,7 +51,7 @@ function AppContent() {
           setScreen("home");
         }
       } else {
-        if (screen === "home" || screen === "deck") {
+        if (screen === "home" || screen === "deck" || screen === "guided") {
           setScreen("auth");
         }
       }
@@ -82,13 +83,19 @@ function AppContent() {
     setScreen("deck");
   };
 
+  const handleStartGuided = (catKey: string, practiceIdx: number) => {
+    setActiveCatKey(catKey);
+    setActivePracticeIdx(practiceIdx);
+    setScreen("guided");
+  };
+
   // While showing splash or loading initial data
   if (showSplash || !isHydrated || isUserLoading) {
     return <SplashScreen />;
   }
 
   const name = profileData?.name || user?.displayName || "";
-  const gender = profileData?.gender || "m";
+  const gender = (profileData?.gender || "m") as "m" | "f";
 
   return (
     <main className="min-h-screen">
@@ -113,6 +120,7 @@ function AppContent() {
           name={name} 
           gender={gender}
           onSelectCategory={handleSelectCategory} 
+          onStartGuided={handleStartGuided}
           onBack={() => setScreen("landing")} 
         />
       )}
@@ -121,6 +129,14 @@ function AppContent() {
           catKey={activeCatKey} 
           gender={gender} 
           onBack={() => setScreen("home")} 
+        />
+      )}
+      {(screen === "guided" && user) && (
+        <GuidedSession 
+          catKey={activeCatKey}
+          practiceIdx={activePracticeIdx}
+          gender={gender}
+          onBack={() => setScreen("home")}
         />
       )}
     </main>

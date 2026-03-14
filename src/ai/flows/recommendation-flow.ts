@@ -1,13 +1,12 @@
-
 'use server';
 /**
  * @fileOverview מנוע המלצות חכם למצפן הרגשי.
- * מקבל את הרגשת המשתמש ואת המגדר שלו, ומחזיר את הקטגוריה המתאימה ביותר עם הסבר מותאם מגדרית.
+ * מקבל את הרגשת המשתמש ואת המגדר שלו, ומחזיר את הקטגוריה והתרגיל המתאימים ביותר.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { CATS } from '@/lib/data';
+import { CATS, BANK } from '@/lib/data';
 
 const RecommendationInputSchema = z.object({
   feeling: z.string().describe('תיאור ההרגשה של המשתמש כרגע.'),
@@ -16,8 +15,9 @@ const RecommendationInputSchema = z.object({
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 
 const RecommendationOutputSchema = z.object({
-  categoryKey: z.string().describe('המפתח של הקטגוריה המומלצת (מתוך רשימת המפתחות הקיימים).'),
-  explanation: z.string().describe('הסבר קצר ומרגיע למה הקטגוריה הזו תעזור למשתמש כרגע.'),
+  categoryKey: z.string().describe('המפתח של הקטגוריה המומלצת.'),
+  practiceIndex: z.number().describe('האינדקס של התרגיל הספציפי בתוך הקטגוריה (0 ומעלה).'),
+  explanation: z.string().describe('הסבר קצר ומרגיע למה הקטגוריה והתרגיל האלו יעזרו למשתמש כרגע.'),
 });
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>;
 
@@ -33,16 +33,20 @@ const prompt = ai.definePrompt({
 המשתמש משתף איך הוא מרגיש כרגע: "{{{feeling}}}".
 מגדר המשתמש הוא: {{gender}} (m = זכר, f = נקבה).
 
-בהתבסס על הקטגוריות הבאות, בחר את הקטגוריה שהכי תעזור לו כרגע:
+בהתבסס על המאגר הבא, בחר את הקטגוריה והתרגיל הספציפי (האינדקס שלו ברשימה) שהכי יעזרו לו כרגע.
+שים לב לשמות התרגילים ולמהות שלהם.
+
+הקטגוריות הקיימות:
 {{#each categories}}
 - {{key}}: {{label}} ({{tagLine}})
 {{/each}}
 
-החזר את מפתח הקטגוריה (key) והסבר קצר, אישי ומחזק בעברית רהוטה.
-חשוב מאוד: עליך לנסח את ההסבר (explanation) בדיוק לפי המגדר של המשתמש ({{gender}}). 
-אם זה m - פנה בלשון זכר. אם זה f - פנה בלשון נקבה.
-אל תשתמש בלוכסנים (כמו בחר/י), אלא פנה ישירות ובצורה חמה.
+תרגילים לדוגמה (מפתחות):
+SOS: מים קרים, נשימה 4-4-8, דחיפת קיר...
+BODY: סריקת גוף, ניעור, נשימת קופסה...
+ACCEPTANCE: עננים, התרחבות, תיקוף...
 
+החזר את מפתח הקטגוריה (categoryKey), את האינדקס של התרגיל (practiceIndex) והסבר קצר ומחזק בעברית רהוטה המותאם למגדר ({{gender}}).
 אם המשתמש נשמע במצוקה קשה מאוד, בחר תמיד ב-SOS.`,
 });
 

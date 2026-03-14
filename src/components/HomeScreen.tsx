@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,12 +18,13 @@ interface HomeScreenProps {
   name: string;
   gender: "m" | "f";
   onSelectCategory: (key: string) => void;
+  onStartGuided: (catKey: string, practiceIdx: number) => void;
   onBack: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
-export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onBack }: HomeScreenProps) {
+export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onStartGuided, onBack }: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -56,7 +56,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const favorites = profileData?.favorites || [];
   const completedCards = profileData?.completed || [];
   const displayName = profileData?.name || initialName;
-  const displayGender = profileData?.gender || initialGender;
+  const displayGender = (profileData?.gender || initialGender) as "m" | "f";
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +123,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   <div className="w-full h-full rounded-full border-4 border-white/20 shadow-2xl overflow-hidden relative">
                     <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
                   </div>
-                  {/* Presence Indicator - Fixed outside overflow container */}
+                  {/* Presence Indicator */}
                   <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg z-40" />
                 </div>
               </div>
@@ -169,12 +169,21 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         {recommendation && (
           <div className="mt-6 p-8 bg-white rounded-[2rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500">
             <p className="text-base text-slate-700 leading-relaxed mb-6 font-medium border-r-4 border-indigo-500 pr-5">{recommendation.explanation}</p>
-            <button 
-              onClick={() => onSelectCategory(recommendation.categoryKey)}
-              className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm"
-            >
-              בוא {displayGender === 'f' ? 'נצלול' : 'נצלול'} ל{CATS.find(c => c.key === recommendation.categoryKey)?.label}
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button 
+                onClick={() => onStartGuided(recommendation.categoryKey, recommendation.practiceIndex)}
+                className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
+              >
+                <Sparkles size={16} />
+                בוא נתרגל יחד
+              </button>
+              <button 
+                onClick={() => onSelectCategory(recommendation.categoryKey)}
+                className="w-full py-5 bg-slate-100 rounded-2xl text-slate-900 font-black text-sm hover:bg-slate-200 transition-all active:scale-95"
+              >
+                צפייה בכלים בקטגוריה
+              </button>
+            </div>
           </div>
         )}
       </div>
