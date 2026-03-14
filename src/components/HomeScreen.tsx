@@ -168,16 +168,16 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 </TooltipTrigger>
                 <TooltipContent>פרופיל אישי</TooltipContent>
               </Tooltip>
-              <DialogContent className="sm:max-w-md rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden" dir="rtl">
+              <DialogContent className="sm:max-w-md rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate" dir="rtl">
                 <DialogHeader className="sr-only">
                   <DialogTitle>פרופיל אישי</DialogTitle>
                   <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
                 </DialogHeader>
                 
                 {/* High-End Glassmorphism Header */}
-                <div className="relative h-32 w-full overflow-hidden">
-                  <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-2xl z-0" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent z-1" />
+                <div className="relative h-32 w-full overflow-hidden rounded-t-[3rem] translate-z-0">
+                  <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-2xl z-0" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent z-1" />
                   
                   {/* Custom Elegant Close Button */}
                   <DialogClose className="absolute left-6 top-6 z-20 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none">
@@ -471,3 +471,4 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     </div>
   );
 }
+
