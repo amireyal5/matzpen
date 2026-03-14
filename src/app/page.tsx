@@ -7,7 +7,7 @@ import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 type Screen = "landing" | "auth" | "home" | "deck";
@@ -31,18 +31,27 @@ function AppContent() {
   // Real-time listen to profile data
   const { data: profileData } = useDoc(profileRef);
 
-  // Sync profile from cloud to local state and redirect to home if logged in
+  // Sync profile from cloud to local state and redirect to home if logged in and verified
   useEffect(() => {
-    if (profileData) {
-      setName(profileData.name || "");
-      setGender(profileData.gender || "m");
-      if (screen === "landing" || screen === "auth") {
-        setScreen("home");
+    if (user) {
+      const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
+      
+      if (isVerified) {
+        if (profileData) {
+          setName(profileData.name || "");
+          setGender(profileData.gender || "m");
+          if (screen === "landing" || screen === "auth") {
+            setScreen("home");
+          }
+        } else if (screen !== "home" && screen !== "deck") {
+          setScreen("home");
+        }
+      } else {
+        // Not verified - force auth screen
+        if (screen === "home" || screen === "deck") {
+          setScreen("auth");
+        }
       }
-    } else if (user && screen !== "home" && screen !== "deck") {
-      // If user is logged in but no profile data yet, we might be in the middle of a sync
-      // or it's a new user who just registered.
-      setScreen("home");
     }
   }, [profileData, user, screen]);
 
@@ -74,12 +83,17 @@ function AppContent() {
     setName(userName);
     setGender(userGender);
     localStorage.setItem("compass_user_data", JSON.stringify({ name: userName, gender: userGender }));
-    // Instead of going home, go to auth to secure the profile
     setScreen("auth");
   };
 
   const handleAuthSuccess = () => {
-    setScreen("home");
+    // Only proceed to home if user exists and is verified
+    if (user) {
+       const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
+       if (isVerified) {
+         setScreen("home");
+       }
+    }
   };
 
   const handleSelectCategory = (key: string) => {
@@ -106,7 +120,7 @@ function AppContent() {
           localProfile={{ name, gender }}
         />
       )}
-      {(screen === "home" || (user && screen === "landing")) && (
+      {(screen === "home" && user) && (
         <HomeScreen 
           name={name} 
           gender={gender}
@@ -114,7 +128,7 @@ function AppContent() {
           onBack={() => setScreen("landing")} 
         />
       )}
-      {screen === "deck" && (
+      {(screen === "deck" && user) && (
         <DeckScreen 
           catKey={activeCatKey} 
           gender={gender} 
