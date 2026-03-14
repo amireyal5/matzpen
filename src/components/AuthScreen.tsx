@@ -302,7 +302,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
 
               <Button 
                 variant="outline" 
-                className="w-full border-slate-800 bg-transparent hover:bg-slate-800/50 text-slate-50 h-14 rounded-2xl font-bold transition-all active:scale-95"
+                className="w-full border-slate-800 bg-transparent hover:bg-slate-800/50 hover:text-slate-50 text-slate-50 h-14 rounded-2xl font-bold transition-all active:scale-95"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
               >
