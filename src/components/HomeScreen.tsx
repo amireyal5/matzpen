@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,11 +8,12 @@ import { cn } from "@/lib/utils";
 
 interface HomeScreenProps {
   name: string;
+  gender: "m" | "f";
   onSelectCategory: (key: string) => void;
   onBack: () => void;
 }
 
-export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScreenProps) {
+export default function HomeScreen({ name, gender, onSelectCategory, onBack }: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -52,14 +52,20 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
     setSearchQuery("");
   };
 
+  const welcomeText = gender === "f" ? "שלום, " : "שלום, "; // Same in Hebrew, but could differ in vocalization
+  const actionText = gender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
+  const placeholderText = gender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
+  const favTitle = gender === "f" ? "מועדפים ששמרת" : "מועדפים ששמרת";
+  const cardsText = gender === "f" ? "כרטיסיות" : "כרטיסיות";
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-xl mx-auto space-y-8 py-4 animate-fade-in-up">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-400 tracking-wider">שלום, {name} 🌿</p>
-            <h2 className="text-3xl font-headline font-black text-slate-900 leading-tight">מה תרצה לעבוד עליו?</h2>
+            <p className="text-xs font-bold text-slate-400 tracking-wider">{welcomeText}{name} 🌿</p>
+            <h2 className="text-3xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
             <p className="text-xs text-slate-400 font-medium">{CATS.length} קטגוריות • {Object.values(BANK).flat().length} כרטיסיות חוסן</p>
           </div>
           <button
@@ -77,7 +83,7 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="איך את/ה מרגיש/ה כרגע?"
+              placeholder={placeholderText}
               className="w-full bg-white px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-12 font-medium"
             />
             <button 
@@ -100,7 +106,7 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
                 className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all"
               >
-                לכי לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
+                {gender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
               </button>
             </div>
           )}
@@ -109,10 +115,9 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
         {/* Quick Stats / Favorites (If any) */}
         {favorites.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-black text-slate-400 tracking-[0.2em] uppercase pr-2">מועדפים ששמרת</h3>
+            <h3 className="text-xs font-black text-slate-400 tracking-[0.2em] uppercase pr-2">{favTitle}</h3>
             <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
               {favorites.map((fav, i) => {
-                // Assuming fav is stored as "catKey:cardIdx"
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
                 if (!cat) return null;
@@ -165,7 +170,7 @@ export default function HomeScreen({ name, onSelectCategory, onBack }: HomeScree
                     className="inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: `${c.hue}15`, color: c.hue }}
                   >
-                    {count} כרטיסיות
+                    {count} {cardsText}
                   </div>
                   {completedCount > 0 && (
                     <div className={cn("flex items-center gap-1", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>

@@ -45,8 +45,6 @@ export default function App() {
   };
 
   const handleBackToLanding = () => {
-    // Optionally clear data if they want to start over
-    // localStorage.removeItem("compass_user_data");
     setScreen("landing");
   };
 
@@ -61,6 +59,7 @@ export default function App() {
       {screen === "home" && (
         <HomeScreen 
           name={name} 
+          gender={gender}
           onSelectCategory={handleSelectCategory} 
           onBack={handleBackToLanding} 
         />

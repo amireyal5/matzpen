@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -158,7 +157,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                 {cat.label}
               </h2>
               <p className="text-slate-600 font-medium leading-relaxed text-base">
-                {cat.intro}
+                {g(cat.intro)}
               </p>
             </div>
             <button 
@@ -267,7 +266,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                             style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}40` }}
                           >
                             <BookOpen size={20} />
-                            איך עושים את זה?
+                            {gender === 'f' ? 'איך את עושה את זה?' : 'איך עושים את זה?'}
                           </button>
                         </div>
                       </div>
@@ -354,7 +353,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                               <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex gap-3">
                                 <span className="text-xl">💡</span>
                                 <p className="text-xs text-amber-900 font-bold leading-relaxed">
-                                  ככל שתתרגל, כך הפעולה תהפוך לאוטומטית ומרגיעה — המוח לומד דרך חזרתיות ועקביות.
+                                  {gender === 'f' ? 'ככל שתתרגלי, כך הפעולה תהפוך לאוטומטית ומרגיעה — המוח לומד דרך חזרתיות ועקביות.' : 'ככל שתתרגל, כך הפעולה תהפוך לאוטומטית ומרגיעה — המוח לומד דרך חזרתיות ועקביות.'}
                                 </p>
                               </div>
                             </div>
