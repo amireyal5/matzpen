@@ -39,22 +39,29 @@ export default function PracticeCard({
 
   const CatIcon = category.icon;
 
-  // Outer wrapper classes shared by both sides to ensure consistent "lying on background" look
-  // Added overflow-hidden and matching rounded corners to prevent bleed
-  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl shadow-slate-300/60 backface-hidden border border-white isolate";
+  // הוסר overflow-hidden מהמעטפת הראשית כדי לא לחתוך את הצל וההילה
+  // ה-overflow-hidden הועבר פנימה לרמת ה-Header והתוכן
+  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col shadow-2xl shadow-slate-300/60 backface-hidden border border-white isolate";
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative">
+      
+      {/* הילה חיצונית שיושבת מתחת לכרטיסייה ולא נחתכת */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] blur-[120px] opacity-[0.12] transition-all duration-1000 rounded-full z-0 pointer-events-none"
+        style={{ backgroundColor: category.hue }}
+      />
+
       <div 
         onClick={() => onFlip(!isFlipped)}
         className={cn(
-          "relative w-full h-full transition-transform duration-[800ms] preserve-3d cursor-pointer",
+          "relative w-full h-full transition-transform duration-[800ms] preserve-3d cursor-pointer z-10",
           isFlipped ? "rotate-y-180" : ""
         )}
       >
         {/* FRONT SIDE */}
         <div className={cardShellClasses}>
-          {/* Header (40% height) - Added rounded-t to match card shape */}
+          {/* Header - overflow-hidden כאן רק על החלק העליון המעוגל */}
           <div 
             className="h-[40%] w-full relative flex flex-col items-center justify-center p-8 text-white overflow-hidden rounded-t-[45px]"
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
@@ -96,7 +103,7 @@ export default function PracticeCard({
           </div>
 
           {/* White Area (60% height) */}
-          <div className="flex-1 relative flex flex-col items-center justify-between p-8 md:p-12 text-center bg-white">
+          <div className="flex-1 relative flex flex-col items-center justify-between p-8 md:p-12 text-center bg-white rounded-b-[45px]">
             {/* Watermark Logo */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.03] pointer-events-none select-none z-0">
               <svg viewBox="70 80 180 123" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -127,7 +134,7 @@ export default function PracticeCard({
 
         {/* BACK SIDE */}
         <div className={cn(cardShellClasses, "rotate-y-180")}>
-          {/* Header (25% height) - Added rounded-t to match card shape */}
+          {/* Header (25% height) */}
           <div 
             className="h-[25%] w-full relative flex flex-col items-center justify-center p-6 text-white overflow-hidden shrink-0 rounded-t-[45px]"
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
@@ -176,7 +183,7 @@ export default function PracticeCard({
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white relative z-10" onClick={(e) => e.stopPropagation()}>
+          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white relative z-10 rounded-b-[45px]" onClick={(e) => e.stopPropagation()}>
             {backTab === "why" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex gap-5 items-start">
@@ -229,7 +236,7 @@ export default function PracticeCard({
           </div>
 
           {/* Footer Toggle */}
-          <div className="p-8 pt-0 bg-white shrink-0 relative z-10">
+          <div className="p-8 pt-0 bg-white shrink-0 relative z-10 rounded-b-[45px]">
             <div 
               className="w-full py-4 rounded-[2rem] border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-slate-50 active:scale-95 group"
               style={{ borderColor: `${category.hue}20`, color: category.hue }}
