@@ -23,7 +23,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 239 84% 67%;
-    --radius: 1.5rem;
+    --radius: 2rem;
   }
 }
 
@@ -67,4 +67,12 @@
 
 .dark-glass-panel {
   @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+.soft-shadow {
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
+}
+
+.diffused-shadow {
+  box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.1);
 }

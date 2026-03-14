@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -122,9 +121,8 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Header: Straight edge, no overlap */}
-      <header className="bg-slate-900 text-white pt-8 pb-10 px-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+      {/* Header: Solid, Flat Navy */}
+      <header className="bg-slate-950 text-white pt-8 pb-10 px-6 shadow-md relative z-10">
         <div className="max-w-xl mx-auto flex justify-between items-center relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -150,7 +148,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                         alt={`תמונת הפרופיל של ${displayName}`} 
                         width={48} 
                         height={48} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
                       <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
@@ -167,12 +165,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 <DialogTitle>פרופיל אישי</DialogTitle>
                 <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
               </DialogHeader>
-              <div className="h-24 bg-slate-900 w-full" />
+              <div className="h-24 bg-slate-950 w-full" />
               <div className="px-8 pb-8 -mt-12">
                 <div className="relative mb-4">
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
                     {user?.photoURL ? (
-                      <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={96} height={96} className="w-full h-full object-cover" />
+                      <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={96} height={96} className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
                         <UserIcon size={40} aria-hidden="true" />
@@ -263,48 +261,48 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         </div>
       </header>
 
-      <div className="max-w-xl mx-auto px-6 mt-10 space-y-8 pb-12 animate-fade-in-up">
-        {/* Main Interaction Card */}
-        <div className="glass-panel rounded-[2rem] p-8 space-y-2">
+      <div className="max-w-xl mx-auto px-6 mt-10 space-y-10 pb-16 animate-fade-in-up">
+        {/* Main Interaction Card: Floating, Large Radius, Diffused Shadow */}
+        <div className="bg-white rounded-[2rem] p-10 diffused-shadow border border-slate-50 space-y-4">
           <p className="text-xs font-bold text-indigo-600 tracking-wider">{welcomeText}{displayName} 🌿</p>
           <h2 className="text-2xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
           
-          <form onSubmit={handleSearch} className="relative mt-6">
+          <form onSubmit={handleSearch} className="relative mt-8">
             <input 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={placeholderText}
               aria-label={placeholderText}
-              className="w-full bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-12 font-medium"
+              className="w-full bg-slate-50 px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-14 font-medium"
             />
             <button 
               type="submit"
               disabled={isSearching}
               aria-label="חפש המלצה"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
-              {isSearching ? <Sparkles className="animate-spin" size={18} aria-hidden="true" /> : <Search size={18} aria-hidden="true" />}
+              {isSearching ? <Sparkles className="animate-spin" size={20} aria-hidden="true" /> : <Search size={20} aria-hidden="true" />}
             </button>
           </form>
 
           {recommendation && (
-            <div className="mt-6 p-6 bg-white rounded-2xl border-2 border-indigo-100 animate-in fade-in slide-in-from-top-4 duration-300 relative shadow-inner">
+            <div className="mt-8 p-8 bg-slate-50 rounded-[2rem] border border-indigo-100 animate-in fade-in slide-in-from-top-4 duration-500 relative">
               <button 
                 onClick={clearRecommendation} 
                 aria-label="סגור המלצה"
-                className="absolute top-3 left-3 text-slate-300 hover:text-indigo-600 transition-colors"
+                className="absolute top-4 left-4 text-slate-300 hover:text-indigo-600 transition-colors"
               >
-                <X size={18} aria-hidden="true" />
+                <X size={20} aria-hidden="true" />
               </button>
               
-              <div className="flex gap-3 mb-4">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
+              <div className="flex gap-4 mb-6">
+                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
                   <Image 
                     src={PROFESSIONAL_PHOTO_URL}
                     alt="תמונת המטפל עמיר אייל"
                     fill
-                    className="object-cover"
+                    className="object-cover rounded-full"
                   />
                 </div>
                 <div className="flex flex-col justify-center">
@@ -313,12 +311,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 </div>
               </div>
 
-              <p className="text-sm text-slate-700 leading-relaxed mb-5 font-medium border-r-4 border-indigo-500 pr-4">{recommendation.explanation}</p>
+              <p className="text-base text-slate-700 leading-relaxed mb-6 font-medium border-r-4 border-indigo-500 pr-5">{recommendation.explanation}</p>
               
               <button 
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
                 aria-label={`עבור לקטגוריית ${CATS.find(c => c.key === recommendation.categoryKey)?.label}`}
-                className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
               >
                 {displayGender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
               </button>
@@ -328,12 +326,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
         {/* Anchors (Favorites) Section */}
         {favorites.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Anchor size={14} className="text-rose-500" aria-hidden="true" />
               <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">העוגנים שלי</h3>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
+            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
               {favorites.map((fav, i) => {
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
@@ -344,16 +342,16 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     key={i}
                     onClick={() => onSelectCategory(catKey)}
                     aria-label={`עבור למועדף: ${cat.label}`}
-                    className="flex-shrink-0 px-6 py-4 rounded-[1.5rem] bg-white border border-slate-100 shadow-sm flex items-center gap-3 hover:border-rose-200 transition-all hover:shadow-md active:scale-95"
+                    className="flex-shrink-0 px-8 py-5 rounded-[2rem] bg-white border border-slate-100 shadow-sm flex items-center gap-4 hover:border-rose-200 transition-all hover:shadow-md active:scale-95"
                   >
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50">
-                      <Icon size={16} style={{ color: cat.hue }} aria-hidden="true" />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-50">
+                      <Icon size={18} style={{ color: cat.hue }} aria-hidden="true" />
                     </div>
                     <div className="text-right">
-                      <span className="block text-xs font-black text-slate-900 leading-none mb-1">{cat.label}</span>
-                      <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest">תרגיל שמור</span>
+                      <span className="block text-sm font-black text-slate-900 leading-none mb-1">{cat.label}</span>
+                      <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-widest">תרגיל שמור</span>
                     </div>
-                    <Heart size={12} className="text-rose-500 fill-rose-500 ml-1" aria-hidden="true" />
+                    <Heart size={14} className="text-rose-500 fill-rose-500 ml-2" aria-hidden="true" />
                   </button>
                 )
               })}
@@ -362,7 +360,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         )}
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           {CATS.map((c) => {
             const Icon = c.icon;
             const count = (BANK[c.key] || []).length;
@@ -374,34 +372,34 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 key={c.key}
                 onClick={() => onSelectCategory(c.key)}
                 aria-label={`קטגוריית ${c.label}. ${c.tagLine}`}
-                className="group relative flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 text-right overflow-hidden active:scale-95"
+                className="group relative flex flex-col gap-4 p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-right overflow-hidden active:scale-95"
                 style={{ backgroundColor: c.light }}
               >
                 <div 
-                  className="absolute -top-4 -left-4 w-20 h-20 rounded-full opacity-10 pointer-events-none" 
+                  className="absolute -top-4 -left-4 w-24 h-24 rounded-full opacity-10 pointer-events-none" 
                   style={{ backgroundColor: c.hue }}
                 />
                 <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm" 
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm" 
                   style={{ backgroundColor: `white` }}
                 >
-                  <Icon size={24} style={{ color: c.hue }} aria-hidden="true" />
+                  <Icon size={28} style={{ color: c.hue }} aria-hidden="true" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="font-headline text-lg font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">{c.label}</h3>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{c.tagLine}</p>
+                <div className="space-y-2">
+                  <h3 className="font-headline text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">{c.label}</h3>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">{c.tagLine}</p>
                 </div>
                 <div className="flex items-center justify-between mt-auto">
                    <div 
-                    className="inline-flex items-center text-[9px] font-black px-2.5 py-1 rounded-full bg-white/50 border border-black/5"
+                    className="inline-flex items-center text-[10px] font-black px-3 py-1.5 rounded-full bg-white/50 border border-black/5"
                     style={{ color: c.hue }}
                   >
                     {count} כרטיסיות
                   </div>
                   {categoryCompletedCount > 0 && (
-                    <div className={cn("flex items-center gap-1", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
-                      <CheckCircle2 size={12} aria-hidden="true" />
-                      <span className="text-[9px] font-bold">{categoryCompletedCount}/{count}</span>
+                    <div className={cn("flex items-center gap-1.5", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
+                      <CheckCircle2 size={14} aria-hidden="true" />
+                      <span className="text-[10px] font-bold">{categoryCompletedCount}/{count}</span>
                     </div>
                   )}
                 </div>
@@ -410,8 +408,8 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           })}
         </div>
 
-        <footer className="text-center py-12 border-t border-slate-100 space-y-4">
-          <div className="flex justify-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <footer className="text-center py-16 border-t border-slate-100 space-y-6">
+          <div className="flex justify-center gap-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">
             <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא תנאי שימוש">תנאי שימוש</button>} />
             <span className="opacity-20">|</span>
             <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא דיסקליימר">דיסקליימר</button>} />
