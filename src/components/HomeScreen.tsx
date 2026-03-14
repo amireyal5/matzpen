@@ -12,6 +12,7 @@ import { doc } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
+import Logo from "@/components/Logo";
 
 interface HomeScreenProps {
   name: string;
@@ -74,8 +75,8 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
-                <Image src="/logo.svg" alt="לוגו" width={40} height={40} className="object-cover" />
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden p-1.5">
+                <Logo variant="icon" />
               </div>
               <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">המצפן הרגשי</p>
             </div>

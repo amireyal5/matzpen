@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useAuth, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
@@ -21,6 +20,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Mail, Lock, ArrowRight, Loader2, CheckCircle2, User as UserIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/Logo";
 
 interface AuthScreenProps {
   onSuccess: () => void;
@@ -163,14 +163,8 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 text-right selection:bg-indigo-500 selection:text-white" dir="rtl">
       <Card className="w-full max-w-md bg-slate-900 border-slate-800 text-slate-50 rounded-[2.5rem] shadow-2xl overflow-hidden border-indigo-500/5">
         <CardHeader className="space-y-4 pt-12 pb-6 flex flex-col items-center">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 overflow-hidden mb-2">
-            <Image 
-              src="/logo.svg" 
-              alt="לוגו המצפן הרגשי" 
-              width={64} 
-              height={64} 
-              className="object-cover"
-            />
+          <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden mb-2 p-2">
+            <Logo variant="icon" />
           </div>
           <div className="space-y-1 text-center">
             <CardTitle className="text-3xl font-black">

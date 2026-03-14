@@ -2,10 +2,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { LegalDialog } from "@/components/LegalDialogs";
+import Logo from "@/components/Logo";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -24,7 +24,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
 
   return (
     <div className="min-h-screen flex flex-col items-center p-6 bg-slate-950 overflow-y-auto selection:bg-indigo-500 selection:text-white" dir="rtl">
-      {/* Background Orbs - General ambient light */}
+      {/* Background Orbs */}
       <div className="fixed top-[10%] right-[10%] w-64 h-64 rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" aria-hidden="true" />
       <div className="fixed bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-purple-500/5 blur-[120px] pointer-events-none" aria-hidden="true" />
 
@@ -34,20 +34,14 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none -z-10" aria-hidden="true" />
 
         {/* Logo & Header */}
-        <div className="flex flex-col items-center text-center space-y-12">
+        <div className="flex flex-col items-center text-center space-y-10">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden">
-                <Image 
-                  src="/logo.svg" 
-                  alt="לוגו המצפן הרגשי" 
-                  width={48} 
-                  height={48} 
-                  className="object-cover"
-                />
+              <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2">
+                <Logo variant="icon" />
               </div>
               <div className="text-right">
-                <span className="block text-lg font-black text-indigo-500 leading-none">המצפן הרגשי</span>
+                <span className="block text-lg font-black text-indigo-400 leading-none">המצפן הרגשי</span>
                 <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">EMOTIONAL COMPASS</span>
               </div>
             </div>

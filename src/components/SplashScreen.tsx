@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import Logo from "@/components/Logo";
 
 export default function SplashScreen() {
   const [isVisible, setIsVisible] = useState(false);
@@ -12,32 +12,23 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#FDFDFF] via-[#F7F8FC] to-[#F0F4FF]">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-slate-950">
       {/* Decorative Blur Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-200/20 blur-[120px] rounded-full animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/20 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" />
 
       <div className={`flex flex-col items-center text-center transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 transform translate-y-0 scale-100' : 'opacity-0 transform translate-y-4 scale-95'}`}>
-        {/* Logo - Large, unconstrained by borders */}
-        <div className="relative w-56 h-56 md:w-72 md:h-72 mb-8 group">
+        {/* Logo - Large full version */}
+        <div className="relative w-64 h-64 md:w-80 md:h-80 mb-8 group">
           <div className="absolute inset-0 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700" />
-          <div className="relative w-full h-full">
-            <Image 
-              src="/logo.svg" 
-              alt="המצפן הרגשי" 
-              fill 
-              priority
-              className="object-contain animate-in fade-in zoom-in duration-1000"
-            />
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <Logo variant="full" className="animate-in fade-in zoom-in duration-1000" />
           </div>
         </div>
 
-        {/* Title and Slogan */}
+        {/* Title and Slogan are now part of the SVG but we can add some extra text if needed */}
         <div className="space-y-3">
-          <h1 className="font-headline text-5xl font-black text-slate-900 tracking-tight leading-none drop-shadow-sm">
-            המצפן הרגשי
-          </h1>
-          <p className="text-slate-500 font-medium text-lg tracking-wide opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-forwards">
+          <p className="text-indigo-400/80 font-medium text-lg tracking-wide animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-forwards">
             מרחב בטוח לוויסות וצמיחה
           </p>
         </div>
@@ -45,12 +36,12 @@ export default function SplashScreen() {
 
       {/* Bottom Branding */}
       <div className={`absolute bottom-24 flex flex-col items-center gap-2 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <div className="w-8 h-[1px] bg-slate-200 mb-2" />
+        <div className="w-8 h-[1px] bg-slate-800 mb-2" />
         <a 
           href="https://www.amireyal.co.il/" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-indigo-500 transition-colors"
+          className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] hover:text-indigo-400 transition-colors"
         >
           מבית עמיר אייל
         </a>
