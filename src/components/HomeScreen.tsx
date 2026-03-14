@@ -423,7 +423,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא הצהרת נגישות">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-50">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>

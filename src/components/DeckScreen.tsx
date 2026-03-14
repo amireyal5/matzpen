@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -429,7 +430,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
 
         <footer className="w-full text-center py-12 mt-auto">
           <p className="text-[10px] font-black tracking-widest text-slate-900 uppercase opacity-30">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>
