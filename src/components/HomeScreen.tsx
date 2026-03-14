@@ -119,14 +119,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     }, 500);
   };
 
-  // UX Writing & Gender Personalization Logic
   const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
   const placeholderText = displayGender === "f" ? "ספרי לי מה עובר עלייך, ואמצא לך את הכלי המתאים..." : "ספר לי מה עובר עליך, ואמצא לך את הכלי המתאים...";
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Header: Solid Dark Navy with Personal Dialogue Focus */}
       <header className="bg-slate-950 text-white pt-10 pb-20 px-6 relative z-10">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
@@ -174,28 +172,31 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   <DialogTitle>פרופיל אישי</DialogTitle>
                   <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
                 </DialogHeader>
-                <div className="h-24 bg-slate-950 w-full" />
-                <div className="px-8 pb-8 -mt-12">
-                  <div className="relative mb-4">
-                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
+                
+                {/* Glassmorphism Header */}
+                <div className="h-28 bg-slate-900/60 backdrop-blur-xl w-full border-b border-white/5 relative z-0" />
+                
+                <div className="px-8 pb-8 -mt-14 relative z-10">
+                  <div className="relative mb-6">
+                    <div className="w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-100 mx-auto">
                       {user?.photoURL ? (
-                        <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={96} height={96} className="w-full h-full object-cover rounded-full" />
+                        <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={112} height={112} className="w-full h-full object-cover rounded-full" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <UserIcon size={40} aria-hidden="true" />
+                          <UserIcon size={44} aria-hidden="true" />
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-4 mb-8">
                     <div className="space-y-2">
                       <Label htmlFor="edit-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">איך נקרא לך?</Label>
                       <Input 
                         id="edit-name" 
                         value={editName} 
                         onChange={(e) => setEditName(e.target.value)} 
-                        className="rounded-xl border-slate-100 focus:border-indigo-500 font-bold text-slate-900"
+                        className="rounded-xl border-slate-100 focus:border-indigo-500 font-bold text-slate-900 h-12"
                       />
                     </div>
 
@@ -211,7 +212,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                           <Label 
                             htmlFor="r-male" 
                             className={cn(
-                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold",
+                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold h-12",
                               editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                             )}
                           >
@@ -223,7 +224,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                           <Label 
                             htmlFor="r-female" 
                             className={cn(
-                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold",
+                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold h-12",
                               editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                             )}
                           >
@@ -234,18 +235,18 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-center">
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-1">כרטיסיות שבוצעו</p>
                       <p className="text-xl font-black text-indigo-600">{completedCards.length}</p>
                     </div>
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-center">
                       <p className="text-[10px] font-black text-slate-400 uppercase mb-1">עוגנים</p>
                       <p className="text-xl font-black text-rose-500">{favorites.length}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <Button 
                       className="w-full py-6 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
                       onClick={handleSaveProfile}
@@ -254,22 +255,20 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     >
                       {isSaving ? "שומר..." : "שמירת שינויים"}
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full py-6 rounded-2xl text-rose-500 font-bold hover:bg-rose-50"
+                    <button 
+                      className="w-full flex items-center justify-center gap-2 text-rose-500 font-bold hover:text-rose-600 transition-colors py-2"
                       onClick={handleLogout}
                       aria-label="התנתק מהמערכת"
                     >
-                      <LogOut className="ml-2 h-4 w-4" aria-hidden="true" />
-                      התנתקות
-                    </Button>
+                      <LogOut size={16} aria-hidden="true" />
+                      <span>התנתקות</span>
+                    </button>
                   </div>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          {/* Therapist Presence Zone */}
           <div className="relative mb-2">
             <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
             <div className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden bg-slate-800">
@@ -292,7 +291,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         </div>
       </header>
 
-      {/* Floating Assistant Input - Glassmorphism overlap */}
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
         <form onSubmit={handleSearch} className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
@@ -356,7 +354,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
       <div className="max-w-xl mx-auto px-6 mt-12 space-y-12 pb-20">
         
-        {/* Anchors (Favorites) - Horizontal Scroll */}
         {favorites.length > 0 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
             <div className="flex items-center gap-2 px-2">
@@ -391,7 +388,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </div>
         )}
 
-        {/* Categories Library - 2 Column Grid */}
         <div className="space-y-6">
           <div className="flex items-center gap-2 px-2">
             <Compass size={14} className="text-indigo-600" aria-hidden="true" />
