@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Heart, CheckCircle2, Volume2, RotateCcw, Zap, ListChecks, Check, Loader2 } from "lucide-react";
@@ -40,20 +39,20 @@ export default function PracticeCard({
   const CatIcon = category.icon;
   const currentTip = TIP_MAP[category.key] || "ככל שתתרגלו, כך הפעולה תהפוך לאוטומטית ומרגיעה יותר.";
 
-  // המעטפת החיצונית של הקלף - נקייה מצללים כדי למנוע clipping בזמן סיבוב
+  // המעטפת הפיזית של הקלף - נקייה מצללים והילה כדי שלא ייחתכו בסיבוב
   const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-white isolate overflow-hidden";
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative group">
       
-      {/* 1. הילה חיצונית רכה מאוד - רחבה מספיק כדי שלא תיחתך */}
+      {/* 1. הילה חיצונית רכה מאוד (Ambient Glow) - סטטית, לא מסתובבת */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] blur-[100px] opacity-[0.08] transition-all duration-1000 rounded-full z-0 pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[115%] h-[115%] blur-[120px] opacity-[0.1] transition-all duration-1000 rounded-full z-0 pointer-events-none"
         style={{ backgroundColor: category.hue }}
       />
 
-      {/* 2. צל סטטי "מרחף" - מחוץ למערכת ה-Flip כדי למנוע זוויות חדות בשוליים */}
-      <div className="absolute inset-8 bg-slate-400/20 blur-[45px] rounded-[50px] z-0 pointer-events-none transform translate-y-6" />
+      {/* 2. צל סטטי "מרחף" (Shadow Decorator) - מחוץ למערכת ה-Flip כדי למנוע זוויות חדות */}
+      <div className="absolute inset-8 bg-slate-400/20 blur-[45px] rounded-[50px] z-0 pointer-events-none transform translate-y-8" />
 
       <div 
         onClick={() => onFlip(!isFlipped)}
