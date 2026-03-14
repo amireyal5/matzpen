@@ -83,7 +83,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
           <div className="flex justify-center gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
             <LegalDialog type="terms" trigger={<button className="hover:text-white transition-colors">תנאי שימוש</button>} />
             <span className="opacity-20">|</span>
-            <LegalDialog type="disclaimer" trigger={<button className="hover:text-white transition-colors">דיסקליימר</button>} />
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-white transition-colors">הבהרה משפטית</button>} />
             <span className="opacity-20">|</span>
             <LegalDialog type="accessibility" trigger={<button className="hover:text-white transition-colors">נגישות</button>} />
           </div>

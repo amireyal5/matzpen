@@ -74,16 +74,25 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+        // Turn off interim results to prevent duplicate appends on mobile browsers
+        recognitionRef.current.interimResults = false;
         recognitionRef.current.lang = 'he-IL';
 
         recognitionRef.current.onresult = (event: any) => {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0])
-            .map((result: any) => result.transcript)
-            .join('');
+          let currentText = '';
+          // Only process new results that are marked as final
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              currentText += event.results[i][0].transcript;
+            }
+          }
           
-          setData(prev => ({ ...prev, [step]: transcript }));
+          if (currentText) {
+            setData(prev => ({ 
+              ...prev, 
+              [step]: (prev[step as keyof typeof data] + ' ' + currentText).trim() 
+            }));
+          }
         };
 
         recognitionRef.current.onend = () => {
@@ -131,8 +140,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     if (isRecording) {
       recognitionRef.current?.stop();
     } else {
-      recognitionRef.current?.start();
-      setIsRecording(true);
+      try {
+        recognitionRef.current?.start();
+        setIsRecording(true);
+      } catch (e) {
+        console.error("Speech recognition start failed", e);
+      }
     }
   };
 

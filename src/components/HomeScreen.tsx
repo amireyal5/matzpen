@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -267,7 +268,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         <footer className="text-center py-16 border-t border-slate-100 space-y-6">
           <div className="flex justify-center gap-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">
             <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors">תנאי שימוש</button>} />
-            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors">דיסקליימר</button>} />
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors">הבהרה משפטית</button>} />
             <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-50">
