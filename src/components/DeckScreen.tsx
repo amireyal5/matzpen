@@ -1,8 +1,10 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
-  ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check, Info 
+  ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check, Info, 
+  Volume2, Heart, CheckCircle2, Loader2 
 } from "lucide-react";
 import { BANK, CATS, TIP_MAP } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -12,6 +14,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { generateSpeech } from "@/ai/flows/tts-flow";
 
 interface DeckScreenProps {
   catKey: string;
@@ -26,6 +29,14 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [api, setApi] = useState<CarouselApi>();
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showIntro, setShowIntro] = useState(false);
+  
+  // Tracking
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [completedCards, setCompletedCards] = useState<string[]>([]);
+  
+  // Audio
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
@@ -39,6 +50,13 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     if (!hasSeen) {
       setShowIntro(true);
     }
+
+    // Load favorites and completed
+    const savedFavs = localStorage.getItem("compass_favorites");
+    if (savedFavs) setFavorites(JSON.parse(savedFavs));
+    
+    const savedCompleted = localStorage.getItem("compass_completed");
+    if (savedCompleted) setCompletedCards(JSON.parse(savedCompleted));
   }, [catKey]);
 
   useEffect(() => {
@@ -48,6 +66,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       setIdx(api.selectedScrollSnap());
       setFlipped(false);
       setBackTab("why");
+      stopAudio();
     });
   }, [api]);
 
@@ -62,11 +81,69 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     return gender === "f" ? (obj.f || obj.m) : (obj.m || obj.f);
   };
 
+  const toggleFavorite = (cardIdx: number) => {
+    const id = `${catKey}:${cardIdx}`;
+    let newFavs;
+    if (favorites.includes(id)) {
+      newFavs = favorites.filter(f => f !== id);
+    } else {
+      newFavs = [...favorites, id];
+    }
+    setFavorites(newFavs);
+    localStorage.setItem("compass_favorites", JSON.stringify(newFavs));
+  };
+
+  const toggleComplete = (cardIdx: number) => {
+    const id = `${catKey}:${cardIdx}`;
+    let newCompleted;
+    if (completedCards.includes(id)) {
+      newCompleted = completedCards.filter(c => c !== id);
+    } else {
+      newCompleted = [...completedCards, id];
+    }
+    setCompletedCards(newCompleted);
+    localStorage.setItem("compass_completed", JSON.stringify(newCompleted));
+  };
+
+  const handleAudioPlay = async (card: any) => {
+    if (isPlaying) {
+      stopAudio();
+      return;
+    }
+
+    setIsPlaying(true);
+    try {
+      const textToSpeak = `${g(card.t)}. הרציונל: ${g(card.why)}. השלבים הם: ${card.steps.map((s: any, i: number) => `שלב ${i + 1}, ${g(s)}`).join(". ")}`;
+      const { audioUri } = await generateSpeech({ text: textToSpeak, gender });
+      
+      if (audioRef.current) {
+        audioRef.current.src = audioUri;
+        audioRef.current.play();
+        audioRef.current.onended = () => setIsPlaying(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setIsPlaying(false);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsPlaying(false);
+  };
+
   const CatIcon = cat.icon;
+  const isCardFavorite = favorites.includes(`${catKey}:${idx}`);
+  const isCardCompleted = completedCards.includes(`${catKey}:${idx}`);
 
   return (
     <div className="min-h-screen w-full flex flex-col transition-colors duration-500" style={{ backgroundColor: cat.light }}>
-      {/* Intro Overlay / Gate */}
+      <audio ref={audioRef} hidden />
+      
+      {/* Intro Overlay */}
       {showIntro && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6 border border-slate-100">
@@ -141,13 +218,13 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </div>
         </div>
 
-        {/* Card Arena with Carousel */}
+        {/* Card Arena */}
         <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
-            <CarouselContent className="-ml-0 py-8">
+            <CarouselContent className="-ml-0 py-10">
               {cards.map((card, i) => (
                 <CarouselItem key={i} className="pl-0 flex items-center justify-center px-6">
-                  <div className="w-full h-[460px] perspective-1000">
+                  <div className="w-full h-[480px] perspective-1000">
                     <div className={cn(
                       "relative w-full h-full transition-transform duration-700 preserve-3d cursor-pointer",
                       flipped && idx === i ? "rotate-y-180" : ""
@@ -156,37 +233,60 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                       {/* FRONT */}
                       <div className="absolute inset-0 bg-white rounded-[2.5rem] p-10 flex flex-col items-center justify-between shadow-2xl backface-hidden border border-slate-100">
                         <div className="w-full flex justify-between items-center">
-                          <div 
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                            style={{ backgroundColor: `${cat.hue}15` }}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(i); }}
+                            className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all", isCardFavorite ? "bg-rose-50 text-rose-500" : "bg-slate-50 text-slate-300")}
                           >
-                            <CatIcon size={28} style={{ color: cat.hue }} />
-                          </div>
+                            <Heart size={20} className={isCardFavorite ? "fill-current" : ""} />
+                          </button>
                           <span className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">כרטיסייה {i + 1}</span>
+                          <button 
+                             onClick={(e) => { e.stopPropagation(); toggleComplete(i); }}
+                             className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-all", isCardCompleted ? "bg-emerald-50 text-emerald-500" : "bg-slate-50 text-slate-300")}
+                          >
+                            <CheckCircle2 size={20} className={isCardCompleted ? "fill-current" : ""} />
+                          </button>
                         </div>
 
-                        <div className="flex-1 flex items-center justify-center px-2">
+                        <div className="flex-1 flex flex-col items-center justify-center px-2 gap-4">
+                          <div 
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                            style={{ backgroundColor: `${cat.hue}15` }}
+                          >
+                            <CatIcon size={32} style={{ color: cat.hue }} />
+                          </div>
                           <h3 className="font-headline text-3xl font-black text-slate-900 text-center leading-[1.3]">
                             {g(card.t)}
                           </h3>
                         </div>
 
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
-                          className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-white font-black text-base transition-all active:scale-[0.97]"
-                          style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}40` }}
-                        >
-                          <BookOpen size={20} />
-                          איך עושים את זה?
-                        </button>
+                        <div className="w-full flex flex-col gap-3">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
+                            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-white font-black text-base transition-all active:scale-[0.97]"
+                            style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}40` }}
+                          >
+                            <BookOpen size={20} />
+                            איך עושים את זה?
+                          </button>
+                        </div>
                       </div>
 
                       {/* BACK */}
                       <div className="absolute inset-0 bg-white rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl backface-hidden rotate-y-180 border border-slate-100">
                         {/* Header */}
-                        <div className="p-8 pb-5" style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}>
-                          <p className="text-[10px] font-black text-white/60 tracking-widest uppercase mb-1">{cat.label}</p>
-                          <h4 className="font-headline text-xl font-bold text-white leading-tight">{g(card.t)}</h4>
+                        <div className="p-8 pb-5 flex justify-between items-start" style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}>
+                          <div className="flex-1">
+                            <p className="text-[10px] font-black text-white/60 tracking-widest uppercase mb-1">{cat.label}</p>
+                            <h4 className="font-headline text-xl font-bold text-white leading-tight">{g(card.t)}</h4>
+                          </div>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleAudioPlay(card); }}
+                            disabled={idx !== i}
+                            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-all"
+                          >
+                            {isPlaying ? <Loader2 size={20} className="animate-spin" /> : <Volume2 size={20} />}
+                          </button>
                         </div>
 
                         {/* Tabs */}
@@ -214,7 +314,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                           })}
                         </div>
 
-                        {/* Content Area */}
+                        {/* Content */}
                         <div className="flex-1 overflow-y-auto p-8 hide-scrollbar">
                           {backTab === "why" && (
                             <div className="animate-in fade-in duration-300">
@@ -281,7 +381,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        {/* Unified Footer */}
         <footer className="w-full text-center py-6 mt-auto">
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
