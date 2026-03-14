@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { 
   ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check, Info, 
-  Volume2, Heart, CheckCircle2, Loader2, Compass 
+  Volume2, Heart, CheckCircle2, Loader2 
 } from "lucide-react";
 import { BANK, CATS, TIP_MAP } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ import { doc } from "firebase/firestore";
 interface DeckScreenProps {
   catKey: string;
   gender: "m" | "f";
-  onBack: void;
+  onBack: () => void;
 }
 
 export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) {
