@@ -119,23 +119,28 @@ export default function PracticeCard({
 
         {/* BACK SIDE */}
         <div className="absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl backface-hidden rotate-y-180 border border-white">
-          {/* Header (Minimal) */}
-          <div className="p-6 md:p-8 flex justify-between items-center border-b border-slate-50 bg-slate-50/50">
-            <div className="flex flex-col text-right">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{category.label}</span>
-              <h4 className="font-headline text-sm font-black text-slate-900 line-clamp-1">{g(card.t)}</h4>
+          {/* Header (25% height) */}
+          <div 
+            className="h-[25%] w-full relative flex flex-col items-center justify-center p-6 text-white overflow-hidden shrink-0"
+            style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
+          >
+            <div className="w-full flex justify-between items-start">
+              <div className="flex flex-col text-right">
+                <span className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">{category.label}</span>
+                <h4 className="font-headline text-base md:text-lg font-black text-white leading-tight line-clamp-2 max-w-[200px]">{g(card.t)}</h4>
+              </div>
+              <button 
+                onClick={(e) => { e.stopPropagation(); onPlayAudio(); }}
+                disabled={isLoadingAudio}
+                className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-90"
+              >
+                {isLoadingAudio ? <Loader2 className="size-5 animate-spin" /> : (isPlaying ? <RotateCcw className="size-5" /> : <Volume2 className="size-5" />)}
+              </button>
             </div>
-            <button 
-              onClick={(e) => { e.stopPropagation(); onPlayAudio(); }}
-              disabled={isLoadingAudio}
-              className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-900 hover:text-indigo-600 shadow-sm transition-all active:scale-90"
-            >
-              {isLoadingAudio ? <Loader2 className="size-5 animate-spin" /> : (isPlaying ? <RotateCcw className="size-5" /> : <Volume2 className="size-5" />)}
-            </button>
           </div>
 
-          {/* Sub-Tabs Navigation */}
-          <div className="flex bg-white px-4 pt-2 border-b border-slate-50">
+          {/* Sub-Tabs Navigation (Clean White Overlap) */}
+          <div className="bg-white px-4 pt-2 border-b border-slate-100 -mt-4 rounded-t-[30px] relative z-10 flex shrink-0">
             {[
               { id: "why", label: "תובנה", icon: Zap },
               { id: "steps", label: "שלבים", icon: ListChecks },
@@ -148,26 +153,26 @@ export default function PracticeCard({
                   key={tab.id}
                   onClick={(e) => { e.stopPropagation(); onTabChange(tab.id as any); }}
                   className={cn(
-                    "flex-1 py-4 flex flex-col items-center gap-1.5 transition-all relative",
+                    "flex-1 py-5 flex flex-col items-center gap-1.5 transition-all relative",
                     active ? "text-slate-900" : "text-slate-300 hover:text-slate-400"
                   )}
                 >
                   <TIcon className="size-4" style={{ color: active ? category.hue : undefined }} />
                   <span className="text-[10px] font-black uppercase tracking-wider">{tab.label}</span>
                   {active && (
-                    <div className="absolute bottom-0 inset-x-4 h-1 rounded-full" style={{ backgroundColor: category.hue }} />
+                    <div className="absolute bottom-0 inset-x-6 h-1 rounded-full" style={{ backgroundColor: category.hue }} />
                   )}
                 </button>
               );
             })}
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white">
+          {/* Tab Content (Subtle Grey Background) */}
+          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-[#F9FBFC]">
             {backTab === "why" && (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="flex gap-4 items-start">
-                  <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: category.hue }} />
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex gap-5 items-start">
+                  <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: category.hue }} />
                   <p className="text-lg md:text-xl text-slate-800 leading-relaxed font-bold">
                     {g(card.why)}
                   </p>
@@ -176,11 +181,11 @@ export default function PracticeCard({
             )}
 
             {backTab === "steps" && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {card.steps.map((step: any, i: number) => (
                   <div key={i} className="flex gap-4 items-start group">
                     <div 
-                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-lg shadow-slate-200 transition-transform group-hover:scale-110" 
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-md transition-transform group-hover:scale-110" 
                       style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
                     >
                       {i + 1}
@@ -192,16 +197,22 @@ export default function PracticeCard({
             )}
 
             {backTab === "tip" && (
-              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
-                <div className="p-6 rounded-[2rem] relative overflow-hidden" style={{ backgroundColor: `${category.hue}08` }}>
-                  <div className="absolute top-4 right-4 text-2xl opacity-20"><Sparkles style={{ color: category.hue }} /></div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50" style={{ color: category.hue }}>
+                      <Check size={16} strokeWidth={3} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: category.hue }}>טיפ זהב</span>
+                  </div>
                   <p className="text-base md:text-lg text-slate-800 font-medium italic leading-relaxed text-right">
                     "{TIP_MAP[category.key]}"
                   </p>
                 </div>
-                <div className="flex gap-3 items-center bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50">
+                
+                <div className="mt-6 flex gap-3 items-center bg-white/50 p-4 rounded-2xl border border-slate-100">
                   <span className="text-xl">💡</span>
-                  <p className="text-[11px] text-amber-900 font-bold leading-relaxed">
+                  <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
                     {gender === 'f' ? 'ככל שתתרגלי, כך הפעולה תהפוך לאוטומטית ומרגיעה.' : 'ככל שתתרגל, כך הפעולה תהפוך לאוטומטית ומרגיעה.'}
                   </p>
                 </div>
@@ -209,14 +220,14 @@ export default function PracticeCard({
             )}
           </div>
 
-          {/* Footer Toggle */}
-          <div className="p-8 pt-0 bg-white">
+          {/* Footer Toggle (Outline Style) */}
+          <div className="p-8 pt-0 bg-[#F9FBFC] shrink-0">
             <button 
               onClick={(e) => { e.stopPropagation(); onFlip(false); }}
-              className="w-full py-4 rounded-2xl border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-slate-50 active:scale-95"
-              style={{ borderColor: `${category.hue}20`, color: category.hue }}
+              className="w-full py-4 rounded-[2rem] border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-white active:scale-95 group"
+              style={{ borderColor: `${category.hue}30`, color: category.hue }}
             >
-              <RotateCcw className="size-4" />
+              <RotateCcw className="size-4 transition-transform duration-500 group-hover:rotate-180" />
               הפוך את הקלף
             </button>
           </div>
