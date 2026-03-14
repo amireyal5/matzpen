@@ -8,14 +8,18 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'ארגז הכלים לחוסן ושקט נפשי',
     start_url: '/',
     display: 'standalone',
-    background_color: '#F8FAFC',
-    theme_color: '#6366F1',
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
     icons: [
       {
-        src: '/icon.png',
+        src: '/android-chrome-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/android-chrome-512x512.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'any maskable',
       },
     ],
   }
