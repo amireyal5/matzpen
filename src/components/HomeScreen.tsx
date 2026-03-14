@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,36 +168,48 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 </TooltipTrigger>
                 <TooltipContent>פרופיל אישי</TooltipContent>
               </Tooltip>
-              <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white" dir="rtl">
+              <DialogContent className="sm:max-w-md rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden" dir="rtl">
                 <DialogHeader className="sr-only">
                   <DialogTitle>פרופיל אישי</DialogTitle>
                   <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
                 </DialogHeader>
                 
-                {/* Glassmorphism Header */}
-                <div className="h-28 bg-slate-900/60 backdrop-blur-xl w-full border-b border-white/5 relative z-0" />
+                {/* High-End Glassmorphism Header */}
+                <div className="relative h-32 w-full overflow-hidden">
+                  <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-2xl z-0" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent z-1" />
+                  
+                  {/* Custom Elegant Close Button */}
+                  <DialogClose className="absolute left-6 top-6 z-20 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none">
+                    <X size={16} />
+                  </DialogClose>
+                  
+                  <div className="absolute bottom-0 right-0 left-0 h-px bg-white/10 z-2" />
+                </div>
                 
-                <div className="px-8 pb-8 -mt-14 relative z-10">
-                  <div className="relative mb-6">
-                    <div className="w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-100 mx-auto">
-                      {user?.photoURL ? (
-                        <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={112} height={112} className="w-full h-full object-cover rounded-full" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <UserIcon size={44} aria-hidden="true" />
-                        </div>
-                      )}
+                <div className="px-10 pb-10 -mt-16 relative z-10">
+                  <div className="relative mb-8">
+                    <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 mx-auto rotate-3">
+                      <div className="-rotate-3 w-full h-full">
+                        {user?.photoURL ? (
+                          <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={128} height={128} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            <UserIcon size={48} aria-hidden="true" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-6 mb-10">
                     <div className="space-y-2">
                       <Label htmlFor="edit-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">איך נקרא לך?</Label>
                       <Input 
                         id="edit-name" 
                         value={editName} 
                         onChange={(e) => setEditName(e.target.value)} 
-                        className="rounded-xl border-slate-100 focus:border-indigo-500 font-bold text-slate-900 h-12"
+                        className="rounded-2xl border-slate-100 focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500 font-bold text-slate-900 h-14 px-6 text-base transition-all"
                       />
                     </div>
 
@@ -205,15 +218,15 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                       <RadioGroup 
                         value={editGender} 
                         onValueChange={(val) => setEditGender(val as "m" | "f")}
-                        className="grid grid-cols-2 gap-3"
+                        className="grid grid-cols-2 gap-4"
                       >
                         <div className="relative">
                           <RadioGroupItem value="m" id="r-male" className="sr-only" />
                           <Label 
                             htmlFor="r-male" 
                             className={cn(
-                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold h-12",
-                              editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                              "flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm",
+                              editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-50 text-slate-400 hover:bg-slate-50"
                             )}
                           >
                             גבר {editGender === "m" && <Check size={14} className="mr-2" />}
@@ -224,8 +237,8 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                           <Label 
                             htmlFor="r-female" 
                             className={cn(
-                              "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold h-12",
-                              editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                              "flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm",
+                              editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-50 text-slate-400 hover:bg-slate-50"
                             )}
                           >
                             אישה {editGender === "f" && <Check size={14} className="mr-2" />}
@@ -235,20 +248,20 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-center">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">כרטיסיות שבוצעו</p>
-                      <p className="text-xl font-black text-indigo-600">{completedCards.length}</p>
+                  <div className="grid grid-cols-2 gap-5 mb-10">
+                    <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">כרטיסיות שבוצעו</p>
+                      <p className="text-2xl font-black text-slate-900">{completedCards.length}</p>
                     </div>
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-center">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">עוגנים</p>
-                      <p className="text-xl font-black text-rose-500">{favorites.length}</p>
+                    <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">עוגנים שמורים</p>
+                      <p className="text-2xl font-black text-rose-500">{favorites.length}</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <Button 
-                      className="w-full py-6 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
+                      className="w-full py-7 rounded-[1.5rem] bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all active:scale-[0.98] text-lg"
                       onClick={handleSaveProfile}
                       disabled={isSaving}
                       aria-label="שמור שינויים בפרופיל"
@@ -256,11 +269,11 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                       {isSaving ? "שומר..." : "שמירת שינויים"}
                     </Button>
                     <button 
-                      className="w-full flex items-center justify-center gap-2 text-rose-500 font-bold hover:text-rose-600 transition-colors py-2"
+                      className="w-full flex items-center justify-center gap-2 text-rose-500/60 font-bold hover:text-rose-500 transition-colors py-2 text-xs uppercase tracking-widest"
                       onClick={handleLogout}
                       aria-label="התנתק מהמערכת"
                     >
-                      <LogOut size={16} aria-hidden="true" />
+                      <LogOut size={14} aria-hidden="true" />
                       <span>התנתקות</span>
                     </button>
                   </div>
