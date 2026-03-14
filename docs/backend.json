@@ -1,0 +1,260 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile information, including their name and preferred gender for personalized content.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "gender": {
+          "type": "string",
+          "description": "The user's preferred gender for content personalization ('m' for male, 'f' for female).",
+          "format": "enum",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the user profile was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "gender",
+        "createdAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category of psychological practices, including its display information and associated tip.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity (e.g., 'SOS', 'BODY')."
+        },
+        "label": {
+          "type": "string",
+          "description": "The display name of the category (e.g., 'עזרה מיידית')."
+        },
+        "tagLine": {
+          "type": "string",
+          "description": "A short descriptive tagline for the category."
+        },
+        "hue": {
+          "type": "string",
+          "description": "The primary color (hex code) associated with the category for UI representation."
+        },
+        "gradientFrom": {
+          "type": "string",
+          "description": "The starting color (hex code) for the gradient background associated with the category."
+        },
+        "gradientTo": {
+          "type": "string",
+          "description": "The ending color (hex code) for the gradient background associated with the category."
+        },
+        "lightColor": {
+          "type": "string",
+          "description": "A light background color (hex code) used for the category's UI elements."
+        },
+        "tip": {
+          "type": "string",
+          "description": "A general practical tip associated with this category."
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "tagLine",
+        "hue",
+        "gradientFrom",
+        "gradientTo",
+        "lightColor",
+        "tip"
+      ]
+    },
+    "Practice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Practice",
+      "type": "object",
+      "description": "Represents a single psychological practice or exercise.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Practice entity."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to the Category this practice belongs to. (Relationship: Category 1:N Practice)"
+        },
+        "titleMale": {
+          "type": "string",
+          "description": "The title of the practice for male users."
+        },
+        "titleFemale": {
+          "type": "string",
+          "description": "The title of the practice for female users."
+        },
+        "rationale": {
+          "type": "string",
+          "description": "A scientific or psychological explanation of 'why it works'."
+        },
+        "order": {
+          "type": "number",
+          "description": "The display order of the practice within its category."
+        }
+      },
+      "required": [
+        "id",
+        "categoryId",
+        "titleMale",
+        "titleFemale",
+        "rationale",
+        "order"
+      ]
+    },
+    "PracticeStep": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PracticeStep",
+      "type": "object",
+      "description": "Represents an individual step within a psychological practice.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PracticeStep entity."
+        },
+        "practiceId": {
+          "type": "string",
+          "description": "Reference to the Practice this step belongs to. (Relationship: Practice 1:N PracticeStep)"
+        },
+        "stepNumber": {
+          "type": "number",
+          "description": "The sequential number of the step within its practice."
+        },
+        "descriptionMale": {
+          "type": "string",
+          "description": "The description of the step for male users."
+        },
+        "descriptionFemale": {
+          "type": "string",
+          "description": "The description of the step for female users."
+        }
+      },
+      "required": [
+        "id",
+        "practiceId",
+        "stepNumber",
+        "descriptionMale",
+        "descriptionFemale"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userProfiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores individual user profiles. Access is restricted to the owner of the profile. `userId` corresponds to `request.auth.uid`. Authorization is path-based, thus requiring no `get()` calls in security rules. Supports QAP by design, as users only query their own specific profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the authenticated user, corresponding to Firebase Authentication's `uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores static, global categories of psychological practices. All authenticated users have read access. No authorization denormalization is needed as access is universal. Supports QAP for `list` operations as all documents in this collection share the same read permission.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for a specific category (e.g., 'SOS', 'BODY')."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/practices/{practiceId}",
+        "definition": {
+          "entityName": "Practice",
+          "schema": {
+            "$ref": "#/backend/entities/Practice"
+          },
+          "description": "Stores individual psychological practices. Each practice includes a `categoryId` field linking it to a `Category` document. All authenticated users have read access. No authorization denormalization is required as access is universal. Supports QAP for `list` operations, allowing efficient filtering by `categoryId` after authorization.",
+          "params": [
+            {
+              "name": "practiceId",
+              "description": "The unique identifier for a specific psychological practice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/practiceSteps/{practiceStepId}",
+        "definition": {
+          "entityName": "PracticeStep",
+          "schema": {
+            "$ref": "#/backend/entities/PracticeStep"
+          },
+          "description": "Stores the sequential steps for each psychological practice. Each step includes a `practiceId` field linking it to a `Practice` document. All authenticated users have read access. No authorization denormalization is required as access is universal. Supports QAP for `list` operations, allowing efficient filtering by `practiceId` after authorization.",
+          "params": [
+            {
+              "name": "practiceStepId",
+              "description": "The unique identifier for a specific step within a practice."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{uid}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores a document for each user who has 'admin' privileges. This implements Database-Backed Access Control (DBAC). The existence of a document at this path for a given `uid` grants admin permissions for `write` operations on global content. It ensures authorization independence as `exists()` is atomic.",
+          "params": [
+            {
+              "name": "uid",
+              "description": "The unique ID of the user (matching `request.auth.uid`) who possesses administrative roles."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The proposed Firestore structure prioritizes security, scalability, and debuggability in line with the core design principles. It establishes distinct top-level collections for user profiles, categories, practices, and practice steps. \n\n**Authorization Independence (CRITICAL):**\n1. **User Profiles (`/userProfiles/{userId}`):** Authorization is achieved by mapping the `userId` wildcard directly to `request.auth.uid`. This ensures that a user can only read or update their own profile, eliminating the need for `get()` calls in security rules and making the operation inherently atomic. \n2. **Global Content (`/categories`, `/practices`, `/practiceSteps`):** These collections are designed for public read access by all authenticated users. Since authorization does not depend on any parent document's attributes, no denormalization for authorization is required. Admin write access would be managed via a flat role collection (`/roles_admin/{uid}`), using `exists()` to check for admin status, which is an atomic operation and maintains authorization independence.\n\n**QAPs (Rules are not Filters):**\n1. **User Profiles:** `list` operations are implicitly restricted as users typically only query their own specific profile by `request.auth.uid`. \n2. **Global Content:** For `/categories`, `/practices`, and `/practiceSteps`, all documents within these collections share the same read security posture (public for authenticated users). Therefore, any client-side query filters (e.g., `where('categoryId', '==', 'SOS')` on the `practices` collection) act on an already authorized set of data, fully supporting QAPs. The security rules grant access to the entire collection (for reads), and the client then filters this authorized set.\n\n**Structural Segregation & Access Modeling:**\n* **User-Specific Data:** `UserProfile` data is segregated into `/userProfiles/{userId}`, applying path-based ownership for private data. \n* **Global Content:** `Category`, `Practice`, and `PracticeStep` entities are stored in their own top-level collections (`/categories`, `/practices`, `/practiceSteps`). This ensures that all documents within each collection share the same read-access permissions (all authenticated users) and simplifies security rules. The `categoryId` and `practiceId` fields within `Practice` and `PracticeStep` documents, respectively, provide direct references for efficient querying and data retrieval, rather than enforcing a deep hierarchical structure that isn't strictly necessary for authorization.\n\n**Data Clarity and Predictability:**\n* The use of `id` fields as document IDs and descriptive wildcards (`{userId}`, `{categoryId}`, `{practiceId}`, `{practiceStepId}`) ensures predictable paths. \n* Gender-specific content (`titleMale`, `titleFemale`, `descriptionMale`, `descriptionFemale`) is stored directly within the `Practice` and `PracticeStep` documents. This denormalization simplifies content retrieval, avoiding multiple reads or complex client-side logic based on user gender and ensuring content delivery is atomic for a given practice or step."
+  }
+}
