@@ -44,10 +44,13 @@ export default function PracticeCard({
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative">
-      <div className={cn(
-        "relative w-full h-full transition-transform duration-[800ms] preserve-3d cursor-pointer",
-        isFlipped ? "rotate-y-180" : ""
-      )}>
+      <div 
+        onClick={() => onFlip(!isFlipped)}
+        className={cn(
+          "relative w-full h-full transition-transform duration-[800ms] preserve-3d cursor-pointer",
+          isFlipped ? "rotate-y-180" : ""
+        )}
+      >
         {/* FRONT SIDE */}
         <div className={cardShellClasses}>
           {/* Header (40% height) */}
@@ -78,7 +81,7 @@ export default function PracticeCard({
             </div>
 
             {/* Center: Category Icon Bubble */}
-            <button 
+            <div 
               onClick={(e) => { e.stopPropagation(); onShowIntro(); }}
               className="relative group/icon outline-none"
             >
@@ -86,7 +89,7 @@ export default function PracticeCard({
               <div className="relative w-20 h-20 rounded-[2.2rem] bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center shadow-2xl transition-transform group-hover/icon:scale-110">
                 <CatIcon className="size-10 text-white" />
               </div>
-            </button>
+            </div>
             
             <span className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{category.label}</span>
           </div>
@@ -108,8 +111,7 @@ export default function PracticeCard({
             </div>
 
             {/* CTA Button */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); onFlip(true); }}
+            <div 
               className="w-full py-5 rounded-[2rem] flex items-center justify-center gap-3 text-white font-black text-base md:text-lg transition-all active:scale-[0.97] shadow-xl hover:shadow-2xl relative z-10"
               style={{ 
                 background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})`,
@@ -118,7 +120,7 @@ export default function PracticeCard({
             >
               <Zap className="size-5" />
               {gender === 'f' ? 'איך את עושה את זה?' : 'איך עושים את זה?'}
-            </button>
+            </div>
           </div>
         </div>
 
@@ -144,7 +146,7 @@ export default function PracticeCard({
             </div>
           </div>
 
-          {/* Sub-Tabs Navigation (Clean White Overlap) */}
+          {/* Sub-Tabs Navigation */}
           <div className="bg-white px-4 pt-2 border-b border-slate-100 -mt-4 rounded-t-[35px] relative z-20 flex shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
             {[
               { id: "why", label: "תובנה", icon: Zap },
@@ -172,8 +174,8 @@ export default function PracticeCard({
             })}
           </div>
 
-          {/* Tab Content (Maintains the card shape and depth) */}
-          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white relative z-10">
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white relative z-10" onClick={(e) => e.stopPropagation()}>
             {backTab === "why" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex gap-5 items-start">
@@ -227,14 +229,13 @@ export default function PracticeCard({
 
           {/* Footer Toggle */}
           <div className="p-8 pt-0 bg-white shrink-0 relative z-10">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onFlip(false); }}
+            <div 
               className="w-full py-4 rounded-[2rem] border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-slate-50 active:scale-95 group"
               style={{ borderColor: `${category.hue}20`, color: category.hue }}
             >
               <RotateCcw className="size-4 transition-transform duration-500 group-hover:rotate-180" />
               הפוך את הקלף
-            </button>
+            </div>
           </div>
         </div>
       </div>
