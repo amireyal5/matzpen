@@ -1,9 +1,10 @@
 
 "use client";
 
-import { ArrowRight, ExternalLink, ShieldCheck, BrainCircuit, Zap } from "lucide-react";
+import { ArrowLeft, ExternalLink, ShieldCheck, BrainCircuit, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Logo from "@/components/Logo";
 
 interface AboutScreenProps {
   onBack: () => void;
@@ -20,13 +21,27 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
 
       <div className="w-full max-w-xl relative z-10 py-12 space-y-12">
         {/* Header Navigation */}
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-indigo-400 font-black text-xs uppercase tracking-widest hover:text-indigo-300 transition-colors"
-        >
-          <ArrowRight size={18} />
-          <span>חזרה למסך הראשי</span>
-        </button>
+        <div className="w-full flex items-center justify-between mb-8">
+          {/* Logo Section (Right in RTL) */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shadow-lg overflow-hidden p-1.5 border border-white/5">
+              <Logo variant="icon" />
+            </div>
+            <div className="text-right">
+              <span className="block text-xs font-black text-indigo-400 leading-none">המצפן הרגשי</span>
+              <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">EMOTIONAL COMPASS</span>
+            </div>
+          </div>
+
+          {/* Back Button (Left in RTL) */}
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-2 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-white transition-colors group"
+          >
+            <span>חזרה</span>
+            <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+          </button>
+        </div>
 
         {/* Profile Section */}
         <div className="flex flex-col items-center text-center space-y-8">
