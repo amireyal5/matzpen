@@ -74,13 +74,11 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
-        // Turn off interim results to prevent duplicate appends on mobile browsers
         recognitionRef.current.interimResults = false;
         recognitionRef.current.lang = 'he-IL';
 
         recognitionRef.current.onresult = (event: any) => {
           let currentText = '';
-          // Only process new results that are marked as final
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
               currentText += event.results[i][0].transcript;
@@ -150,19 +148,22 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
+    // Stop recording automatically if user clicks next while recording
+    if (isRecording) {
+      recognitionRef.current?.stop();
+    }
+
     const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
     const currentIdx = sequence.indexOf(step as any);
     
     if (currentIdx < sequence.length - 1) {
       setStep(sequence[currentIdx + 1]);
     } else {
-      // Final step reached, start analysis
       setStep("analyzing");
       try {
         const result = await analyzeJournal({ ...data, gender });
         setAnalysis(result);
         
-        // Save to Firestore
         if (user && firestore) {
           const journalsRef = collection(firestore, "userProfiles", user.uid, "journals");
           addDocumentNonBlocking(journalsRef, {
@@ -173,7 +174,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         }
 
         setStep("finish");
-        // Play the final summary
         handlePlayAudio(result.summary);
       } catch (err) {
         console.error("Analysis failed", err);
@@ -228,7 +228,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
           {analysis && (
             <div className="space-y-8">
-              {/* Distortions */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pr-2">
                   <Sparkles size={16} className="text-amber-400" />
@@ -243,7 +242,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 </div>
               </div>
 
-              {/* Healthy Perspective */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pr-2">
                   <BrainCircuit size={16} className="text-indigo-400" />
@@ -254,7 +252,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 </div>
               </div>
 
-              {/* Summary */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pr-2">
                   <BookText size={16} className="text-emerald-400" />
@@ -368,7 +365,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </Button>
         <Button 
           onClick={handleNext}
-          disabled={!currentVal.trim() || isRecording}
+          disabled={!currentVal.trim()}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all"
         >
           {step === "reaction" ? "ניתוח התהליך" : "המשך"}
