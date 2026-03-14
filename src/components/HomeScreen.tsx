@@ -131,8 +131,14 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Compass size={18} className="text-white" />
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 overflow-hidden">
+                <Image 
+                  src="/logo.png" 
+                  alt="המצפן הרגשי" 
+                  width={40} 
+                  height={40} 
+                  className="object-cover"
+                />
               </div>
               <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">המצפן הרגשי</p>
             </div>

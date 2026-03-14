@@ -88,8 +88,14 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
           
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Compass size={18} className="text-white" />
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                <Image 
+                  src="/logo.png" 
+                  alt="לוגו המצפן הרגשי" 
+                  width={40} 
+                  height={40} 
+                  className="object-cover"
+                />
               </div>
               <span className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">The Compass</span>
             </div>
