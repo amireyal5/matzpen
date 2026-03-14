@@ -13,6 +13,7 @@ import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
 import Logo from "@/components/Logo";
+import { cn } from "@/lib/utils";
 
 interface HomeScreenProps {
   name: string;
@@ -29,6 +30,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const [isSearching, setIsSearching] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -42,6 +44,13 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
+    
+    // Welcome animation timer: shrink and move photo after 2 seconds
+    const timer = setTimeout(() => {
+      setIsMinimized(true);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const favorites = profileData?.favorites || [];
@@ -71,7 +80,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="bg-slate-950 text-white pt-10 pb-20 px-6 relative z-10">
+      <header className="bg-slate-950 text-white pt-10 pb-20 px-6 relative z-10 overflow-hidden">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
@@ -97,11 +106,21 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             </Tooltip>
           </div>
 
-          <div className="relative mb-2">
-            <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
-            <div className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden">
-              <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
-              <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg" />
+          {/* Placeholder to maintain header height during animation */}
+          <div className="h-24 w-full flex justify-center items-center relative">
+            <div className={cn(
+              "absolute z-30 transition-welcome-photo",
+              isMinimized 
+                ? "translate-y-[150px] translate-x-[-180px] scale-[0.4] opacity-0 pointer-events-none" 
+                : "translate-y-0 translate-x-0 scale-100 opacity-100"
+            )}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
+                <div className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden">
+                  <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+                  <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg" />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -115,10 +134,21 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
         <form onSubmit={handleSearch} className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
-          <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow">
+          <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden">
+            
+            {/* The minimized photo that appears inside the search bar */}
+            <div className={cn(
+              "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
+              isMinimized ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
+            )}>
+              <div className="relative w-10 h-10 rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden">
+                <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+              </div>
+            </div>
+
             <input 
               type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder={placeholderText} className="flex-1 bg-transparent px-6 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm"
+              placeholder={placeholderText} className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm"
             />
             <button type="submit" disabled={isSearching} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50">
               {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
