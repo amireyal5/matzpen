@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2 } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -19,12 +19,14 @@ interface HomeScreenProps {
   gender: "m" | "f";
   onSelectCategory: (key: string) => void;
   onStartGuided: (catKey: string, practiceIdx: number) => void;
+  onGoToJournal: () => void;
+  onGoToMeditation: () => void;
   onBack: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
-export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onStartGuided, onBack }: HomeScreenProps) {
+export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onStartGuided, onGoToJournal, onGoToMeditation, onBack }: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -44,12 +46,9 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
-    
-    // Welcome animation timer: shrink and move photo after 5 seconds
     const timer = setTimeout(() => {
       setIsMinimized(true);
     }, 5000);
-    
     return () => clearTimeout(timer);
   }, []);
 
@@ -106,7 +105,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             </Tooltip>
           </div>
 
-          {/* Animated Placeholder that shrinks after 5 seconds */}
           <div className={cn(
             "w-full flex justify-center items-center relative transition-all duration-1000 ease-in-out overflow-hidden",
             isMinimized ? "h-0 opacity-0 mb-0" : "h-24 opacity-100 mb-4"
@@ -123,7 +121,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   <div className="w-full h-full rounded-full border-4 border-white/20 shadow-2xl overflow-hidden relative">
                     <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
                   </div>
-                  {/* Presence Indicator */}
                   <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg z-40" />
                 </div>
               </div>
@@ -141,8 +138,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         <form onSubmit={handleSearch} className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
           <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden">
-            
-            {/* The minimized photo that appears inside the search bar */}
             <div className={cn(
               "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
               isMinimized ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
@@ -151,7 +146,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 <div className="w-full h-full rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden relative">
                   <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
                 </div>
-                {/* Minimized Presence Indicator */}
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
               </div>
             </div>
@@ -175,13 +169,19 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
               >
                 <Sparkles size={16} />
-                בוא נתרגל יחד
+                {recommendation.categoryKey === "JOURNAL" ? "לפתוח יומן מחשבות" : recommendation.categoryKey === "MEDITATION" ? "להתחיל מדיטציה" : "בוא נתרגל יחד"}
               </button>
               <button 
-                onClick={() => onSelectCategory(recommendation.categoryKey)}
+                onClick={() => {
+                  if (recommendation.categoryKey !== "JOURNAL" && recommendation.categoryKey !== "MEDITATION") {
+                    onSelectCategory(recommendation.categoryKey);
+                  } else {
+                    setRecommendation(null);
+                  }
+                }}
                 className="w-full py-5 bg-slate-100 rounded-2xl text-slate-900 font-black text-sm hover:bg-slate-200 transition-all active:scale-95"
               >
-                צפייה בכלים בקטגוריה
+                צפייה בכלים נוספים
               </button>
             </div>
           </div>
@@ -189,6 +189,41 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
       </div>
 
       <div className="max-w-xl mx-auto px-6 mt-12 space-y-12 pb-20">
+        
+        {/* Quick Tools Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-2">
+            <Sparkles size={14} className="text-indigo-600" />
+            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">כלים אסטרטגיים</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <button 
+              onClick={onGoToJournal}
+              className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-3 active:scale-95 group"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                <BookText size={24} />
+              </div>
+              <div className="space-y-1">
+                <span className="block text-sm font-black text-slate-900">יומן מחשבות</span>
+                <span className="block text-[10px] text-slate-400 font-bold">פריקה ועיבוד CBT</span>
+              </div>
+            </button>
+            <button 
+              onClick={onGoToMeditation}
+              className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-3 active:scale-95 group"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                <Flower2 size={24} />
+              </div>
+              <div className="space-y-1">
+                <span className="block text-sm font-black text-slate-900">מדיטציה</span>
+                <span className="block text-[10px] text-slate-400 font-bold">שקט וחיבור פנימי</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {favorites.length > 0 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
             <div className="flex items-center gap-2 px-2">

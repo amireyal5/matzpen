@@ -1,12 +1,12 @@
 'use server';
 /**
  * @fileOverview מנוע המלצות חכם למצפן הרגשי.
- * מקבל את הרגשת המשתמש ואת המגדר שלו, ומחזיר את הקטגוריה והתרגיל המתאימים ביותר.
+ * מעודכן לזהות צורך ביומן מחשבות או במדיטציה.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { CATS, BANK } from '@/lib/data';
+import { CATS } from '@/lib/data';
 
 const RecommendationInputSchema = z.object({
   feeling: z.string().describe('תיאור ההרגשה של המשתמש כרגע.'),
@@ -15,7 +15,7 @@ const RecommendationInputSchema = z.object({
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 
 const RecommendationOutputSchema = z.object({
-  categoryKey: z.string().describe('המפתח של הקטגוריה המומלצת.'),
+  categoryKey: z.string().describe('המפתח של הקטגוריה המומלצת. יכול להיות גם "JOURNAL" או "MEDITATION".'),
   practiceIndex: z.number().describe('האינדקס של התרגיל הספציפי בתוך הקטגוריה (0 ומעלה).'),
   explanation: z.string().describe('הסבר קצר ומרגיע למה הקטגוריה והתרגיל האלו יעזרו למשתמש כרגע.'),
 });
@@ -33,21 +33,17 @@ const prompt = ai.definePrompt({
 המשתמש משתף איך הוא מרגיש כרגע: "{{{feeling}}}".
 מגדר המשתמש הוא: {{gender}} (m = זכר, f = נקבה).
 
-בהתבסס על המאגר הבא, בחר את הקטגוריה והתרגיל הספציפי (האינדקס שלו ברשימה) שהכי יעזרו לו כרגע.
-שים לב לשמות התרגילים ולמהות שלהם.
+בהתבסס על המאגר הבא, בחר את האסטרטגיה שהכי תעזור לו:
+1. תרגיל ספציפי מקטגוריות הקלפים (SOS, BODY, וכו').
+2. יומן מחשבות (JOURNAL) - אם המשתמש נראה מבולבל, חווה מחשבות טורדניות או רוצה "לפרוק".
+3. מדיטציה (MEDITATION) - אם המשתמש מחפש שקט עמוק, חיבור פנימי או הפוגה ארוכה יותר.
 
 הקטגוריות הקיימות:
 {{#each categories}}
 - {{key}}: {{label}} ({{tagLine}})
 {{/each}}
 
-תרגילים לדוגמה (מפתחות):
-SOS: מים קרים, נשימה 4-4-8, דחיפת קיר...
-BODY: סריקת גוף, ניעור, נשימת קופסה...
-ACCEPTANCE: עננים, התרחבות, תיקוף...
-
-החזר את מפתח הקטגוריה (categoryKey), את האינדקס של התרגיל (practiceIndex) והסבר קצר ומחזק בעברית רהוטה המותאם למגדר ({{gender}}).
-אם המשתמש נשמע במצוקה קשה מאוד, בחר תמיד ב-SOS.`,
+החזר את מפתח הקטגוריה (categoryKey), את האינדקס (במקרה של JOURNAL או MEDITATION האינדקס הוא 0) והסבר קצר בעברית המותאם למגדר ({{gender}}).`,
 });
 
 const recommendationFlow = ai.defineFlow(

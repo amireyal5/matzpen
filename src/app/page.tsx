@@ -8,11 +8,13 @@ import AuthScreen from "@/components/AuthScreen";
 import AboutScreen from "@/components/AboutScreen";
 import SplashScreen from "@/components/SplashScreen";
 import GuidedSession from "@/components/GuidedSession";
+import ThoughtJournal from "@/components/ThoughtJournal";
+import MeditationScreen from "@/components/MeditationScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "meditation";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
@@ -24,7 +26,6 @@ function AppContent() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Splash Screen timer
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -32,16 +33,13 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Reference to user profile based on UID
   const profileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, "userProfiles", user.uid);
   }, [user, firestore]);
 
-  // Real-time listen to profile data
   const { data: profileData } = useDoc(profileRef);
 
-  // Sync profile logic and redirection
   useEffect(() => {
     if (user && !isUserLoading) {
       const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
@@ -51,19 +49,17 @@ function AppContent() {
           setScreen("home");
         }
       } else {
-        if (screen === "home" || screen === "deck" || screen === "guided") {
+        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "meditation") {
           setScreen("auth");
         }
       }
     }
   }, [profileData, user, isUserLoading, screen]);
 
-  // Handle initial hydration
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // Redirect to landing if user logs out
   useEffect(() => {
     if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about") {
       setScreen("landing");
@@ -84,12 +80,19 @@ function AppContent() {
   };
 
   const handleStartGuided = (catKey: string, practiceIdx: number) => {
+    if (catKey === "JOURNAL") {
+      setScreen("journal");
+      return;
+    }
+    if (catKey === "MEDITATION") {
+      setScreen("meditation");
+      return;
+    }
     setActiveCatKey(catKey);
     setActivePracticeIdx(practiceIdx);
     setScreen("guided");
   };
 
-  // While showing splash or loading initial data
   if (showSplash || !isHydrated || isUserLoading) {
     return <SplashScreen />;
   }
@@ -121,6 +124,8 @@ function AppContent() {
           gender={gender}
           onSelectCategory={handleSelectCategory} 
           onStartGuided={handleStartGuided}
+          onGoToJournal={() => setScreen("journal")}
+          onGoToMeditation={() => setScreen("meditation")}
           onBack={() => setScreen("landing")} 
         />
       )}
@@ -136,6 +141,17 @@ function AppContent() {
           catKey={activeCatKey}
           practiceIdx={activePracticeIdx}
           gender={gender}
+          onBack={() => setScreen("home")}
+        />
+      )}
+      {(screen === "journal" && user) && (
+        <ThoughtJournal 
+          gender={gender}
+          onBack={() => setScreen("home")}
+        />
+      )}
+      {(screen === "meditation" && user) && (
+        <MeditationScreen 
           onBack={() => setScreen("home")}
         />
       )}
