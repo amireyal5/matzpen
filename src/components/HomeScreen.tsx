@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
@@ -40,7 +41,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
-  // Editing state for profile
   const [editName, setEditName] = useState(initialName);
   const [editGender, setEditGender] = useState<"m" | "f">(initialGender);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,7 +60,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  // Sync edit state with props/db when dialog opens or data changes
   useEffect(() => {
     if (isProfileOpen && profileData) {
       setEditName(profileData.name || "");
@@ -105,7 +104,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
       name: editName,
       gender: editGender
     });
-    // Optimistic close
     setTimeout(() => {
       setIsSaving(false);
       setIsProfileOpen(false);
@@ -121,13 +119,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const welcomeText = "שלום, ";
   const actionText = displayGender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
   const placeholderText = displayGender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
-  const favTitle = "מועדפים ששמרת";
-  const cardsText = "כרטיסיות";
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-xl mx-auto space-y-8 py-4 animate-fade-in-up">
-        {/* Header */}
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <p className="text-xs font-bold text-slate-400 tracking-wider">{welcomeText}{displayName} 🌿</p>
@@ -136,24 +131,30 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </div>
           
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-            <DialogTrigger asChild>
-              <button
-                className="w-12 h-12 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
-              >
-                {user?.photoURL ? (
-                  <Image 
-                    src={user.photoURL} 
-                    alt={displayName} 
-                    width={48} 
-                    height={48} 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Compass size={20} />
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-              </button>
-            </DialogTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <button
+                    aria-label="פתח פרופיל אישי"
+                    className="w-12 h-12 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
+                  >
+                    {user?.photoURL ? (
+                      <Image 
+                        src={user.photoURL} 
+                        alt={`תמונת הפרופיל של ${displayName}`} 
+                        width={48} 
+                        height={48} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Compass size={20} aria-hidden="true" />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                  </button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>פרופיל אישי</TooltipContent>
+            </Tooltip>
             <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white" dir="rtl">
               <DialogHeader className="sr-only">
                 <DialogTitle>פרופיל אישי</DialogTitle>
@@ -164,10 +165,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 <div className="relative mb-4">
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
                     {user?.photoURL ? (
-                      <Image src={user.photoURL} alt={displayName} width={96} height={96} className="w-full h-full object-cover" />
+                      <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <UserIcon size={40} />
+                        <UserIcon size={40} aria-hidden="true" />
                       </div>
                     )}
                   </div>
@@ -235,6 +236,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     className="w-full py-6 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
                     onClick={handleSaveProfile}
                     disabled={isSaving}
+                    aria-label="שמור שינויים בפרופיל"
                   >
                     {isSaving ? "שומר..." : "שמירת שינויים"}
                   </Button>
@@ -242,8 +244,9 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     variant="ghost" 
                     className="w-full py-6 rounded-2xl text-rose-500 font-bold hover:bg-rose-50"
                     onClick={handleLogout}
+                    aria-label="התנתק מהמערכת"
                   >
-                    <LogOut className="ml-2 h-4 w-4" />
+                    <LogOut className="ml-2 h-4 w-4" aria-hidden="true" />
                     התנתקות
                   </Button>
                 </div>
@@ -252,7 +255,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </Dialog>
         </div>
 
-        {/* AI Search Section */}
         <div className="bg-white/60 backdrop-blur-md rounded-[2rem] p-6 border border-indigo-100 shadow-xl shadow-indigo-500/5">
           <form onSubmit={handleSearch} className="relative">
             <input 
@@ -260,28 +262,34 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={placeholderText}
+              aria-label={placeholderText}
               className="w-full bg-white px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-12 font-medium"
             />
             <button 
               type="submit"
               disabled={isSearching}
+              aria-label="חפש המלצה"
               className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
-              {isSearching ? <Sparkles className="animate-spin" size={18} /> : <Search size={18} />}
+              {isSearching ? <Sparkles className="animate-spin" size={18} aria-hidden="true" /> : <Search size={18} aria-hidden="true" />}
             </button>
           </form>
 
           {recommendation && (
             <div className="mt-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 animate-in fade-in slide-in-from-top-4 duration-300 relative">
-              <button onClick={clearRecommendation} className="absolute top-2 left-2 text-indigo-300 hover:text-indigo-600">
-                <X size={16} />
+              <button 
+                onClick={clearRecommendation} 
+                aria-label="סגור המלצה"
+                className="absolute top-2 left-2 text-indigo-300 hover:text-indigo-600"
+              >
+                <X size={16} aria-hidden="true" />
               </button>
               
               <div className="flex gap-3 mb-4">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                   <Image 
                     src={PROFESSIONAL_PHOTO_URL}
-                    alt="עמיר אייל"
+                    alt="תמונת המטפל עמיר אייל"
                     fill
                     className="object-cover"
                   />
@@ -296,6 +304,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               
               <button 
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
+                aria-label={`עבור לקטגוריית ${CATS.find(c => c.key === recommendation.categoryKey)?.label}`}
                 className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all shadow-sm"
               >
                 {displayGender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
@@ -304,10 +313,9 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           )}
         </div>
 
-        {/* Quick Stats / Favorites (If any) */}
         {favorites.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-black text-slate-400 tracking-[0.2em] uppercase pr-2">{favTitle}</h3>
+            <h3 className="text-xs font-black text-slate-400 tracking-[0.2em] uppercase pr-2">מועדפים ששמרת</h3>
             <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
               {favorites.map((fav, i) => {
                 const [catKey] = fav.split(":");
@@ -317,9 +325,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   <button 
                     key={i}
                     onClick={() => onSelectCategory(catKey)}
+                    aria-label={`עבור למועדף: ${cat.label}`}
                     className="flex-shrink-0 px-5 py-3 rounded-full bg-white border border-slate-100 shadow-sm flex items-center gap-2 hover:border-indigo-200 transition-all"
                   >
-                    <Heart size={14} className="text-rose-500 fill-rose-500" />
+                    <Heart size={14} className="text-rose-500 fill-rose-500" aria-hidden="true" />
                     <span className="text-xs font-bold text-slate-700">{cat.label}</span>
                   </button>
                 )
@@ -328,7 +337,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </div>
         )}
 
-        {/* Categories Grid */}
         <div className="grid grid-cols-2 gap-4">
           {CATS.map((c) => {
             const Icon = c.icon;
@@ -340,6 +348,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               <button
                 key={c.key}
                 onClick={() => onSelectCategory(c.key)}
+                aria-label={`קטגוריית ${c.label}. ${c.tagLine}`}
                 className="group relative flex flex-col gap-3 p-5 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 text-right overflow-hidden active:scale-95"
                 style={{ backgroundColor: c.light }}
               >
@@ -351,7 +360,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300" 
                   style={{ backgroundColor: `${c.hue}15` }}
                 >
-                  <Icon size={20} style={{ color: c.hue }} />
+                  <Icon size={20} style={{ color: c.hue }} aria-hidden="true" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-headline text-lg font-bold tracking-tight" style={{ color: c.hue }}>{c.label}</h3>
@@ -362,11 +371,11 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     className="inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: `${c.hue}15`, color: c.hue }}
                   >
-                    {count} {cardsText}
+                    {count} כרטיסיות
                   </div>
                   {categoryCompletedCount > 0 && (
                     <div className={cn("flex items-center gap-1", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
-                      <CheckCircle2 size={12} />
+                      <CheckCircle2 size={12} aria-hidden="true" />
                       <span className="text-[9px] font-bold">{categoryCompletedCount}/{count}</span>
                     </div>
                   )}
@@ -378,11 +387,11 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
         <footer className="text-center py-8 space-y-4">
           <div className="flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors">תנאי שימוש</button>} />
+            <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא תנאי שימוש">תנאי שימוש</button>} />
             <span className="opacity-30">|</span>
-            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors">דיסקליימר</button>} />
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא דיסקליימר">דיסקליימר</button>} />
             <span className="opacity-30">|</span>
-            <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors">נגישות</button>} />
+            <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא הצהרת נגישות">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-80">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל

@@ -1,6 +1,7 @@
 
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: 'המצפן הרגשי 🧭 | Emotional Compass',
@@ -35,7 +36,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg" />
       </head>
       <body className="font-body antialiased bg-background text-foreground overflow-x-hidden">
-        {children}
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
       </body>
     </html>
   );
