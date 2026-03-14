@@ -37,6 +37,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const lastProcessedTextRef = useRef<string>("");
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
 
@@ -78,18 +79,24 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         recognitionRef.current.lang = 'he-IL';
 
         recognitionRef.current.onresult = (event: any) => {
-          let currentText = '';
+          let currentBatchText = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              currentText += event.results[i][0].transcript;
+              currentBatchText += event.results[i][0].transcript;
             }
           }
           
-          if (currentText) {
-            setData(prev => ({ 
-              ...prev, 
-              [step]: (prev[step as keyof typeof data] + ' ' + currentText).trim() 
-            }));
+          if (currentBatchText.trim()) {
+            setData(prev => {
+              const currentVal = prev[step as keyof typeof data];
+              // Avoid duplicates on mobile (Chrome often repeats the transcript)
+              if (currentVal.includes(currentBatchText.trim())) return prev;
+              
+              return { 
+                ...prev, 
+                [step]: (currentVal + ' ' + currentBatchText).trim() 
+              };
+            });
           }
         };
 
@@ -148,8 +155,9 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
-    // Stop recording automatically if user clicks next while recording
+    // CRITICAL: Stop recording AND update state immediately to ensure mic shuts down
     if (isRecording) {
+      setIsRecording(false);
       recognitionRef.current?.stop();
     }
 
