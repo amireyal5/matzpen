@@ -1,113 +1,55 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * FIREBASE SECURITY RULES DOCUMENTATION
-     * 
-     * Core Philosophy:
-     * This ruleset implements a hybrid security model. It enforces strict User-Ownership for personal 
-     * data (profiles) and a Role-Based Access Control (RBAC) model for global application content 
-     * (categories, practices, and steps).
-     * 
-     * Data Structure:
-     * - /userProfiles/{userId}: Private user data, keyed by the Firebase Auth UID.
-     * - /categories/{id}, /practices/{id}, /practiceSteps/{id}: Global content accessible to all 
-     *   authenticated users but modifiable only by administrators.
-     * - /roles_admin/{uid}: A system-level collection used to designate administrative privileges.
-     * 
-     * Key Security Decisions:
-     * 1. Path-Based Ownership: User profiles are secured by matching the document ID directly 
-     *    to the 'request.auth.uid', ensuring O(1) authorization without extra database lookups.
-     * 2. Database-Backed Roles: Admin privileges are verified using the 'exists()' function 
-     *    against a dedicated 'roles_admin' collection.
-     * 3. Prototyping Flexibility: While authorization is strictly enforced, data schemas (field 
-     *    types and presence) are not validated to allow for rapid frontend iteration.
-     * 4. Relational Integrity: On creation and update of user-specific documents, we enforce 
-     *    that internal ID fields remain consistent with the authenticated user's identity.
-     */
-
     // --- Helper Functions ---
 
-    /** @description Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if a document exists and the current user is the owner. Used for updates/deletes. */
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    /** @description Checks the 'roles_admin' collection to see if the current user is an admin. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
     // --- Collection Rules ---
 
-    /**
-     * @description Rules for user profile documents. Users can only manage their own profile.
-     * @path /userProfiles/{userId}
-     * @allow (get) If the requesting user's UID matches {userId}.
-     * @deny (list) If a user attempts to list profiles other than their own.
-     * @principle Path-based ownership and relational integrity (ID must match Auth UID).
-     */
     match /userProfiles/{userId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
+
+      // Rules for sub-collections (like journals)
+      match /{allSubcollections=**} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
-    /**
-     * @description Rules for global categories. Read-only for users, writeable by admins.
-     * @path /categories/{categoryId}
-     * @allow (list) Any authenticated user can browse categories.
-     * @deny (create) Non-admin users cannot create categories.
-     * @principle Public read for authenticated users with RBAC for writes.
-     */
     match /categories/{categoryId} {
       allow get, list: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for psychological practices. Filterable by categoryId.
-     * @path /practices/{practiceId}
-     * @allow (get) Any authenticated user can read a practice.
-     * @deny (update) Any user without an entry in 'roles_admin'.
-     * @principle Public read for authenticated users with RBAC for writes.
-     */
     match /practices/{practiceId} {
       allow get, list: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for specific steps within practices.
-     * @path /practiceSteps/{practiceStepId}
-     * @allow (list) Authenticated users can fetch steps (usually filtered by practiceId).
-     * @deny (delete) Unauthorized users or standard users.
-     * @principle Public read for authenticated users with RBAC for writes.
-     */
     match /practiceSteps/{practiceStepId} {
       allow get, list: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Rules for identifying admin users.
-     * @path /roles_admin/{uid}
-     * @allow (get) A user can check if they themselves are an admin.
-     * @deny (write) No one can grant themselves admin rights via the client SDK.
-     * @principle Database-backed access control. Writes must be done via Admin SDK or Console.
-     */
     match /roles_admin/{uid} {
       allow get: if isOwner(uid) || isAdmin();
       allow list: if isAdmin();

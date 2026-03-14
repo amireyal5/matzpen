@@ -40,6 +40,28 @@
         }
       },
       "required": ["id", "name", "gender"]
+    },
+    "ThoughtJournalEntry": {
+      "title": "ThoughtJournalEntry",
+      "type": "object",
+      "description": "תיעוד של תרגול יומן מחשבות במודל אפר\"ת כולל ניתוח AI.",
+      "properties": {
+        "id": { "type": "string" },
+        "event": { "type": "string" },
+        "interpretation": { "type": "string" },
+        "feeling": { "type": "string" },
+        "reaction": { "type": "string" },
+        "analysis": {
+          "type": "object",
+          "properties": {
+            "distortions": { "type": "array", "items": { "type": "string" } },
+            "healthyPerspective": { "type": "string" },
+            "summary": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["event", "interpretation", "feeling", "reaction", "createdAt"]
     }
   },
   "auth": {
@@ -55,6 +77,13 @@
         "$ref": "#/backend/entities/UserProfile"
       },
       "description": "אחסון פרופילי משתמשים. גישה מותרת רק לבעל הפרופיל."
+    },
+    "thoughtJournals": {
+      "path": "/userProfiles/{userId}/journals/{journalId}",
+      "schema": {
+        "$ref": "#/backend/entities/ThoughtJournalEntry"
+      },
+      "description": "היסטוריית יומני מחשבות של המשתמש."
     }
   }
 }

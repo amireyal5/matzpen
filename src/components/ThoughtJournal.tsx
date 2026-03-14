@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -8,6 +9,8 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { analyzeJournal, JournalAnalysisOutput } from "@/ai/flows/journal-analysis-flow";
+import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 interface ThoughtJournalProps {
   gender: "m" | "f";
@@ -19,6 +22,8 @@ const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/uploa
 type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "analyzing" | "finish";
 
 export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) {
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [step, setStep] = useState<EfratStep>("event");
   const [data, setData] = useState({
     event: "",
@@ -143,6 +148,17 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
       try {
         const result = await analyzeJournal({ ...data, gender });
         setAnalysis(result);
+        
+        // Save to Firestore
+        if (user && firestore) {
+          const journalsRef = collection(firestore, "userProfiles", user.uid, "journals");
+          addDocumentNonBlocking(journalsRef, {
+            ...data,
+            analysis: result,
+            createdAt: new Date().toISOString()
+          });
+        }
+
         setStep("finish");
         // Play the final summary
         handlePlayAudio(result.summary);
@@ -194,6 +210,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               <CheckCircle2 size={32} />
             </div>
             <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
+            <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
           </div>
 
           {analysis && (
