@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
@@ -107,8 +108,6 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
     try {
       const userCredential = await signInWithPopup(auth, provider);
       if (userCredential.user) {
-        // For Google, if it's a first time, we still want to ensure gender is set, 
-        // default to 'm' if we don't know, but user can change in profile later.
         syncProfileOnAuth(userCredential.user);
       }
       onSuccess();
@@ -122,8 +121,8 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
 
   if (verificationSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-900 text-right" dir="rtl">
-        <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50 p-8 text-center space-y-6 rounded-[2.5rem]">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 text-right" dir="rtl">
+        <Card className="w-full max-w-md bg-slate-900 border-slate-800 text-slate-50 p-8 text-center space-y-6 rounded-[2.5rem]">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500">
               <CheckCircle2 size={40} />
@@ -155,15 +154,26 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-900 text-right" dir="rtl">
-      <Card className="w-full max-w-md bg-slate-800 border-slate-700 text-slate-50 rounded-[2.5rem] shadow-2xl overflow-hidden">
-        <CardHeader className="space-y-2 pt-10">
-          <CardTitle className="text-3xl font-black text-center">
-            {isLogin ? "ברוכים השבים" : "הצטרפות למצפן"}
-          </CardTitle>
-          <CardDescription className="text-center text-slate-400 font-medium">
-            {isLogin ? "הכנס/י פרטים כדי להמשיך" : "צור/י חשבון כדי לשמור את ההתקדמות שלך"}
-          </CardDescription>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 text-right selection:bg-indigo-500 selection:text-white" dir="rtl">
+      <Card className="w-full max-w-md bg-slate-900 border-slate-800 text-slate-50 rounded-[2.5rem] shadow-2xl overflow-hidden border-indigo-500/5">
+        <CardHeader className="space-y-4 pt-12 pb-6 flex flex-col items-center">
+          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 overflow-hidden mb-2">
+            <Image 
+              src="/logo.png" 
+              alt="לוגו המצפן הרגשי" 
+              width={64} 
+              height={64} 
+              className="object-cover"
+            />
+          </div>
+          <div className="space-y-1 text-center">
+            <CardTitle className="text-3xl font-black">
+              {isLogin ? "ברוכים השבים" : "הצטרפות למצפן"}
+            </CardTitle>
+            <CardDescription className="text-slate-400 font-medium text-sm">
+              {isLogin ? "הכנס/י פרטים כדי להמשיך" : "צרו חשבון כדי לשמור את ההתקדמות שלכם"}
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6 px-8">
           <form onSubmit={handleAuth} className="space-y-5">
@@ -176,7 +186,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
                     <Input 
                       id="name" 
                       placeholder="שם מלא..." 
-                      className="bg-slate-900 border-slate-700 pr-10 h-12 text-white placeholder:text-slate-600 rounded-xl"
+                      className="bg-slate-950 border-slate-800 pr-10 h-12 text-white placeholder:text-slate-500 rounded-xl focus:border-indigo-500/50 transition-colors"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required={!isLogin}
@@ -189,13 +199,19 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
                   <RadioGroup value={gender} onValueChange={(val) => setGender(val as "m" | "f")} className="grid grid-cols-2 gap-3">
                     <div className="relative">
                       <RadioGroupItem value="m" id="m-male" className="sr-only" />
-                      <Label htmlFor="m-male" className={cn("flex items-center justify-center h-12 rounded-xl border-2 transition-all cursor-pointer font-bold text-sm", gender === "m" ? "border-indigo-600 bg-indigo-600/10 text-white" : "border-slate-700 text-slate-500 hover:bg-slate-700/50")}>
+                      <Label htmlFor="m-male" className={cn(
+                        "flex items-center justify-center h-12 rounded-xl border-2 transition-all cursor-pointer font-bold text-sm", 
+                        gender === "m" ? "border-indigo-600 bg-indigo-600/10 text-white shadow-lg shadow-indigo-600/5" : "border-slate-800 text-slate-500 hover:bg-slate-800/50"
+                      )}>
                         זכר {gender === "m" && <Check size={14} className="mr-2" />}
                       </Label>
                     </div>
                     <div className="relative">
                       <RadioGroupItem value="f" id="f-female" className="sr-only" />
-                      <Label htmlFor="f-female" className={cn("flex items-center justify-center h-12 rounded-xl border-2 transition-all cursor-pointer font-bold text-sm", gender === "f" ? "border-indigo-600 bg-indigo-600/10 text-white" : "border-slate-700 text-slate-500 hover:bg-slate-700/50")}>
+                      <Label htmlFor="f-female" className={cn(
+                        "flex items-center justify-center h-12 rounded-xl border-2 transition-all cursor-pointer font-bold text-sm", 
+                        gender === "f" ? "border-indigo-600 bg-indigo-600/10 text-white shadow-lg shadow-indigo-600/5" : "border-slate-800 text-slate-500 hover:bg-slate-800/50"
+                      )}>
                         נקבה {gender === "f" && <Check size={14} className="mr-2" />}
                       </Label>
                     </div>
@@ -212,7 +228,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
                   id="email" 
                   type="email" 
                   placeholder="name@example.com" 
-                  className="bg-slate-900 border-slate-700 pr-10 h-12 text-white placeholder:text-slate-600 rounded-xl"
+                  className="bg-slate-950 border-slate-800 pr-10 h-12 text-white placeholder:text-slate-500 rounded-xl focus:border-indigo-500/50 transition-colors"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -227,7 +243,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
                   id="password" 
                   type="password" 
                   placeholder="לפחות 6 תווים..."
-                  className="bg-slate-900 border-slate-700 pr-10 h-12 text-white placeholder:text-slate-600 rounded-xl"
+                  className="bg-slate-950 border-slate-800 pr-10 h-12 text-white placeholder:text-slate-500 rounded-xl focus:border-indigo-500/50 transition-colors"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -252,13 +268,13 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
           </form>
 
           <div className="relative py-2">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-700/50" /></div>
-            <div className="relative flex justify-center text-[9px] font-black uppercase tracking-[0.2em]"><span className="bg-slate-800 px-4 text-slate-500">או דרך</span></div>
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-800" /></div>
+            <div className="relative flex justify-center text-[9px] font-black uppercase tracking-[0.2em]"><span className="bg-slate-900 px-4 text-slate-500">או דרך</span></div>
           </div>
 
           <Button 
             variant="outline" 
-            className="w-full border-slate-700 bg-transparent hover:bg-slate-700 text-slate-50 h-14 rounded-2xl font-bold transition-all active:scale-95"
+            className="w-full border-slate-800 bg-transparent hover:bg-slate-800/50 text-slate-50 h-14 rounded-2xl font-bold transition-all active:scale-95"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -271,7 +287,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
             כניסה מהירה עם Google
           </Button>
         </CardContent>
-        <CardFooter className="flex flex-col gap-6 border-t border-slate-700/50 mt-6 pt-8 pb-10 bg-slate-900/30">
+        <CardFooter className="flex flex-col gap-6 border-t border-slate-800 mt-6 pt-8 pb-10 bg-slate-950/20">
           <button 
             onClick={() => setIsLogin(!isLogin)} 
             className="text-sm text-indigo-400 hover:text-indigo-300 font-black transition-colors"
@@ -289,3 +305,4 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
     </div>
   );
 }
+
