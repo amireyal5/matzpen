@@ -44,10 +44,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
     
-    // Welcome animation timer: shrink and move photo after 2 seconds
+    // Welcome animation timer: shrink and move photo after 5 seconds
     const timer = setTimeout(() => {
       setIsMinimized(true);
-    }, 2000);
+    }, 5000);
     
     return () => clearTimeout(timer);
   }, []);
