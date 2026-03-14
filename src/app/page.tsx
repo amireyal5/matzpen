@@ -6,6 +6,7 @@ import LandingScreen from "@/components/LandingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
+import SplashScreen from "@/components/SplashScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -14,6 +15,7 @@ type Screen = "landing" | "auth" | "home" | "deck";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
+  const [showSplash, setShowSplash] = useState(true);
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"m" | "f">("m");
   const [activeCatKey, setActiveCatKey] = useState("SOS");
@@ -21,6 +23,14 @@ function AppContent() {
   
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+
+  // Splash Screen timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Reference to user profile based on UID
   const profileRef = useMemoFirebase(() => {
@@ -44,12 +54,9 @@ function AppContent() {
             setScreen("home");
           }
         } else if (screen !== "home" && screen !== "deck") {
-          // If no profile data yet but we have a user (e.g. fresh Google sign in), 
-          // we can still move to home and let them complete details there if needed.
           setScreen("home");
         }
       } else {
-        // Not verified - force auth screen if they try to go deep
         if (screen === "home" || screen === "deck") {
           setScreen("auth");
         }
@@ -102,7 +109,10 @@ function AppContent() {
     setScreen("deck");
   };
 
-  if (!isHydrated || isUserLoading) return null;
+  // While showing splash or loading initial data
+  if (showSplash || !isHydrated || isUserLoading) {
+    return <SplashScreen />;
+  }
 
   return (
     <main className="min-h-screen">
