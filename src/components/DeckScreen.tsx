@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -94,7 +93,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         {/* Card Arena with Carousel */}
         <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
-            <CarouselContent className="-ml-0 py-10"> {/* Added py-10 to allow shadow room */}
+            <CarouselContent className="-ml-0 py-10">
               {cards.map((card, i) => (
                 <CarouselItem key={i} className="pl-0 flex items-center justify-center px-6">
                   <div className="w-full h-[460px] perspective-1000">
@@ -231,10 +230,10 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        {/* Clean, Uniform Footer - Integrated into scroll */}
+        {/* Footer Area - No background or shadow difference */}
         <footer className="w-full text-center py-6 mt-4 opacity-60">
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>

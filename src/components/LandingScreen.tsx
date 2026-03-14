@@ -108,7 +108,7 @@ export default function LandingScreen({ onComplete }: LandingScreenProps) {
 
         <footer className="text-center py-4 opacity-80">
           <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>
