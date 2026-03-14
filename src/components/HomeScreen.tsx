@@ -119,9 +119,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             )}>
               <div className="relative">
                 <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
-                <div className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden">
-                  <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
-                  <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg" />
+                <div className="relative w-24 h-24">
+                  <div className="w-full h-full rounded-full border-4 border-white/20 shadow-2xl overflow-hidden relative">
+                    <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+                  </div>
+                  {/* Presence Indicator - Fixed outside overflow container */}
+                  <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg z-40" />
                 </div>
               </div>
             </div>
@@ -144,8 +147,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
               isMinimized ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
             )}>
-              <div className="relative w-10 h-10 rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden">
-                <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+              <div className="relative w-10 h-10">
+                <div className="w-full h-full rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden relative">
+                  <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+                </div>
+                {/* Minimized Presence Indicator */}
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
               </div>
             </div>
 
