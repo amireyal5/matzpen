@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview מנוע המלצות חכם למצפן הרגשי.
- * מקבל את הרגשת המשתמש ומחזיר את הקטגוריה המתאימה ביותר.
+ * מקבל את הרגשת המשתמש ואת המגדר שלו, ומחזיר את הקטגוריה המתאימה ביותר עם הסבר מותאם מגדרית.
  */
 
 import { ai } from '@/ai/genkit';
@@ -11,6 +11,7 @@ import { CATS } from '@/lib/data';
 
 const RecommendationInputSchema = z.object({
   feeling: z.string().describe('תיאור ההרגשה של המשתמש כרגע.'),
+  gender: z.enum(['m', 'f']).describe('מגדר המשתמש (m/f) לצורך פנייה נכונה.'),
 });
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 
@@ -30,6 +31,7 @@ const prompt = ai.definePrompt({
   output: { schema: RecommendationOutputSchema },
   prompt: `אתה עוזר טיפולי חכם באפליקציית "המצפן הרגשי".
 המשתמש משתף איך הוא מרגיש כרגע: "{{{feeling}}}".
+מגדר המשתמש הוא: {{gender}} (m = זכר, f = נקבה).
 
 בהתבסס על הקטגוריות הבאות, בחר את הקטגוריה שהכי תעזור לו כרגע:
 {{#each categories}}
@@ -37,6 +39,10 @@ const prompt = ai.definePrompt({
 {{/each}}
 
 החזר את מפתח הקטגוריה (key) והסבר קצר, אישי ומחזק בעברית רהוטה.
+חשוב מאוד: עליך לנסח את ההסבר (explanation) בדיוק לפי המגדר של המשתמש ({{gender}}). 
+אם זה m - פנה בלשון זכר. אם זה f - פנה בלשון נקבה.
+אל תשתמש בלוכסנים (כמו בחר/י), אלא פנה ישירות ובצורה חמה.
+
 אם המשתמש נשמע במצוקה קשה מאוד, בחר תמיד ב-SOS.`,
 });
 

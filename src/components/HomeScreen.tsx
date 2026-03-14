@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -66,6 +67,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     }
   }, [isProfileOpen, profileData]);
 
+  const favorites = profileData?.favorites || [];
+  const completedCards = profileData?.completed || [];
+
+  const displayName = profileData?.name || initialName;
+  const displayGender = profileData?.gender || initialGender;
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -73,7 +80,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     setIsSearching(true);
     setRecommendation(null);
     try {
-      const res = await getRecommendation({ feeling: searchQuery });
+      const res = await getRecommendation({ 
+        feeling: searchQuery,
+        gender: displayGender
+      });
       setRecommendation(res);
     } catch (err) {
       console.error(err);
@@ -108,12 +118,6 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
       setIsProfileOpen(false);
     }, 500);
   };
-
-  const favorites = profileData?.favorites || [];
-  const completedCards = profileData?.completed || [];
-
-  const displayName = profileData?.name || initialName;
-  const displayGender = profileData?.gender || initialGender;
 
   // UX Writing & Gender Personalization Logic
   const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
