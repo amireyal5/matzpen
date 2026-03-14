@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Settings } from "lucide-react";
+import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Settings, Check } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { cn } from "@/lib/utils";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import Image from "next/image";
 import {
   Dialog,
@@ -17,7 +17,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { signOut } from "firebase/auth";
+import { doc } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
 
 interface HomeScreenProps {
@@ -27,26 +31,40 @@ interface HomeScreenProps {
   onBack: () => void;
 }
 
-export default function HomeScreen({ name, gender, onSelectCategory, onBack }: HomeScreenProps) {
+export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onBack }: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [completedCards, setCompletedCards] = useState<string[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
+  // Editing state for profile
+  const [editName, setEditName] = useState(initialName);
+  const [editGender, setEditGender] = useState<"m" | "f">(initialGender);
+  const [isSaving, setIsSaving] = useState(false);
+
   const { user } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
+
+  const profileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, "userProfiles", user.uid);
+  }, [user, firestore]);
+
+  const { data: profileData } = useDoc(profileRef);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
-    const savedFavs = localStorage.getItem("compass_favorites");
-    if (savedFavs) setFavorites(JSON.parse(savedFavs));
-    
-    const savedCompleted = localStorage.getItem("compass_completed");
-    if (savedCompleted) setCompletedCards(JSON.parse(savedCompleted));
   }, []);
+
+  // Sync edit state with props/db when dialog opens or data changes
+  useEffect(() => {
+    if (isProfileOpen && profileData) {
+      setEditName(profileData.name || "");
+      setEditGender(profileData.gender || "m");
+    }
+  }, [isProfileOpen, profileData]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,9 +96,29 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
     }
   };
 
+  const handleSaveProfile = () => {
+    if (!profileRef) return;
+    setIsSaving(true);
+    updateDocumentNonBlocking(profileRef, {
+      name: editName,
+      gender: editGender
+    });
+    // Optimistic close
+    setTimeout(() => {
+      setIsSaving(false);
+      setIsProfileOpen(false);
+    }, 500);
+  };
+
+  const favorites = profileData?.favorites || [];
+  const completedCards = profileData?.completed || [];
+
+  const displayName = profileData?.name || initialName;
+  const displayGender = profileData?.gender || initialGender;
+
   const welcomeText = "שלום, ";
-  const actionText = gender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
-  const placeholderText = gender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
+  const actionText = displayGender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
+  const placeholderText = displayGender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
   const favTitle = "מועדפים ששמרת";
   const cardsText = "כרטיסיות";
 
@@ -90,7 +128,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
         {/* Header */}
         <div className="flex justify-between items-start">
           <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-400 tracking-wider">{welcomeText}{name} 🌿</p>
+            <p className="text-xs font-bold text-slate-400 tracking-wider">{welcomeText}{displayName} 🌿</p>
             <h2 className="text-3xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
             <p className="text-xs text-slate-400 font-medium">{CATS.length} קטגוריות • {Object.values(BANK).flat().length} כרטיסיות חוסן</p>
           </div>
@@ -103,7 +141,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
                 {user?.photoURL ? (
                   <Image 
                     src={user.photoURL} 
-                    alt={name} 
+                    alt={displayName} 
                     width={48} 
                     height={48} 
                     className="w-full h-full object-cover"
@@ -117,14 +155,14 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
             <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white" dir="rtl">
               <DialogHeader className="sr-only">
                 <DialogTitle>פרופיל אישי</DialogTitle>
-                <DialogDescription>צפייה בפרטים וניהול החשבון שלך</DialogDescription>
+                <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
               </DialogHeader>
               <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
               <div className="px-8 pb-8 -mt-12">
-                <div className="relative mb-6">
+                <div className="relative mb-4">
                   <div className="w-24 h-24 rounded-[2rem] border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
                     {user?.photoURL ? (
-                      <Image src={user.photoURL} alt={name} width={96} height={96} className="w-full h-full object-cover" />
+                      <Image src={user.photoURL} alt={displayName} width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
                         <UserIcon size={40} />
@@ -133,16 +171,53 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
                   </div>
                 </div>
 
-                <div className="text-center space-y-1 mb-8">
-                  <h3 className="text-2xl font-black text-slate-900">{name}</h3>
-                  <p className="text-sm text-slate-500 font-medium">{user?.email || "משתמש אורח"}</p>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                    <Settings size={10} />
-                    פנייה בתוך האפליקציה: {gender === 'f' ? 'לשון נקבה' : 'לשון זכר'}
+                <div className="space-y-4 mb-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">איך נקרא לך?</Label>
+                    <Input 
+                      id="edit-name" 
+                      value={editName} 
+                      onChange={(e) => setEditName(e.target.value)} 
+                      className="rounded-xl border-slate-100 focus:border-indigo-500 font-bold text-slate-900"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">לשון פנייה</Label>
+                    <RadioGroup 
+                      value={editGender} 
+                      onValueChange={(val) => setEditGender(val as "m" | "f")}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      <div className="relative">
+                        <RadioGroupItem value="m" id="r-male" className="sr-only" />
+                        <Label 
+                          htmlFor="r-male" 
+                          className={cn(
+                            "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold",
+                            editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                          )}
+                        >
+                          זכר {editGender === "m" && <Check size={14} className="mr-2" />}
+                        </Label>
+                      </div>
+                      <div className="relative">
+                        <RadioGroupItem value="f" id="r-female" className="sr-only" />
+                        <Label 
+                          htmlFor="r-female" 
+                          className={cn(
+                            "flex items-center justify-center py-3 rounded-xl border-2 transition-all cursor-pointer font-bold",
+                            editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                          )}
+                        >
+                          נקבה {editGender === "f" && <Check size={14} className="mr-2" />}
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
                     <p className="text-[10px] font-black text-slate-400 uppercase mb-1">כרטיסיות שבוצעו</p>
                     <p className="text-xl font-black text-indigo-600">{completedCards.length}</p>
@@ -155,19 +230,19 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
 
                 <div className="space-y-3">
                   <Button 
-                    variant="outline" 
-                    className="w-full py-6 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
-                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full py-6 rounded-2xl bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
                   >
-                    חזרה למצפן
+                    {isSaving ? "שומר..." : "שמירת שינויים"}
                   </Button>
                   <Button 
-                    variant="destructive" 
-                    className="w-full py-6 rounded-2xl font-black shadow-lg shadow-rose-500/10"
+                    variant="ghost" 
+                    className="w-full py-6 rounded-2xl text-rose-500 font-bold hover:bg-rose-50"
                     onClick={handleLogout}
                   >
                     <LogOut className="ml-2 h-4 w-4" />
-                    התנתקות מהמערכת
+                    התנתקות
                   </Button>
                 </div>
               </div>
@@ -205,7 +280,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
                 className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all"
               >
-                {gender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
+                {displayGender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
               </button>
             </div>
           )}
@@ -240,8 +315,8 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
           {CATS.map((c) => {
             const Icon = c.icon;
             const count = (BANK[c.key] || []).length;
-            const completedCount = completedCards.filter(id => id.startsWith(c.key)).length;
-            const isFullyCompleted = completedCount === count;
+            const categoryCompletedCount = completedCards.filter(id => id.startsWith(`${c.key}:`)).length;
+            const isFullyCompleted = categoryCompletedCount === count;
 
             return (
               <button
@@ -271,10 +346,10 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
                   >
                     {count} {cardsText}
                   </div>
-                  {completedCount > 0 && (
+                  {categoryCompletedCount > 0 && (
                     <div className={cn("flex items-center gap-1", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
                       <CheckCircle2 size={12} />
-                      <span className="text-[9px] font-bold">{completedCount}/{count}</span>
+                      <span className="text-[9px] font-bold">{categoryCompletedCount}/{count}</span>
                     </div>
                   )}
                 </div>

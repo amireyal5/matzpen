@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -14,6 +15,8 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { generateSpeech } from "@/ai/flows/tts-flow";
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 interface DeckScreenProps {
   catKey: string;
@@ -29,13 +32,18 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showIntro, setShowIntro] = useState(false);
   
-  // Tracking
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [completedCards, setCompletedCards] = useState<string[]>([]);
-  
   // Audio
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Firebase
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const profileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, "userProfiles", user.uid);
+  }, [user, firestore]);
+  const { data: profileData } = useDoc(profileRef);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
@@ -49,13 +57,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     if (!hasSeen) {
       setShowIntro(true);
     }
-
-    // Load favorites and completed
-    const savedFavs = localStorage.getItem("compass_favorites");
-    if (savedFavs) setFavorites(JSON.parse(savedFavs));
-    
-    const savedCompleted = localStorage.getItem("compass_completed");
-    if (savedCompleted) setCompletedCards(JSON.parse(savedCompleted));
   }, [catKey]);
 
   useEffect(() => {
@@ -80,28 +81,31 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     return gender === "f" ? (obj.f || obj.m) : (obj.m || obj.f);
   };
 
+  const favorites = profileData?.favorites || [];
+  const completedCards = profileData?.completed || [];
+
   const toggleFavorite = (cardIdx: number) => {
+    if (!profileRef) return;
     const id = `${catKey}:${cardIdx}`;
     let newFavs;
     if (favorites.includes(id)) {
-      newFavs = favorites.filter(f => f !== id);
+      newFavs = favorites.filter((f: string) => f !== id);
     } else {
       newFavs = [...favorites, id];
     }
-    setFavorites(newFavs);
-    localStorage.setItem("compass_favorites", JSON.stringify(newFavs));
+    updateDocumentNonBlocking(profileRef, { favorites: newFavs });
   };
 
   const toggleComplete = (cardIdx: number) => {
+    if (!profileRef) return;
     const id = `${catKey}:${cardIdx}`;
     let newCompleted;
     if (completedCards.includes(id)) {
-      newCompleted = completedCards.filter(c => c !== id);
+      newCompleted = completedCards.filter((c: string) => c !== id);
     } else {
       newCompleted = [...completedCards, id];
     }
-    setCompletedCards(newCompleted);
-    localStorage.setItem("compass_completed", JSON.stringify(newCompleted));
+    updateDocumentNonBlocking(profileRef, { completed: newCompleted });
   };
 
   const handleAudioPlay = async (card: any) => {

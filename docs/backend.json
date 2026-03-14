@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "פרופיל משתמש הכולל שם ומגדר לצורך פנייה מותאמת אישית.",
+      "description": "פרופיל משתמש הכולל שם, מגדר, מועדפים וכרטיסיות שבוצעו.",
       "properties": {
         "id": {
           "type": "string",
@@ -23,6 +23,16 @@
         "email": {
           "type": "string",
           "description": "כתובת האימייל של המשתמש."
+        },
+        "favorites": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "רשימת מזהי כרטיסיות מועדפות (catKey:index)."
+        },
+        "completed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "רשימת מזהי כרטיסיות שבוצעו (catKey:index)."
         },
         "createdAt": {
           "type": "string",
