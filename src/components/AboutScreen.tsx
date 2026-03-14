@@ -53,7 +53,7 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
 
           <div className="dark-glass-panel rounded-[2.5rem] p-8 text-right border-indigo-500/10">
             <p className="text-slate-300 text-sm md:text-base leading-relaxed font-medium">
-              עם למעלה מ-20 שנות ניסיון בליווי אנשים למציאת שקט וויסות פנימי, פיתחתי את "המצפן הרגשי" מתוך הרצון להנגיש כלי חוסן מעשיים לכולם. זהו מרחב דיגיטלי בטוח שנועד ללוות אתכם ברגעים שבין המפגשים או ככלי עצמאי לוויסות.
+              עם למעלה מ-20 שנות ניסיון בליווי אנשים למציאת שקט וויסות פנימי, פיתחתי את "המצפן הרגשי" מתוך הרצון להנגיש <span className="text-white font-bold">כלי חוסן מעשיים</span> לכולם. זהו <span className="text-white font-bold">מרחב דיגיטלי בטוח</span> שנועד ללוות אתכם ברגעים שבין המפגשים או ככלי עצמאי לוויסות.
             </p>
           </div>
         </div>
@@ -89,8 +89,8 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
                 bg: "bg-indigo-500/10"
               }
             ].map((item, i) => (
-              <div key={i} className="flex gap-5 p-6 rounded-[2rem] bg-slate-900/50 border border-white/5 hover:border-indigo-500/20 transition-all">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0", item.bg)}>
+              <div key={i} className="flex gap-5 p-6 rounded-[2rem] bg-slate-900/50 border border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/80 transition-all group">
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", item.bg)}>
                   <item.icon className={item.color} size={24} />
                 </div>
                 <div className="space-y-1">
@@ -107,13 +107,13 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
           <div className="space-y-3">
             <h3 className="text-xl font-bold text-white">רוצים להכיר אותי ואת הגישה שלי לעומק?</h3>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">
-              אני מזמין אתכם לקרוא עוד על הניסיון המקצועי שלי ועל הדרך שבה אני מלווה אנשים בתהליכי שינוי.
+              אני מזמין אתכם לקרוא עוד על הניסיון המקצועי שלי, על שיטות הטיפול ועל הדרך שבה אני מלווה אנשים בתהליכי שינוי.
             </p>
           </div>
 
           <Button 
             asChild
-            className="w-full py-8 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg transition-all shadow-xl shadow-indigo-600/10"
+            className="w-full py-8 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg transition-all shadow-xl shadow-indigo-600/10 active:scale-95"
           >
             <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3">
               למידע נוסף באתר הבית של עמיר אייל
@@ -125,7 +125,7 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
         {/* Footer Credit */}
         <footer className="text-center pt-8 pb-12">
           <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
-            © {new Date().getFullYear()} המצפן הרגשי • פותח על ידי עמיר אייל
+            © {new Date().getFullYear()} המצפן הרגשי • פותח על ידי <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-400 transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>
@@ -133,7 +133,7 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
   );
 }
 
-// Utility function copied for isolation
+// Utility function for isolation
 function cn(...inputs: any[]) {
   return inputs.filter(Boolean).join(" ");
 }
