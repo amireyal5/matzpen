@@ -28,13 +28,13 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
       <div className="fixed top-[10%] right-[10%] w-64 h-64 rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" aria-hidden="true" />
       <div className="fixed bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-purple-500/5 blur-[120px] pointer-events-none" aria-hidden="true" />
 
-      <div className="w-full max-w-md relative z-10 flex flex-col gap-12 py-12 animate-fade-in-up">
+      <div className="w-full max-w-md relative z-10 flex flex-col py-12 animate-fade-in-up flex-1">
         
         {/* Central Content Glow - Subtle highlight behind text/button */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none -z-10" aria-hidden="true" />
 
         {/* Logo & Header */}
-        <div className="flex flex-col items-center text-center space-y-8">
+        <div className="flex flex-col items-center text-center space-y-6">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden">
@@ -53,7 +53,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h1 className="font-headline text-5xl md:text-6xl font-black text-slate-50 tracking-tight leading-none">
               המצפן הרגשי
             </h1>
@@ -62,15 +62,15 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             </p>
           </div>
 
-          <div className="dark-glass-panel rounded-[2.5rem] p-8 text-right border-indigo-500/10">
-            <p className="text-slate-300 text-sm leading-relaxed font-medium">
+          <div className="dark-glass-panel rounded-[2.5rem] p-8 text-center border-indigo-500/10">
+            <p className="text-slate-300 text-sm leading-relaxed font-medium max-w-[320px] mx-auto">
               שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
             </p>
           </div>
         </div>
 
         {/* Main CTA Section */}
-        <div className="space-y-6 pt-4 relative">
+        <div className="space-y-6 pt-8 pb-12 relative">
           {/* Specific Button Glow */}
           <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-[2rem] -z-10 scale-90" aria-hidden="true" />
           
@@ -84,7 +84,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
         </div>
 
         {/* Footer */}
-        <footer className="text-center mt-auto py-8 space-y-6">
+        <footer className="text-center mt-auto py-12 space-y-6 border-t border-white/5">
           <div className="flex justify-center gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
             <LegalDialog type="terms" trigger={<button className="hover:text-white transition-colors">תנאי שימוש</button>} />
             <span className="opacity-20">|</span>
