@@ -33,7 +33,13 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
   const steps = [
     { type: "intro", text: g(practice.why) },
     ...practice.steps.map(s => ({ type: "step", text: g(s) })),
-    { type: "outro", text: "איך את/ה מרגיש/ה עכשיו? זכור/י שהכוח לוויסות נמצא תמיד בתוכך." }
+    { 
+      type: "outro", 
+      text: g({ 
+        m: "איך אתה מרגיש עכשיו? זכור שהכוח לוויסות נמצא תמיד בתוכך.", 
+        f: "איך את מרגישה עכשיו? זכרי שהכוח לוויסות נמצא תמיד בתוכך." 
+      }) 
+    }
   ];
 
   const currentStep = steps[stepIdx];
