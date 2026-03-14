@@ -33,6 +33,9 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [showIntro, setShowIntro] = useState(false);
   
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  // מנגנון Caching למניעת צריכת טוקנים חוזרת באותו סשן
+  const [audioCache, setAudioCache] = useState<Record<string, string>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { user } = useUser();
@@ -110,19 +113,36 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       return;
     }
 
-    setIsPlaying(true);
+    const cacheKey = `${catKey}:${idx}:${gender}`;
+    
+    // בדיקה אם השמע כבר קיים ב-Cache
+    if (audioCache[cacheKey]) {
+      playFromUri(audioCache[cacheKey]);
+      return;
+    }
+
+    setIsLoadingAudio(true);
     try {
       const textToSpeak = `${g(card.t)}. הרציונל: ${g(card.why)}. השלבים הם: ${card.steps.map((s: any, i: number) => `שלב ${i + 1}, ${g(s)}`).join(". ")}`;
       const { audioUri } = await generateSpeech({ text: textToSpeak, gender });
       
-      if (audioRef.current) {
-        audioRef.current.src = audioUri;
-        audioRef.current.play();
-        audioRef.current.onended = () => setIsPlaying(false);
-      }
+      // שמירה ב-Cache לשימוש חוזר
+      setAudioCache(prev => ({ ...prev, [cacheKey]: audioUri }));
+      playFromUri(audioUri);
     } catch (err) {
       console.error(err);
-      setIsPlaying(false);
+      setIsLoadingAudio(false);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
+
+  const playFromUri = (uri: string) => {
+    if (audioRef.current) {
+      audioRef.current.src = uri;
+      audioRef.current.play();
+      setIsPlaying(true);
+      audioRef.current.onended = () => setIsPlaying(false);
     }
   };
 
@@ -301,14 +321,14 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                             <TooltipTrigger asChild>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleAudioPlay(card); }}
-                                disabled={idx !== i}
+                                disabled={idx !== i || isLoadingAudio}
                                 aria-label={isPlaying ? "עצור הקראה קולית" : "השמע הקראה קולית של התרגיל"}
                                 className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-all"
                               >
-                                {isPlaying ? <Loader2 size={24} className="animate-spin" aria-hidden="true" /> : <Volume2 size={24} aria-hidden="true" />}
+                                {isLoadingAudio ? <Loader2 size={24} className="animate-spin" aria-hidden="true" /> : (isPlaying ? <RotateCcw size={24} aria-hidden="true" /> : <Volume2 size={24} aria-hidden="true" />)}
                               </button>
                             </TooltipTrigger>
-                            <TooltipContent>{isPlaying ? "עצור" : "השמע תרגיל"}</TooltipContent>
+                            <TooltipContent>{isLoadingAudio ? "מייצר שמע..." : (isPlaying ? "עצור" : "השמע תרגיל")}</TooltipContent>
                           </Tooltip>
                         </div>
 
