@@ -7,8 +7,8 @@ import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
-import { useUser, useFirestore } from "@/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 type Screen = "landing" | "auth" | "home" | "deck";
 
@@ -22,7 +22,27 @@ function AppContent() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Initial local load for guests
+  // יצירת רפרנס לפרופיל המבוסס על ה-UID בלבד (המזהה הייחודי מפיירבייס)
+  const profileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, "userProfiles", user.uid);
+  }, [user, firestore]);
+
+  // האזנה בזמן אמת לפרופיל מהענן
+  const { data: profileData } = useDoc(profileRef);
+
+  // סנכרון מידע מהענן למצב המקומי ברגע שהוא נטען
+  useEffect(() => {
+    if (profileData) {
+      setName(profileData.name || "");
+      setGender(profileData.gender || "m");
+      if (screen === "landing" || screen === "auth") {
+        setScreen("home");
+      }
+    }
+  }, [profileData, screen]);
+
+  // טעינה ראשונית מהזיכרון המקומי (עבור אורחים)
   useEffect(() => {
     const savedData = localStorage.getItem("compass_user_data");
     if (savedData) {
@@ -40,40 +60,27 @@ function AppContent() {
     setIsHydrated(true);
   }, [user]);
 
-  // Sync with Firestore when user logs in
-  useEffect(() => {
-    async function syncProfile() {
-      if (user && firestore) {
-        const docRef = doc(firestore, "userProfiles", user.uid);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setName(data.name || "");
-          setGender(data.gender || "m");
-          setScreen("home");
-        } else {
-          // If logged in but no profile, use local or ask to complete (stay on home/landing)
-          if (name) {
-            await setDoc(docRef, { 
-              id: user.uid, 
-              name, 
-              gender, 
-              email: user.email, 
-              createdAt: new Date().toISOString() 
-            });
-            setScreen("home");
-          }
-        }
-      }
-    }
-    syncProfile();
-  }, [user, firestore, name, gender]);
-
   const handleOnboardingComplete = (userName: string, userGender: "m" | "f") => {
     setName(userName);
     setGender(userGender);
     localStorage.setItem("compass_user_data", JSON.stringify({ name: userName, gender: userGender }));
+    
+    // אם המשתמש מחובר, נסנכרן מיד לענן באמצעות ה-ID בלבד
+    if (user && profileRef) {
+      setDocumentNonBlocking(profileRef, { 
+        id: user.uid, 
+        name: userName, 
+        gender: userGender, 
+        email: user.email, 
+        createdAt: new Date().toISOString() 
+      }, { merge: true });
+    }
+    
+    setScreen("home");
+  };
+
+  const handleAuthSuccess = () => {
+    // הסנכרון יתבצע אוטומטית דרך useDoc ו-useEffect ברגע שה-Auth יתעדכן
     setScreen("home");
   };
 
@@ -96,8 +103,9 @@ function AppContent() {
       )}
       {screen === "auth" && (
         <AuthScreen 
-          onSuccess={() => setScreen("home")} 
+          onSuccess={handleAuthSuccess} 
           onBack={() => setScreen("landing")} 
+          localProfile={{ name, gender }}
         />
       )}
       {screen === "home" && (

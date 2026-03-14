@@ -2,14 +2,14 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   GoogleAuthProvider, 
   signInWithPopup 
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,15 +19,30 @@ import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 interface AuthScreenProps {
   onSuccess: () => void;
   onBack: () => void;
+  localProfile?: { name: string, gender: "m" | "f" };
 }
 
-export default function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
-  const { auth, firestore } = { auth: useAuth(), firestore: useFirestore() };
+export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScreenProps) {
+  const auth = useAuth();
+  const firestore = useFirestore();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const syncProfileOnAuth = (user: any) => {
+    if (localProfile?.name && firestore) {
+      const docRef = doc(firestore, "userProfiles", user.uid);
+      setDocumentNonBlocking(docRef, {
+        id: user.uid,
+        name: localProfile.name,
+        gender: localProfile.gender,
+        email: user.email,
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,14 +50,20 @@ export default function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     setError("");
 
     try {
+      let userCredential;
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      }
+      
+      if (userCredential.user) {
+        syncProfileOnAuth(userCredential.user);
       }
       onSuccess();
     } catch (err: any) {
-      setError(err.message === "Firebase: Error (auth/user-not-found)." ? "המשתמש לא קיים" : "שגיאה בתהליך ההתחברות");
+      console.error(err);
+      setError("שגיאה בתהליך ההתחברות. וודא שהפרטים נכונים.");
     } finally {
       setLoading(false);
     }
@@ -52,9 +73,13 @@ export default function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     setLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      if (userCredential.user) {
+        syncProfileOnAuth(userCredential.user);
+      }
       onSuccess();
     } catch (err) {
+      console.error(err);
       setError("שגיאה בהתחברות עם גוגל");
     } finally {
       setLoading(false);
@@ -82,7 +107,7 @@ export default function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                   id="email" 
                   type="email" 
                   placeholder="name@example.com" 
-                  className="bg-slate-900 border-slate-700 pr-10"
+                  className="bg-slate-900 border-slate-700 pr-10 text-white"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -96,14 +121,14 @@ export default function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                 <Input 
                   id="password" 
                   type="password" 
-                  className="bg-slate-900 border-slate-700 pr-10"
+                  className="bg-slate-900 border-slate-700 pr-10 text-white"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
             </div>
-            {error && <p className="text-rose-400 text-xs font-bold">{error}</p>}
+            {error && <p className="text-rose-400 text-xs font-bold text-center">{error}</p>}
             <Button 
               type="submit" 
               className="w-full bg-indigo-600 hover:bg-indigo-700 font-bold h-12"
