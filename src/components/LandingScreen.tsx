@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogIn, Sparkles } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -47,6 +47,7 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
               alt="עמיר אייל"
               fill
               className="object-cover"
+              data-ai-hint="portrait psychologist"
             />
           </div>
           <div className="space-y-2">
@@ -57,21 +58,25 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
           </div>
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-right">
             <p className="text-slate-200 text-sm leading-relaxed font-medium">
-              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו.
+              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו. כאן תמצאו כלים פרקטיים לניהול רגשות, בניית חוסן ומציאת שקט נפשי בכל רגע שתזדקקו לו.
             </p>
           </div>
         </div>
 
         <div className="bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-indigo-500/20 shadow-2xl space-y-6">
           <div className="space-y-4">
-             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block pr-1">איך נקרא לך?</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="הכנס/י שם..."
-                className="w-full px-5 py-4 rounded-2xl border-2 border-indigo-500/20 bg-slate-900/50 text-slate-50 text-lg font-semibold focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
-              />
+             <div className="space-y-4">
+              <label className="text-sm font-bold text-indigo-400 block pr-1">כדי להתחיל, אנא השלימו את הפרטים:</label>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block pr-1">איך נקרא לך?</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="הכנס/י שם..."
+                  className="w-full px-5 py-4 rounded-2xl border-2 border-indigo-500/20 bg-slate-900/50 text-slate-50 text-lg font-semibold focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -101,7 +106,7 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
               disabled={!name.trim()}
               className="w-full py-5 rounded-2xl text-xl font-black bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl active:scale-[0.98] disabled:opacity-30"
             >
-              המשך ללא הרשמה
+              המשך למצפן
             </button>
           </div>
 
