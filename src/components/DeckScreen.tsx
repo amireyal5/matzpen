@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Info } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -108,28 +107,35 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC]">
       <audio ref={audioRef} hidden />
       
-      <header className="bg-slate-950 text-white pt-8 pb-10 px-6 shadow-xl relative z-20">
-        <div className="max-w-lg mx-auto w-full flex items-center justify-between">
-          <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-indigo-400 uppercase tracking-widest">
-            <ArrowRight className="size-[18px]" /> חזרה
+      <header className="bg-slate-950 text-white relative z-20 shadow-xl overflow-hidden">
+        <div className="max-w-lg mx-auto w-full flex items-center justify-between pt-8 pb-10 px-6">
+          <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-indigo-400 uppercase tracking-widest transition-colors hover:text-indigo-300">
+            <ArrowRight className="size-5" /> חזרה
           </button>
           
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 text-white font-black text-xs">
-              <cat.icon className="size-[14px]" /> {cat.label}
+              <cat.icon className="size-3.5" /> {cat.label}
             </div>
-            <button onClick={() => setShowIntro(true)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60">
-              <Info className="size-[16px]" />
+            <button onClick={() => setShowIntro(true)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+              <Info className="size-4" />
             </button>
           </div>
 
           <div className="text-[10px] font-black text-white/40 tracking-widest">{idx + 1}/{cards.length}</div>
         </div>
-      </header>
 
-      <div className="w-full h-1.5 bg-slate-950 relative z-10">
-        <div className="h-full transition-all duration-700" style={{ width: `${((idx + 1) / cards.length) * 100}%`, background: `linear-gradient(90deg, ${cat.gFrom}, ${cat.gTo})` }} />
-      </div>
+        {/* Integrated Progress Bar at the bottom of the header */}
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5 overflow-hidden">
+          <div 
+            className="h-full transition-all duration-700 ease-out" 
+            style={{ 
+              width: `${((idx + 1) / cards.length) * 100}%`, 
+              background: `linear-gradient(90deg, ${cat.gFrom}, ${cat.gTo})` 
+            }} 
+          />
+        </div>
+      </header>
       
       {showIntro && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
