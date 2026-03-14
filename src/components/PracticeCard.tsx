@@ -40,7 +40,8 @@ export default function PracticeCard({
   const CatIcon = category.icon;
 
   // Outer wrapper classes shared by both sides to ensure consistent "lying on background" look
-  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl shadow-slate-300/60 backface-hidden border border-white";
+  // Added overflow-hidden and matching rounded corners to prevent bleed
+  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl shadow-slate-300/60 backface-hidden border border-white isolate";
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative">
@@ -53,9 +54,9 @@ export default function PracticeCard({
       >
         {/* FRONT SIDE */}
         <div className={cardShellClasses}>
-          {/* Header (40% height) */}
+          {/* Header (40% height) - Added rounded-t to match card shape */}
           <div 
-            className="h-[40%] w-full relative flex flex-col items-center justify-center p-8 text-white overflow-hidden"
+            className="h-[40%] w-full relative flex flex-col items-center justify-center p-8 text-white overflow-hidden rounded-t-[45px]"
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
           >
             {/* Top Row: Actions */}
@@ -126,9 +127,9 @@ export default function PracticeCard({
 
         {/* BACK SIDE */}
         <div className={cn(cardShellClasses, "rotate-y-180")}>
-          {/* Header (25% height) */}
+          {/* Header (25% height) - Added rounded-t to match card shape */}
           <div 
-            className="h-[25%] w-full relative flex flex-col items-center justify-center p-6 text-white overflow-hidden shrink-0"
+            className="h-[25%] w-full relative flex flex-col items-center justify-center p-6 text-white overflow-hidden shrink-0 rounded-t-[45px]"
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
           >
             <div className="w-full flex justify-between items-start relative z-10">
