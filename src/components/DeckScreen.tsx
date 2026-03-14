@@ -111,13 +111,10 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-50 relative overflow-hidden">
-      {/* Ambient Glow Background */}
-      <div 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[60%] blur-[120px] rounded-full pointer-events-none transition-colors duration-1000 ease-in-out z-0"
-        style={{ backgroundColor: `${cat.hue}10` }}
-      />
-
+    <div 
+      className="min-h-screen w-full flex flex-col relative overflow-hidden transition-colors duration-700 ease-in-out"
+      style={{ backgroundColor: cat.light }}
+    >
       <header className="relative z-20 flex items-center justify-between pt-8 pb-4 px-6 max-w-lg mx-auto w-full">
         <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-slate-900 transition-colors group">
           <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /> חזרה

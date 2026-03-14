@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Heart, CheckCircle2, Volume2, RotateCcw, Zap, ListChecks, Check, Loader2 } from "lucide-react";
@@ -39,21 +40,11 @@ export default function PracticeCard({
   const CatIcon = category.icon;
   const currentTip = TIP_MAP[category.key] || "ככל שתתרגלו, כך הפעולה תהפוך לאוטומטית ומרגיעה יותר.";
 
-  // המעטפת הפיזית של הקלף - נקייה מצללים והילה כדי שלא ייחתכו בסיבוב
-  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-white isolate overflow-hidden";
+  // עיצוב שטוח (Flat): ללא צללים, עם גבול עדין המשתלב ברקע הצבעוני של הדף
+  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-black/5 isolate overflow-hidden";
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative group">
-      
-      {/* 1. הילה חיצונית רכה מאוד (Ambient Glow) - סטטית, לא מסתובבת */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[115%] h-[115%] blur-[120px] opacity-[0.1] transition-all duration-1000 rounded-full z-0 pointer-events-none"
-        style={{ backgroundColor: category.hue }}
-      />
-
-      {/* 2. צל סטטי "מרחף" (Shadow Decorator) - מחוץ למערכת ה-Flip כדי למנוע זוויות חדות */}
-      <div className="absolute inset-8 bg-slate-400/20 blur-[45px] rounded-[50px] z-0 pointer-events-none transform translate-y-8" />
-
       <div 
         onClick={() => onFlip(!isFlipped)}
         className={cn(
@@ -108,8 +99,8 @@ export default function PracticeCard({
               <h3 className="font-headline text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight px-2">{g(card.t)}</h3>
             </div>
             <div 
-              className="w-full py-5 rounded-[2rem] flex items-center justify-center gap-3 text-white font-black text-base md:text-lg transition-all active:scale-[0.97] shadow-xl" 
-              style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})`, boxShadow: `0 15px 35px ${category.hue}30` }}
+              className="w-full py-5 rounded-[2rem] flex items-center justify-center gap-3 text-white font-black text-base md:text-lg transition-all active:scale-[0.97] shadow-lg" 
+              style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
             >
               <Zap className="size-5" />
               {gender === 'f' ? 'איך את עושה את זה?' : 'איך עושים את זה?'}
