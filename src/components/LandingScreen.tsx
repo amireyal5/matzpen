@@ -23,13 +23,16 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 bg-slate-900 overflow-y-auto selection:bg-indigo-500 selection:text-white" dir="rtl">
-      {/* Background Orbs */}
-      <div className="fixed top-[10%] right-[10%] w-64 h-64 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" aria-hidden="true" />
-      <div className="fixed bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-purple-500/5 blur-3xl pointer-events-none" aria-hidden="true" />
+    <div className="min-h-screen flex flex-col items-center p-6 bg-slate-950 overflow-y-auto selection:bg-indigo-500 selection:text-white" dir="rtl">
+      {/* Background Orbs - General ambient light */}
+      <div className="fixed top-[10%] right-[10%] w-64 h-64 rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" aria-hidden="true" />
+      <div className="fixed bottom-[15%] left-[5%] w-96 h-96 rounded-full bg-purple-500/5 blur-[120px] pointer-events-none" aria-hidden="true" />
 
       <div className="w-full max-w-md relative z-10 flex flex-col gap-12 py-12 animate-fade-in-up">
         
+        {/* Central Content Glow - Subtle highlight behind text/button */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none -z-10" aria-hidden="true" />
+
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center space-y-8">
           <div className="flex flex-col items-center gap-4">
@@ -50,11 +53,11 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             </div>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-4">
             <h1 className="font-headline text-5xl md:text-6xl font-black text-slate-50 tracking-tight leading-none">
               המצפן הרגשי
             </h1>
-            <p className="text-indigo-400 font-bold text-lg md:text-xl tracking-wide">
+            <p className="text-indigo-400 font-bold text-lg md:text-xl tracking-wide max-w-[280px] mx-auto">
               ארגז הכלים לחוסן ושקט נפשי
             </p>
           </div>
@@ -67,7 +70,10 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
         </div>
 
         {/* Main CTA Section */}
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-4 relative">
+          {/* Specific Button Glow */}
+          <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-[2rem] -z-10 scale-90" aria-hidden="true" />
+          
           <Button 
             onClick={onGoToAuth}
             className="w-full py-8 rounded-[2rem] text-2xl font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group"
