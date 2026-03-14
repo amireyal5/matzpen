@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LogIn, UserPlus } from "lucide-react";
+import { LegalDialog } from "@/components/LegalDialogs";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -128,8 +129,15 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
           <p className="text-[10px] text-slate-500 text-center">ההרשמה הכרחית כדי להבטיח את פרטיותך ושמירת התקדמותך האישית במערכת.</p>
         </div>
 
-        <footer className="text-center py-4 opacity-80">
-          <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">
+        <footer className="text-center py-4 space-y-4">
+          <div className="flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <LegalDialog type="terms" trigger={<button className="hover:text-white transition-colors">תנאי שימוש</button>} />
+            <span className="opacity-30">|</span>
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-white transition-colors">דיסקליימר</button>} />
+            <span className="opacity-30">|</span>
+            <LegalDialog type="accessibility" trigger={<button className="hover:text-white transition-colors">נגישות</button>} />
+          </div>
+          <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase opacity-80">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">עמיר אייל</a>
           </p>
         </footer>

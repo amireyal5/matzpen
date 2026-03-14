@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { signOut } from "firebase/auth";
+import { LegalDialog } from "@/components/LegalDialogs";
 
 interface HomeScreenProps {
   name: string;
@@ -71,9 +72,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // Clear local storage if desired, or keep for guest return
-      // localStorage.removeItem("compass_user_data"); 
-      window.location.reload(); // Refresh to reset state
+      window.location.reload();
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -115,7 +114,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
               </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+            <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white" dir="rtl">
               <DialogHeader className="sr-only">
                 <DialogTitle>פרופיל אישי</DialogTitle>
                 <DialogDescription>צפייה בפרטים וניהול החשבון שלך</DialogDescription>
@@ -284,8 +283,15 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
           })}
         </div>
 
-        <footer className="text-center py-8 opacity-80">
-          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+        <footer className="text-center py-8 space-y-4">
+          <div className="flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors">תנאי שימוש</button>} />
+            <span className="opacity-30">|</span>
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors">דיסקליימר</button>} />
+            <span className="opacity-30">|</span>
+            <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors">נגישות</button>} />
+          </div>
+          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-80">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
           </p>
         </footer>
