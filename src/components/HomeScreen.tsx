@@ -138,7 +138,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DialogTrigger asChild>
               <button
-                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
+                className="w-12 h-12 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
               >
                 {user?.photoURL ? (
                   <Image 
@@ -162,7 +162,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
               <div className="px-8 pb-8 -mt-12">
                 <div className="relative mb-4">
-                  <div className="w-24 h-24 rounded-[2rem] border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
+                  <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
                     {user?.photoURL ? (
                       <Image src={user.photoURL} alt={displayName} width={96} height={96} className="w-full h-full object-cover" />
                     ) : (
@@ -278,7 +278,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               </button>
               
               <div className="flex gap-3 mb-4">
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                   <Image 
                     src={PROFESSIONAL_PHOTO_URL}
                     alt="עמיר אייל"
