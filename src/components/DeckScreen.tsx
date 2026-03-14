@@ -214,7 +214,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                             style={{ borderColor: `${cat.hue}20`, color: cat.hue }}
                           >
                             <RotateCcw size={16} />
-                            חזרה לפנים
+                            הפוך את הקלף
                           </button>
                         </div>
                       </div>
