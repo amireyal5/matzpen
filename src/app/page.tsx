@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import LandingScreen from "@/components/LandingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 type Screen = "landing" | "home" | "deck";
 
@@ -52,25 +54,31 @@ export default function App() {
   if (!isHydrated) return null;
 
   return (
-    <main className="min-h-screen">
-      {screen === "landing" && (
-        <LandingScreen onComplete={handleOnboardingComplete} />
-      )}
-      {screen === "home" && (
-        <HomeScreen 
-          name={name} 
-          gender={gender}
-          onSelectCategory={handleSelectCategory} 
-          onBack={handleBackToLanding} 
-        />
-      )}
-      {screen === "deck" && (
-        <DeckScreen 
-          catKey={activeCatKey} 
-          gender={gender} 
-          onBack={() => setScreen("home")} 
-        />
-      )}
-    </main>
+    <FirebaseClientProvider>
+      <main className="min-h-screen">
+        {screen === "landing" && (
+          <LandingScreen 
+            onComplete={handleOnboardingComplete} 
+            initialName={name}
+            initialGender={gender}
+          />
+        )}
+        {screen === "home" && (
+          <HomeScreen 
+            name={name} 
+            gender={gender}
+            onSelectCategory={handleSelectCategory} 
+            onBack={handleBackToLanding} 
+          />
+        )}
+        {screen === "deck" && (
+          <DeckScreen 
+            catKey={activeCatKey} 
+            gender={gender} 
+            onBack={() => setScreen("home")} 
+          />
+        )}
+      </main>
+    </FirebaseClientProvider>
   );
 }

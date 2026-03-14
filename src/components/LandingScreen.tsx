@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,16 +6,24 @@ import Image from "next/image";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
+  initialName?: string;
+  initialGender?: "m" | "f";
 }
 
-export default function LandingScreen({ onComplete }: LandingScreenProps) {
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState<"m" | "f">("m");
+export default function LandingScreen({ onComplete, initialName = "", initialGender = "m" }: LandingScreenProps) {
+  const [name, setName] = useState(initialName);
+  const [gender, setGender] = useState<"m" | "f">(initialGender);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  // Update internal state if props change (e.g. on mount)
+  useEffect(() => {
+    if (initialName) setName(initialName);
+    if (initialGender) setGender(initialGender);
+  }, [initialName, initialGender]);
 
   const handleSubmit = () => {
     if (name.trim()) {
