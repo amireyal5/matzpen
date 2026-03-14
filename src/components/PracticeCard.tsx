@@ -39,12 +39,14 @@ export default function PracticeCard({
 
   const CatIcon = category.icon;
 
-  // הוסר overflow-hidden מהמעטפת הראשית כדי לא לחתוך את הצל וההילה
-  // ה-overflow-hidden הועבר פנימה לרמת ה-Header והתוכן
-  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col shadow-2xl shadow-slate-300/60 backface-hidden border border-white isolate";
+  // הצל הוסר מכאן כדי למנוע clipping בזמן סיבוב
+  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-white isolate";
 
   return (
     <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative">
+      
+      {/* Shadow Decorator - צל סטטי שאינו מסתובב ואינו נחתך */}
+      <div className="absolute inset-6 bg-slate-400/20 blur-[45px] rounded-[45px] z-0 pointer-events-none" />
       
       {/* הילה חיצונית שיושבת מתחת לכרטיסייה ולא נחתכת */}
       <div 
@@ -103,7 +105,7 @@ export default function PracticeCard({
           </div>
 
           {/* White Area (60% height) */}
-          <div className="flex-1 relative flex flex-col items-center justify-between p-8 md:p-12 text-center bg-white rounded-b-[45px]">
+          <div className="flex-1 relative flex flex-col items-center justify-between p-8 md:p-12 text-center bg-white rounded-b-[45px] overflow-hidden">
             {/* Watermark Logo */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.03] pointer-events-none select-none z-0">
               <svg viewBox="70 80 180 123" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
