@@ -22,16 +22,16 @@ function AppContent() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // יצירת רפרנס לפרופיל המבוסס על ה-UID בלבד (המזהה הייחודי מפיירבייס)
+  // Reference to user profile based on UID
   const profileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, "userProfiles", user.uid);
   }, [user, firestore]);
 
-  // האזנה בזמן אמת לפרופיל מהענן
+  // Real-time listen to profile data
   const { data: profileData } = useDoc(profileRef);
 
-  // סנכרון מידע מהענן למצב המקומי ברגע שהוא נטען
+  // Sync profile from cloud to local state and redirect to home if logged in
   useEffect(() => {
     if (profileData) {
       setName(profileData.name || "");
@@ -39,10 +39,14 @@ function AppContent() {
       if (screen === "landing" || screen === "auth") {
         setScreen("home");
       }
+    } else if (user && screen !== "home" && screen !== "deck") {
+      // If user is logged in but no profile data yet, we might be in the middle of a sync
+      // or it's a new user who just registered.
+      setScreen("home");
     }
-  }, [profileData, screen]);
+  }, [profileData, user, screen]);
 
-  // טעינה ראשונית מהזיכרון המקומי (עבור אורחים)
+  // Handle initial hydration and check for existing local data
   useEffect(() => {
     const savedData = localStorage.getItem("compass_user_data");
     if (savedData) {
@@ -51,36 +55,30 @@ function AppContent() {
         if (savedName) {
           setName(savedName);
           setGender(savedGender || "m");
-          if (!user) setScreen("home");
         }
       } catch (e) {
         console.error("Error loading user data", e);
       }
     }
     setIsHydrated(true);
-  }, [user]);
+  }, []);
 
-  const handleOnboardingComplete = (userName: string, userGender: "m" | "f") => {
+  // Redirect to landing if user logs out
+  useEffect(() => {
+    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth") {
+      setScreen("landing");
+    }
+  }, [user, isUserLoading, isHydrated, screen]);
+
+  const handleOnboardingStart = (userName: string, userGender: "m" | "f") => {
     setName(userName);
     setGender(userGender);
     localStorage.setItem("compass_user_data", JSON.stringify({ name: userName, gender: userGender }));
-    
-    // אם המשתמש מחובר, נסנכרן מיד לענן באמצעות ה-ID בלבד
-    if (user && profileRef) {
-      setDocumentNonBlocking(profileRef, { 
-        id: user.uid, 
-        name: userName, 
-        gender: userGender, 
-        email: user.email, 
-        createdAt: new Date().toISOString() 
-      }, { merge: true });
-    }
-    
-    setScreen("home");
+    // Instead of going home, go to auth to secure the profile
+    setScreen("auth");
   };
 
   const handleAuthSuccess = () => {
-    // הסנכרון יתבצע אוטומטית דרך useDoc ו-useEffect ברגע שה-Auth יתעדכן
     setScreen("home");
   };
 
@@ -95,7 +93,7 @@ function AppContent() {
     <main className="min-h-screen">
       {screen === "landing" && (
         <LandingScreen 
-          onComplete={handleOnboardingComplete} 
+          onComplete={handleOnboardingStart} 
           onGoToAuth={() => setScreen("auth")}
           initialName={name}
           initialGender={gender}
@@ -108,7 +106,7 @@ function AppContent() {
           localProfile={{ name, gender }}
         />
       )}
-      {screen === "home" && (
+      {(screen === "home" || (user && screen === "landing")) && (
         <HomeScreen 
           name={name} 
           gender={gender}

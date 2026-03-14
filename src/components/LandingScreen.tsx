@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogIn } from "lucide-react";
+import { LogIn, UserPlus } from "lucide-react";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
@@ -104,9 +104,10 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
             <button
               onClick={handleSubmit}
               disabled={!name.trim()}
-              className="w-full py-5 rounded-2xl text-xl font-black bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl active:scale-[0.98] disabled:opacity-30"
+              className="w-full py-5 rounded-2xl text-xl font-black bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl active:scale-[0.98] disabled:opacity-30 flex items-center justify-center gap-3"
             >
-              המשך למצפן
+              <UserPlus size={22} />
+              הרשמה והתחלה
             </button>
           </div>
 
@@ -121,10 +122,10 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
             className="w-full py-6 rounded-2xl border-indigo-500/40 text-indigo-400 font-bold hover:bg-indigo-500/10"
           >
             <LogIn className="ml-2 h-5 w-5" />
-            כניסה / הרשמה למשתמשים קבועים
+            כניסה למשתמשים קיימים
           </Button>
           
-          <p className="text-[10px] text-slate-500 text-center">הרשמה מאפשרת שמירה של כרטיסיות מועדפות ומעקב התקדמות מכל מכשיר.</p>
+          <p className="text-[10px] text-slate-500 text-center">ההרשמה הכרחית כדי להבטיח את פרטיותך ושמירת התקדמותך האישית במערכת.</p>
         </div>
 
         <footer className="text-center py-4 opacity-80">
