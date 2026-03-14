@@ -85,7 +85,7 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex flex-col items-center gap-2.5">
               <div className="flex items-center justify-center gap-3">
                 <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
@@ -99,12 +99,16 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
                 </div>
                 <span className="text-sm font-black text-indigo-400 tracking-wide">המצפן הרגשי</span>
               </div>
-              <p className="text-slate-500 font-medium text-xs tracking-wider opacity-80">ארגז הכלים לחוסן ושקט נפשי</p>
             </div>
             
-            <h1 className="font-headline text-5xl font-black text-slate-50 tracking-tight leading-none">
-              המצפן הרגשי
-            </h1>
+            <div className="space-y-3">
+              <h1 className="font-headline text-5xl font-black text-slate-50 tracking-tight leading-none">
+                המצפן הרגשי
+              </h1>
+              <p className="text-slate-500 font-medium text-lg tracking-wide opacity-80">
+                ארגז הכלים לחוסן ושקט נפשי
+              </p>
+            </div>
           </div>
 
           <div className="dark-glass-panel rounded-[2.5rem] p-8 text-right">
