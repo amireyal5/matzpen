@@ -23,12 +23,13 @@ interface PracticeCardProps {
   category: any;
   backTab: "why" | "steps" | "tip";
   onTabChange: (tab: "why" | "steps" | "tip") => void;
+  onShowIntro: () => void;
 }
 
 export default function PracticeCard({
   card, idx, total, isFlipped, onFlip, isFavorite, onToggleFavorite,
   isCompleted, onToggleComplete, onPlayAudio, isLoadingAudio, isPlaying,
-  gender, category, backTab, onTabChange
+  gender, category, backTab, onTabChange, onShowIntro
 }: PracticeCardProps) {
   
   const g = (obj: any) => {
@@ -74,9 +75,13 @@ export default function PracticeCard({
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-8">
-            <div className="w-16 h-16 md:w-24 md:h-24 rounded-[1.5rem] flex items-center justify-center shadow-lg" style={{ backgroundColor: `${category.hue}15` }}>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onShowIntro(); }}
+              className="w-16 h-16 md:w-24 md:h-24 rounded-[1.5rem] flex items-center justify-center shadow-lg hover:scale-105 transition-transform" 
+              style={{ backgroundColor: `${category.hue}15` }}
+            >
               <CatIcon className="size-8 md:size-10" style={{ color: category.hue }} />
-            </div>
+            </button>
             <h3 className="font-headline text-xl md:text-3xl font-black text-slate-950 text-center leading-tight px-2">
               {g(card.t)}
             </h3>

@@ -114,9 +114,12 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </button>
           
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 text-white font-black text-xs">
+            <button 
+              onClick={() => setShowIntro(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 text-white font-black text-xs hover:bg-white/20 transition-all"
+            >
               <cat.icon className="size-3.5" /> {cat.label}
-            </div>
+            </button>
             <button onClick={() => setShowIntro(true)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
               <Info className="size-4" />
             </button>
@@ -125,7 +128,6 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           <div className="text-[10px] font-black text-white/40 tracking-widest">{idx + 1}/{cards.length}</div>
         </div>
 
-        {/* Integrated Progress Bar at the bottom of the header */}
         <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5 overflow-hidden">
           <div 
             className="h-full transition-all duration-700 ease-out" 
@@ -171,6 +173,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                     isCompleted={completedCards.includes(`${catKey}:${i}`)} onToggleComplete={() => toggleComplete(i)}
                     onPlayAudio={() => handleAudioPlay(card)} isLoadingAudio={isLoadingAudio} isPlaying={isPlaying && idx === i}
                     gender={gender} category={cat} backTab={backTab} onTabChange={setBackTab}
+                    onShowIntro={() => setShowIntro(true)}
                   />
                 </CarouselItem>
               ))}
