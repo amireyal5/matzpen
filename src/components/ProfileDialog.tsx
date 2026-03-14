@@ -12,7 +12,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth, updateDocumentNonBlocking } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { doc } from "firebase/firestore";
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -68,17 +67,20 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
           <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
         </DialogHeader>
         
+        {/* Header Background */}
         <div className="relative h-40 w-full bg-slate-900 rounded-t-[3rem] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent z-1" />
-          <DialogClose className="absolute left-6 top-6 z-20 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none border border-white/5">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent z-10" />
+          <DialogClose className="absolute left-6 top-6 z-30 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none border border-white/5">
             <X size={20} />
           </DialogClose>
         </div>
         
-        <div className="px-10 pb-12 -mt-20 relative z-10">
-          <div className="relative mb-8">
-            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 mx-auto transition-all duration-500">
-              <div className="w-full h-full">
+        <div className="px-10 pb-12 -mt-20 relative z-20">
+          {/* Profile Image with White Glow */}
+          <div className="relative mb-8 flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-white blur-xl opacity-30 rounded-full scale-110" />
+              <div className="relative w-32 h-32 rounded-full border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transition-all duration-500">
                 {user?.photoURL ? (
                   <Image src={user.photoURL} alt="פרופיל" width={128} height={128} className="w-full h-full object-cover" />
                 ) : (
@@ -90,6 +92,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
             </div>
           </div>
 
+          {/* Form Fields */}
           <div className="space-y-6 mb-10">
             <div className="space-y-2">
               <Label htmlFor="edit-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">איך נקרא לך?</Label>
@@ -97,7 +100,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 id="edit-name" 
                 value={editName} 
                 onChange={(e) => setEditName(e.target.value)} 
-                className="rounded-2xl border-slate-100 h-14 px-6 text-base font-bold text-slate-900"
+                className="rounded-2xl border-slate-100 h-14 px-6 text-base font-bold text-slate-900 focus:ring-indigo-500/20"
               />
             </div>
 
@@ -106,13 +109,19 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
               <RadioGroup value={editGender} onValueChange={(val) => setEditGender(val as "m" | "f")} className="grid grid-cols-2 gap-4">
                 <div className="relative">
                   <RadioGroupItem value="m" id="r-male" className="sr-only" />
-                  <Label htmlFor="r-male" className={cn("flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm", editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-50 text-slate-400 hover:bg-slate-50")}>
+                  <Label htmlFor="r-male" className={cn(
+                    "flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm", 
+                    editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600 shadow-sm" : "border-slate-50 text-slate-400 hover:bg-slate-50"
+                  )}>
                     גבר {editGender === "m" && <Check size={14} className="mr-2" />}
                   </Label>
                 </div>
                 <div className="relative">
                   <RadioGroupItem value="f" id="r-female" className="sr-only" />
-                  <Label htmlFor="r-female" className={cn("flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm", editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-50 text-slate-400 hover:bg-slate-50")}>
+                  <Label htmlFor="r-female" className={cn(
+                    "flex items-center justify-center py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold h-14 text-sm", 
+                    editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600 shadow-sm" : "border-slate-50 text-slate-400 hover:bg-slate-50"
+                  )}>
                     אישה {editGender === "f" && <Check size={14} className="mr-2" />}
                   </Label>
                 </div>
@@ -120,17 +129,19 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
             </div>
           </div>
 
+          {/* Stats Section */}
           <div className="grid grid-cols-2 gap-5 mb-10">
-            <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1">
+            <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">כרטיסיות שבוצעו</p>
               <p className="text-2xl font-black text-slate-900">{completedCount}</p>
             </div>
-            <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1">
+            <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">עוגנים שמורים</p>
               <p className="text-2xl font-black text-rose-500">{favoritesCount}</p>
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="space-y-4">
             <Button 
               className="w-full py-8 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-xl shadow-indigo-600/20 text-lg transition-all active:scale-95" 
