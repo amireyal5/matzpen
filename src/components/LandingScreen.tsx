@@ -3,14 +3,17 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { LogIn, Sparkles } from "lucide-react";
 
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
+  onGoToAuth: () => void;
   initialName?: string;
   initialGender?: "m" | "f";
 }
 
-export default function LandingScreen({ onComplete, initialName = "", initialGender = "m" }: LandingScreenProps) {
+export default function LandingScreen({ onComplete, onGoToAuth, initialName = "", initialGender = "m" }: LandingScreenProps) {
   const [name, setName] = useState(initialName);
   const [gender, setGender] = useState<"m" | "f">(initialGender);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -19,7 +22,6 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  // Update internal state if props change (e.g. on mount)
   useEffect(() => {
     if (initialName) setName(initialName);
     if (initialGender) setGender(initialGender);
@@ -33,13 +35,11 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
 
   return (
     <div className="min-h-screen flex flex-col items-center p-6 bg-[linear-gradient(135deg,#0F172A_0%,#1E293B_50%,#0F172A_100%)] overflow-y-auto">
-      {/* Decorative background elements */}
       <div className="fixed top-[10%] right-[10%] w-48 h-48 rounded-full border border-indigo-500/10 pointer-events-none" />
       <div className="fixed bottom-[15%] left-[5%] w-72 h-72 rounded-full border border-indigo-500/5 pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 flex flex-col gap-8 py-12 animate-fade-in-up">
         
-        {/* Therapist Welcome Section */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 rounded-full border-4 border-indigo-500/30 overflow-hidden shadow-2xl">
             <Image 
@@ -57,15 +57,14 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
           </div>
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 text-right">
             <p className="text-slate-200 text-sm leading-relaxed font-medium">
-              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו. כאן תמצאו כלים פרקטיים לניהול רגשות, בניית חוסן ומציאת שקט נפשי בכל רגע שתזדקקו לו.
+              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כדי שילווה אתכם גם בין המפגשים שלנו.
             </p>
           </div>
         </div>
 
-        {/* Onboarding Form */}
-        <div className="bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-indigo-500/20 shadow-2xl">
-          <div className="space-y-6">
-            <div className="space-y-2">
+        <div className="bg-slate-800/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-indigo-500/20 shadow-2xl space-y-6">
+          <div className="space-y-4">
+             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase block pr-1">איך נקרא לך?</label>
               <input
                 value={name}
@@ -81,9 +80,7 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
                 <button
                   onClick={() => setGender("m")}
                   className={`py-4 rounded-2xl text-base font-bold transition-all border-2 ${
-                    gender === "m"
-                      ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                      : "bg-transparent border-slate-700 text-slate-500 hover:border-indigo-500/40"
+                    gender === "m" ? "bg-indigo-600 border-indigo-600 text-white" : "bg-transparent border-slate-700 text-slate-500"
                   }`}
                 >
                   לשון זכר
@@ -91,9 +88,7 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
                 <button
                   onClick={() => setGender("f")}
                   className={`py-4 rounded-2xl text-base font-bold transition-all border-2 ${
-                    gender === "f"
-                      ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                      : "bg-transparent border-slate-700 text-slate-500 hover:border-indigo-500/40"
+                    gender === "f" ? "bg-indigo-600 border-indigo-600 text-white" : "bg-transparent border-slate-700 text-slate-500"
                   }`}
                 >
                   לשון נקבה
@@ -104,20 +99,32 @@ export default function LandingScreen({ onComplete, initialName = "", initialGen
             <button
               onClick={handleSubmit}
               disabled={!name.trim()}
-              className={`w-full py-5 rounded-2xl text-xl font-black transition-all shadow-xl ${
-                name.trim()
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/30 active:scale-[0.98] hover:brightness-110"
-                  : "bg-indigo-500/20 text-indigo-300/30 cursor-not-allowed"
-              }`}
+              className="w-full py-5 rounded-2xl text-xl font-black bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl active:scale-[0.98] disabled:opacity-30"
             >
-              להפעיל את המצפן
+              המשך ללא הרשמה
             </button>
           </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-700" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-800 px-2 text-slate-500">או</span></div>
+          </div>
+
+          <Button 
+            onClick={onGoToAuth}
+            variant="outline" 
+            className="w-full py-6 rounded-2xl border-indigo-500/40 text-indigo-400 font-bold hover:bg-indigo-500/10"
+          >
+            <LogIn className="ml-2 h-5 w-5" />
+            כניסה / הרשמה למשתמשים קבועים
+          </Button>
+          
+          <p className="text-[10px] text-slate-500 text-center">הרשמה מאפשרת שמירה של כרטיסיות מועדפות ומעקב התקדמות מכל מכשיר.</p>
         </div>
 
         <footer className="text-center py-4 opacity-80">
           <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">עמיר אייל</a>
           </p>
         </footer>
       </div>
