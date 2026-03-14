@@ -31,6 +31,8 @@ interface HomeScreenProps {
   onBack: () => void;
 }
 
+const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
+
 export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onBack }: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
@@ -274,11 +276,27 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
               <button onClick={clearRecommendation} className="absolute top-2 left-2 text-indigo-300 hover:text-indigo-600">
                 <X size={16} />
               </button>
-              <p className="text-sm font-bold text-indigo-900 mb-2">המלצת המצפן 🧭</p>
-              <p className="text-sm text-indigo-700 leading-relaxed mb-4">{recommendation.explanation}</p>
+              
+              <div className="flex gap-3 mb-4">
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                  <Image 
+                    src={PROFESSIONAL_PHOTO_URL}
+                    alt="עמיר אייל"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col justify-center">
+                  <p className="text-[10px] font-black text-indigo-900/50 uppercase tracking-widest leading-none mb-1">המלצת המצפן 🧭</p>
+                  <p className="text-xs font-black text-indigo-900 leading-none">עמיר אייל</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-indigo-700 leading-relaxed mb-4 font-medium border-r-2 border-indigo-200 pr-3">{recommendation.explanation}</p>
+              
               <button 
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
-                className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all"
+                className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all shadow-sm"
               >
                 {displayGender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
               </button>
