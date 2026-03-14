@@ -16,8 +16,6 @@ type Screen = "landing" | "auth" | "home" | "deck";
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [showSplash, setShowSplash] = useState(true);
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState<"m" | "f">("m");
   const [activeCatKey, setActiveCatKey] = useState("SOS");
   const [isHydrated, setIsHydrated] = useState(false);
   
@@ -41,19 +39,13 @@ function AppContent() {
   // Real-time listen to profile data
   const { data: profileData } = useDoc(profileRef);
 
-  // Sync profile from cloud to local state and redirect to home if logged in and verified
+  // Sync profile logic and redirection
   useEffect(() => {
-    if (user) {
+    if (user && !isUserLoading) {
       const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
       
       if (isVerified) {
-        if (profileData) {
-          setName(profileData.name || user.displayName || "");
-          setGender(profileData.gender || "m");
-          if (screen === "landing" || screen === "auth") {
-            setScreen("home");
-          }
-        } else if (screen !== "home" && screen !== "deck") {
+        if (screen === "landing" || screen === "auth") {
           setScreen("home");
         }
       } else {
@@ -62,22 +54,10 @@ function AppContent() {
         }
       }
     }
-  }, [profileData, user, screen]);
+  }, [profileData, user, isUserLoading, screen]);
 
-  // Handle initial hydration and check for existing local data
+  // Handle initial hydration
   useEffect(() => {
-    const savedData = localStorage.getItem("compass_user_data");
-    if (savedData) {
-      try {
-        const { name: savedName, gender: savedGender } = JSON.parse(savedData);
-        if (savedName) {
-          setName(savedName);
-          setGender(savedGender || "m");
-        }
-      } catch (e) {
-        console.error("Error loading user data", e);
-      }
-    }
     setIsHydrated(true);
   }, []);
 
@@ -88,20 +68,12 @@ function AppContent() {
     }
   }, [user, isUserLoading, isHydrated, screen]);
 
-  const handleOnboardingStart = (userName: string, userGender: "m" | "f") => {
-    setName(userName);
-    setGender(userGender);
-    localStorage.setItem("compass_user_data", JSON.stringify({ name: userName, gender: userGender }));
+  const handleGoToAuth = () => {
     setScreen("auth");
   };
 
   const handleAuthSuccess = () => {
-    if (user) {
-       const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
-       if (isVerified) {
-         setScreen("home");
-       }
-    }
+    setScreen("home");
   };
 
   const handleSelectCategory = (key: string) => {
@@ -114,21 +86,21 @@ function AppContent() {
     return <SplashScreen />;
   }
 
+  const name = profileData?.name || user?.displayName || "";
+  const gender = profileData?.gender || "m";
+
   return (
     <main className="min-h-screen">
       {screen === "landing" && (
         <LandingScreen 
-          onComplete={handleOnboardingStart} 
-          onGoToAuth={() => setScreen("auth")}
-          initialName={name}
-          initialGender={gender}
+          onComplete={() => setScreen("auth")} 
+          onGoToAuth={handleGoToAuth}
         />
       )}
       {screen === "auth" && (
         <AuthScreen 
           onSuccess={handleAuthSuccess} 
           onBack={() => setScreen("landing")} 
-          localProfile={{ name, gender }}
         />
       )}
       {(screen === "home" && user) && (
