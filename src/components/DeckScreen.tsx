@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { 
-  ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check 
+  ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check, Info 
 } from "lucide-react";
 import { BANK, CATS, TIP_MAP } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -25,13 +25,21 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [backTab, setBackTab] = useState<"why" | "steps" | "tip">("why");
   const [api, setApi] = useState<CarouselApi>();
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
+  const [showIntro, setShowIntro] = useState(false);
 
   const cat = CATS.find((c) => c.key === catKey) || CATS[0];
   const cards = BANK[catKey] || [];
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+    
+    // Check if user has already seen the intro for this category
+    const introKey = `has_seen_intro_${catKey}`;
+    const hasSeen = localStorage.getItem(introKey);
+    if (!hasSeen) {
+      setShowIntro(true);
+    }
+  }, [catKey]);
 
   useEffect(() => {
     if (!api) return;
@@ -43,6 +51,11 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     });
   }, [api]);
 
+  const handleCloseIntro = () => {
+    setShowIntro(false);
+    localStorage.setItem(`has_seen_intro_${catKey}`, "true");
+  };
+
   const g = (obj: any) => {
     if (!obj) return "";
     if (typeof obj === "string") return obj;
@@ -53,7 +66,36 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
 
   return (
     <div className="min-h-screen w-full flex flex-col transition-colors duration-500" style={{ backgroundColor: cat.light }}>
-      <div className="max-w-lg mx-auto w-full flex flex-col items-center">
+      {/* Intro Overlay / Gate */}
+      {showIntro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6 border border-slate-100">
+            <div 
+              className="w-20 h-20 rounded-3xl flex items-center justify-center mb-2"
+              style={{ backgroundColor: `${cat.hue}15` }}
+            >
+              <CatIcon size={40} style={{ color: cat.hue }} />
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-2xl font-headline font-black text-slate-900 leading-tight">
+                {cat.label}
+              </h2>
+              <p className="text-slate-600 font-medium leading-relaxed text-base">
+                {cat.intro}
+              </p>
+            </div>
+            <button 
+              onClick={handleCloseIntro}
+              className="w-full py-5 rounded-2xl text-white font-black text-lg transition-all active:scale-[0.97]"
+              style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}40` }}
+            >
+              הבנתי, בוא נתחיל
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1">
         {/* Navbar */}
         <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
           <button 
@@ -64,12 +106,21 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
             חזרה
           </button>
           
-          <div 
-            className="flex items-center gap-2.5 px-4 py-2 rounded-full text-white font-black text-xs shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 8px 20px ${cat.hue}30` }}
-          >
-            <CatIcon size={14} />
-            {cat.label}
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowIntro(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:bg-white/50"
+              style={{ color: cat.hue }}
+            >
+              <Info size={18} />
+            </button>
+            <div 
+              className="flex items-center gap-2.5 px-4 py-2 rounded-full text-white font-black text-xs shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 8px 20px ${cat.hue}30` }}
+            >
+              <CatIcon size={14} />
+              {cat.label}
+            </div>
           </div>
 
           <div className="text-xs font-black" style={{ color: cat.hue }}>
@@ -93,7 +144,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         {/* Card Arena with Carousel */}
         <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
-            <CarouselContent className="-ml-0 py-10">
+            <CarouselContent className="-ml-0 py-8">
               {cards.map((card, i) => (
                 <CarouselItem key={i} className="pl-0 flex items-center justify-center px-6">
                   <div className="w-full h-[460px] perspective-1000">
@@ -230,8 +281,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        {/* Footer Area - No background or shadow difference */}
-        <footer className="w-full text-center py-6 mt-4 opacity-60">
+        {/* Unified Footer */}
+        <footer className="w-full text-center py-6 mt-auto">
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
           </p>
