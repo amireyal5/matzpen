@@ -2,13 +2,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, Info, Volume2, RotateCcw, Loader2 } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import PracticeCard from "./PracticeCard";
+import { cn } from "@/lib/utils";
 
 interface DeckScreenProps {
   catKey: string;
@@ -110,43 +111,46 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC]">
-      <header className="bg-slate-950 text-white relative z-20 shadow-xl overflow-hidden">
-        <div className="max-w-lg mx-auto w-full flex items-center justify-between pt-8 pb-10 px-6">
-          <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-indigo-400 uppercase tracking-widest transition-colors hover:text-indigo-300">
-            <ArrowRight className="size-5" /> חזרה
-          </button>
-          
-          <div className="flex items-center gap-2.5">
-            <button 
-              onClick={() => setShowIntro(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 text-white font-black text-xs hover:bg-white/20 transition-all"
-            >
-              <cat.icon className="size-3.5" /> {cat.label}
-            </button>
-            <button onClick={() => setShowIntro(true)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
-              <Info className="size-4" />
-            </button>
+    <div className="min-h-screen w-full flex flex-col bg-slate-50 relative overflow-hidden">
+      {/* Ambient Glow Background */}
+      <div 
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[60%] blur-[120px] rounded-full pointer-events-none transition-colors duration-1000 ease-in-out z-0"
+        style={{ backgroundColor: `${cat.hue}10` }}
+      />
+
+      <header className="relative z-20 flex items-center justify-between pt-8 pb-4 px-6 max-w-lg mx-auto w-full">
+        <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-slate-900 transition-colors group">
+          <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /> חזרה
+        </button>
+        
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{cat.label}</span>
+          <div className="flex gap-1">
+            {cards.map((_, i) => (
+              <div 
+                key={i} 
+                className={cn(
+                  "h-1 rounded-full transition-all duration-500",
+                  idx === i ? "w-4" : "w-1"
+                )}
+                style={{ backgroundColor: idx === i ? cat.hue : "#CBD5E1" }}
+              />
+            ))}
           </div>
-
-          <div className="text-[10px] font-black text-white/40 tracking-widest">{idx + 1}/{cards.length}</div>
         </div>
 
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5 overflow-hidden">
-          <div 
-            className="h-full transition-all duration-700 ease-out" 
-            style={{ 
-              width: `${((idx + 1) / cards.length) * 100}%`, 
-              background: `linear-gradient(90deg, ${cat.gFrom}, ${cat.gTo})` 
-            }} 
-          />
-        </div>
+        <button 
+          onClick={() => setShowIntro(true)} 
+          className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors border border-slate-100"
+        >
+          <Info className="size-4" />
+        </button>
       </header>
       
       {showIntro && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white rounded-[3rem] p-8 max-w-md w-full diffused-shadow flex flex-col items-center text-center space-y-6">
-            <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ backgroundColor: `${cat.hue}15` }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[3rem] p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6">
+            <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center" style={{ backgroundColor: `${cat.hue}15` }}>
               <cat.icon className="size-10" style={{ color: cat.hue }} />
             </div>
             <div className="space-y-4">
@@ -155,7 +159,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
             </div>
             <button 
               onClick={() => { setShowIntro(false); localStorage.setItem(`has_seen_intro_${catKey}`, "true"); }}
-              className="w-full py-5 rounded-2xl text-white font-black text-lg shadow-lg"
+              className="w-full py-5 rounded-2xl text-white font-black text-lg shadow-xl transition-all active:scale-95"
               style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}
             >
               הבנתי, בוא נתחיל
@@ -164,27 +168,31 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1 py-8 px-6">
-        <div className="w-full">
-          <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
-            <CarouselContent className="-ml-0 py-2">
-              {cards.map((card, i) => (
-                <CarouselItem key={i} className="pl-0 flex items-center justify-center px-2">
-                  <PracticeCard 
-                    card={card} idx={i} total={cards.length}
-                    isFlipped={flipped && idx === i} onFlip={setFlipped}
-                    isFavorite={favorites.includes(`${catKey}:${i}`)} onToggleFavorite={() => toggleFavorite(i)}
-                    isCompleted={completedCards.includes(`${catKey}:${i}`)} onToggleComplete={() => toggleComplete(i)}
-                    onPlayAudio={() => handleAudioPlay(card)} isLoadingAudio={isLoadingAudio && idx === i} isPlaying={isPlaying && idx === i}
-                    gender={gender} category={cat} backTab={backTab} onTabChange={setBackTab}
-                    onShowIntro={() => setShowIntro(true)}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+      <main className="max-w-lg mx-auto w-full flex flex-col items-center justify-center flex-1 py-4 px-6 relative z-10">
+        <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
+          <CarouselContent className="-ml-0 items-center">
+            {cards.map((card, i) => (
+              <CarouselItem key={i} className="pl-0 flex items-center justify-center px-2">
+                <PracticeCard 
+                  card={card} idx={i} total={cards.length}
+                  isFlipped={flipped && idx === i} onFlip={setFlipped}
+                  isFavorite={favorites.includes(`${catKey}:${i}`)} onToggleFavorite={() => toggleFavorite(i)}
+                  isCompleted={completedCards.includes(`${catKey}:${i}`)} onToggleComplete={() => toggleComplete(i)}
+                  onPlayAudio={() => handleAudioPlay(card)} isLoadingAudio={isLoadingAudio && idx === i} isPlaying={isPlaying && idx === i}
+                  gender={gender} category={cat} backTab={backTab} onTabChange={setBackTab}
+                  onShowIntro={() => setShowIntro(true)}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </main>
+
+      <footer className="relative z-20 pb-12 pt-4 flex flex-col items-center gap-4">
+        <div className="text-[10px] font-black text-slate-400 tracking-widest uppercase">
+          כרטיסייה {idx + 1} מתוך {cards.length}
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
