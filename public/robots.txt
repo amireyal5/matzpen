@@ -1,5 +1,2 @@
 User-agent: *
 Allow: /
-
-# Sitemaps
-Sitemap: https://oghen.vercel.app/sitemap.xml
