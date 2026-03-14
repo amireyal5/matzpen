@@ -87,7 +87,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             <LegalDialog type="accessibility" trigger={<button className="hover:text-white transition-colors">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-opacity">עמיר אייל</a>
           </p>
         </footer>
       </div>

@@ -24,13 +24,15 @@ const JournalAnalysisOutputSchema = z.object({
 export type JournalAnalysisOutput = z.infer<typeof JournalAnalysisOutputSchema>;
 
 // פונקציית עזר לביצוע ניסיונות חוזרים במקרה של עומס (429)
-async function fetchWithRetry(fn: () => Promise<any>, retries = 3) {
+// הוגדל ל-7 ניסיונות כדי לכסות השהיה של מעל דקה במקרה של חריגת מכסה
+async function fetchWithRetry(fn: () => Promise<any>, retries = 7) {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (error: any) {
-      if (error?.status === 429 || error?.message?.includes('429')) {
-        const delay = Math.pow(2, i) * 1000;
+      const errorMsg = error?.message || '';
+      if (error?.status === 429 || errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED')) {
+        const delay = Math.pow(2, i) * 1500; // זמן המתנה הולך וגדל (1.5s, 3s, 6s, 12s, 24s, 48s...)
         if (i === retries - 1) throw error;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;

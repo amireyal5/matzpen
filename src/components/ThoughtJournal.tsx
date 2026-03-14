@@ -87,7 +87,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             setData(prev => {
               const currentStepKey = step as keyof typeof data;
               const currentText = prev[currentStepKey];
-              if (currentText.endsWith(finalTranscript.trim())) return prev;
+              // מניעת כפילויות של מילים בגרסת הנייד
+              if (currentText.includes(finalTranscript.trim())) return prev;
               return { 
                 ...prev, 
                 [currentStepKey]: (currentText + ' ' + finalTranscript).trim() 
@@ -151,11 +152,11 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
-    // עצירה יזומה ומיידית של המיקרופון
+    // עצירה יזומה ומיידית של המיקרופון בלחיצה על המשך
     if (isRecording) {
       setIsRecording(false);
       recognitionRef.current?.stop();
-      // המתנה כדי לתת לעיבוד הקול האחרון להסתיים ולהתעדכן בסטייט
+      // המתנה קלה לעיבוד המילים האחרונות
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -183,7 +184,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         handlePlayAudio(result.summary);
       } catch (err) {
         console.error("Analysis failed", err);
-        // אם הניתוח נכשל לחלוטין אחרי ה-retries, ננסה להציג מסך סיום בסיסי או הודעה
         setStep("finish");
       }
     }

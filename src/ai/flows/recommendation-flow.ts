@@ -20,13 +20,15 @@ const RecommendationOutputSchema = z.object({
 });
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>;
 
-async function fetchWithRetry(fn: () => Promise<any>, retries = 3) {
+// פונקציית עזר לביצוע ניסיונות חוזרים במקרה של עומס (429)
+async function fetchWithRetry(fn: () => Promise<any>, retries = 7) {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (error: any) {
-      if (error?.status === 429 || error?.message?.includes('429')) {
-        const delay = Math.pow(2, i) * 1000;
+      const errorMsg = error?.message || '';
+      if (error?.status === 429 || errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED')) {
+        const delay = Math.pow(2, i) * 1500;
         if (i === retries - 1) throw error;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
