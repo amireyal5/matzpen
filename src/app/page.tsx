@@ -38,16 +38,18 @@ function AppContent() {
       
       if (isVerified) {
         if (profileData) {
-          setName(profileData.name || "");
+          setName(profileData.name || user.displayName || "");
           setGender(profileData.gender || "m");
           if (screen === "landing" || screen === "auth") {
             setScreen("home");
           }
         } else if (screen !== "home" && screen !== "deck") {
+          // If no profile data yet but we have a user (e.g. fresh Google sign in), 
+          // we can still move to home and let them complete details there if needed.
           setScreen("home");
         }
       } else {
-        // Not verified - force auth screen
+        // Not verified - force auth screen if they try to go deep
         if (screen === "home" || screen === "deck") {
           setScreen("auth");
         }
@@ -87,7 +89,6 @@ function AppContent() {
   };
 
   const handleAuthSuccess = () => {
-    // Only proceed to home if user exists and is verified
     if (user) {
        const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
        if (isVerified) {
