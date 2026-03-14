@@ -47,7 +47,6 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
       
-      // If the user already started filling details, sync them now
       if (firestore && user) {
         const docRef = doc(firestore, "userProfiles", user.uid);
         setDocumentNonBlocking(docRef, {
@@ -86,23 +85,26 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
             </div>
           </div>
           
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
-                <Image 
-                  src="/logo.png" 
-                  alt="לוגו המצפן הרגשי" 
-                  width={40} 
-                  height={40} 
-                  className="object-cover"
-                />
+          <div className="space-y-4">
+            <div className="flex flex-col items-center gap-2.5">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                  <Image 
+                    src="/logo.png" 
+                    alt="לוגו המצפן הרגשי" 
+                    width={40} 
+                    height={40} 
+                    className="object-cover"
+                  />
+                </div>
+                <span className="text-sm font-black text-indigo-400 tracking-wide">המצפן הרגשי</span>
               </div>
-              <span className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">The Compass</span>
+              <p className="text-slate-500 font-medium text-xs tracking-wider opacity-80">ארגז הכלים לחוסן ושקט נפשי</p>
             </div>
-            <h1 className="font-headline text-4xl font-black text-slate-50 tracking-tight leading-none">
-              המצפן הרגשי 🧭
+            
+            <h1 className="font-headline text-5xl font-black text-slate-50 tracking-tight leading-none">
+              המצפן הרגשי
             </h1>
-            <p className="text-slate-400 font-medium text-sm">ארגז הכלים לחוסן ושקט נפשי</p>
           </div>
 
           <div className="dark-glass-panel rounded-[2.5rem] p-8 text-right">
