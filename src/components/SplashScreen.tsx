@@ -18,15 +18,16 @@ export default function SplashScreen() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/20 blur-[120px] rounded-full animate-pulse" />
 
       <div className={`flex flex-col items-center text-center transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 transform translate-y-0 scale-100' : 'opacity-0 transform translate-y-4 scale-95'}`}>
-        {/* Logo with building animation effect */}
-        <div className="relative w-32 h-32 mb-8 group">
-          <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all duration-700" />
-          <div className="relative w-full h-full rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white">
+        {/* Logo with building animation effect - No circle border, larger size */}
+        <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8 group">
+          <div className="absolute inset-0 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700" />
+          <div className="relative w-full h-full">
             <Image 
               src="/logo.png" 
               alt="המצפן הרגשי" 
               fill 
-              className="object-cover p-2 animate-in fade-in zoom-in duration-1000"
+              priority
+              className="object-contain animate-in fade-in zoom-in duration-1000"
             />
           </div>
         </div>
