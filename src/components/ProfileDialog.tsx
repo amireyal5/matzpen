@@ -3,16 +3,17 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2 } from "lucide-react";
+import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from "@/firebase";
-import { signOut } from "firebase/auth";
-import { collection, query, orderBy, doc } from "firebase/firestore";
+import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
+import { signOut, deleteUser } from "firebase/auth";
+import { collection, query, orderBy, doc, getDocs, deleteDoc } from "firebase/firestore";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -31,9 +32,11 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const [editName, setEditName] = useState("");
   const [editGender, setEditGender] = useState<"m" | "f">("m");
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const journalsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !profileRef) return null;
     return query(
       collection(doc(profileRef.firestore, "userProfiles", user.uid), "journals"),
       orderBy("createdAt", "desc")
@@ -46,6 +49,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     if (isOpen && profileData) {
       setEditName(profileData.name || "");
       setEditGender(profileData.gender || "m");
+      setDeleteError("");
     }
     if (!isOpen) {
       setView("profile");
@@ -75,11 +79,45 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     }
   };
 
-  const handleDeleteJournal = (id: string) => {
+  const handleDeleteAccount = async () => {
+    if (!user || !profileRef) return;
+    
+    setIsDeletingAccount(true);
+    setDeleteError("");
+
+    try {
+      // 1. מחיקת כל היומנים בתת-אוסף
+      const journalsSnap = await getDocs(collection(profileRef, "journals"));
+      const deletePromises = journalsSnap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletePromises);
+
+      // 2. מחיקת מסמך הפרופיל
+      await deleteDoc(profileRef);
+
+      // 3. מחיקת המשתמש מה-Auth
+      await deleteUser(user);
+      
+      // המערכת תזהה את ניתוק המשתמש ותעביר אותו לדף הנחיתה אוטומטית דרך AppContent
+    } catch (err: any) {
+      console.error("Account deletion failed", err);
+      if (err.code === 'auth/requires-recent-login') {
+        setDeleteError("מטעמי אבטחה, עליך להתנתק ולהתחבר מחדש למערכת לפני שתוכל למחוק את החשבון.");
+      } else {
+        setDeleteError("אירעה שגיאה בתהליך המחיקה. נא לנסות שוב מאוחר יותר.");
+      }
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleDeleteJournal = async (id: string) => {
     if (!user || !profileRef) return;
     const journalRef = doc(profileRef.firestore, "userProfiles", user.uid, "journals", id);
-    deleteDocumentNonBlocking(journalRef);
-    if (selectedJournal?.id === id) setSelectedJournal(null);
+    try {
+      await deleteDoc(journalRef);
+      if (selectedJournal?.id === id) setSelectedJournal(null);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const completedCount = profileData?.completed?.length || 0;
@@ -201,13 +239,54 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 >
                   {isSaving ? "שומר..." : "שמירת שינויים"}
                 </Button>
-                <button 
-                  className="w-full flex items-center justify-center gap-2 text-rose-400 hover:text-rose-500 font-bold py-2 text-xs uppercase tracking-widest transition-colors" 
-                  onClick={handleLogout}
-                >
-                  <LogOut size={14} />
-                  <span>התנתקות מהמצפן</span>
-                </button>
+                
+                <div className="flex flex-col gap-2 pt-4">
+                  <button 
+                    className="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 font-bold py-2 text-xs uppercase tracking-widest transition-colors" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={14} />
+                    <span>התנתקות מהמצפן</span>
+                  </button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="w-full flex items-center justify-center gap-2 text-rose-300 hover:text-rose-500 font-bold py-2 text-[10px] uppercase tracking-widest transition-colors mt-4">
+                        <Trash2 size={12} />
+                        <span>מחיקת חשבון לצמיתות</span>
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="rounded-[2.5rem] p-8" dir="rtl">
+                      <AlertDialogHeader className="text-right">
+                        <AlertDialogTitle className="text-xl font-black text-slate-900 flex items-center gap-2">
+                          <AlertTriangle className="text-rose-500" />
+                          מחיקת חשבון לצמיתות?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed pt-2">
+                          פעולה זו תמחק את כל המידע האישי שלך, כולל כל יומני המחשבות וההתקדמות שלך באפליקציה. <strong>לא ניתן לבטל פעולה זו.</strong>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      {deleteError && (
+                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-bold leading-relaxed my-4">
+                          {deleteError}
+                        </div>
+                      )}
+                      <AlertDialogFooter className="flex-row-reverse gap-3 pt-4">
+                        <AlertDialogAction 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDeleteAccount();
+                          }}
+                          className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl h-12 flex-1"
+                          disabled={isDeletingAccount}
+                        >
+                          {isDeletingAccount ? <Loader2 className="animate-spin" /> : "כן, מחק את החשבון"}
+                        </AlertDialogAction>
+                        <AlertDialogCancel className="rounded-xl h-12 flex-1 border-slate-200 text-slate-500 font-bold">ביטול</AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </div>
           ) : (
@@ -252,7 +331,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <Sparkles size={16} className="text-amber-400" />
-                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">עיוותי חשיבה שזוהו</h4>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h4>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {selectedJournal.analysis.distortions.map((d: string, i: number) => (
@@ -266,7 +345,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <BrainCircuit size={16} className="text-indigo-400" />
-                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">פרשנות בריאה יותר</h4>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h4>
                           </div>
                           <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 italic text-sm font-medium text-indigo-900 leading-relaxed">
                             "{selectedJournal.analysis.healthyPerspective}"
