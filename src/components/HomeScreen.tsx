@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,6 +6,8 @@ import { CATS, BANK } from "@/lib/data";
 import { Compass, Search, Sparkles, Heart, CheckCircle2, X } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/firebase";
+import Image from "next/image";
 
 interface HomeScreenProps {
   name: string;
@@ -20,6 +23,8 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [completedCards, setCompletedCards] = useState<string[]>([]);
+  
+  const { user } = useUser();
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -52,11 +57,11 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
     setSearchQuery("");
   };
 
-  const welcomeText = gender === "f" ? "שלום, " : "שלום, "; // Same in Hebrew, but could differ in vocalization
+  const welcomeText = "שלום, ";
   const actionText = gender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
   const placeholderText = gender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
-  const favTitle = gender === "f" ? "מועדפים ששמרת" : "מועדפים ששמרת";
-  const cardsText = gender === "f" ? "כרטיסיות" : "כרטיסיות";
+  const favTitle = "מועדפים ששמרת";
+  const cardsText = "כרטיסיות";
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -70,9 +75,19 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
           </div>
           <button
             onClick={onBack}
-            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors"
+            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden"
           >
-            <Compass size={20} />
+            {user?.photoURL ? (
+              <Image 
+                src={user.photoURL} 
+                alt={name} 
+                width={48} 
+                height={48} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Compass size={20} />
+            )}
           </button>
         </div>
 
