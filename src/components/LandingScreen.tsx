@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogIn } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { LegalDialog } from "@/components/LegalDialogs";
 
 interface LandingScreenProps {
@@ -74,10 +74,6 @@ export default function LandingScreen({ onGoToAuth }: LandingScreenProps) {
             בואו נתחיל
             <ArrowLeft className="size-6 transition-transform group-hover:-translate-x-1" />
           </Button>
-          
-          <p className="text-[11px] text-slate-500 text-center font-bold px-8 leading-relaxed">
-            הצטרפו לאלפי משתמשים שכבר בונים חוסן נפשי יומיומי. <br/> ההרשמה מהירה ובטוחה.
-          </p>
         </div>
 
         {/* Footer */}
