@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -115,8 +116,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const displayName = profileData?.name || initialName;
   const displayGender = profileData?.gender || initialGender;
 
-  const welcomeText = "שלום, ";
-  const actionText = displayGender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
+  // UX Writing & Gender Personalization Logic
+  const welcomePrefix = displayGender === "f" ? "ברוכה הבאה, " : "ברוך הבא, ";
+  const actionText = displayGender === "f" ? "במה נתרכז היום?" : "במה נתמקד היום?";
+  const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
   const placeholderText = displayGender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
 
   return (
@@ -263,9 +266,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
       <div className="max-w-xl mx-auto px-6 mt-10 space-y-10 pb-16 animate-fade-in-up">
         {/* Main Interaction Card: Floating, Large Radius, Diffused Shadow */}
-        <div className="bg-white rounded-[2rem] p-10 diffused-shadow border border-slate-50 space-y-4">
-          <p className="text-xs font-bold text-indigo-600 tracking-wider">{welcomeText}{displayName} 🌿</p>
-          <h2 className="text-2xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
+        <div className="bg-white rounded-[2rem] p-10 diffused-shadow border border-slate-50 space-y-2">
+          <p className="text-xs font-bold text-indigo-600 tracking-wider text-center">{welcomePrefix}{displayName} 🌿</p>
+          <div className="text-center space-y-1">
+            <h2 className="text-3xl font-headline font-bold text-slate-900 leading-tight">{actionText}</h2>
+            <p className="text-sm font-normal text-slate-500">{subActionText}</p>
+          </div>
           
           <form onSubmit={handleSearch} className="relative mt-8">
             <input 
