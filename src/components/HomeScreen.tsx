@@ -3,11 +3,21 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Search, Sparkles, Heart, CheckCircle2, X } from "lucide-react";
+import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Settings } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
+import { useUser, useAuth } from "@/firebase";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { signOut } from "firebase/auth";
 
 interface HomeScreenProps {
   name: string;
@@ -23,12 +33,13 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [completedCards, setCompletedCards] = useState<string[]>([]);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   const { user } = useUser();
+  const auth = useAuth();
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
-    // Load favorites and completed from localStorage
     const savedFavs = localStorage.getItem("compass_favorites");
     if (savedFavs) setFavorites(JSON.parse(savedFavs));
     
@@ -57,6 +68,17 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
     setSearchQuery("");
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // Clear local storage if desired, or keep for guest return
+      // localStorage.removeItem("compass_user_data"); 
+      window.location.reload(); // Refresh to reset state
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   const welcomeText = "שלום, ";
   const actionText = gender === "f" ? "על מה תרצי לעבוד?" : "מה תרצה לעבוד עליו?";
   const placeholderText = gender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
@@ -73,22 +95,81 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
             <h2 className="text-3xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
             <p className="text-xs text-slate-400 font-medium">{CATS.length} קטגוריות • {Object.values(BANK).flat().length} כרטיסיות חוסן</p>
           </div>
-          <button
-            onClick={onBack}
-            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden"
-          >
-            {user?.photoURL ? (
-              <Image 
-                src={user.photoURL} 
-                alt={name} 
-                width={48} 
-                height={48} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Compass size={20} />
-            )}
-          </button>
+          
+          <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+            <DialogTrigger asChild>
+              <button
+                className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
+              >
+                {user?.photoURL ? (
+                  <Image 
+                    src={user.photoURL} 
+                    alt={name} 
+                    width={48} 
+                    height={48} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Compass size={20} />
+                )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
+              <div className="px-8 pb-8 -mt-12">
+                <div className="relative mb-6">
+                  <div className="w-24 h-24 rounded-[2rem] border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
+                    {user?.photoURL ? (
+                      <Image src={user.photoURL} alt={name} width={96} height={96} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <UserIcon size={40} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-center space-y-1 mb-8">
+                  <h3 className="text-2xl font-black text-slate-900">{name}</h3>
+                  <p className="text-sm text-slate-500 font-medium">{user?.email || "משתמש אורח"}</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                    <Settings size={10} />
+                    פנייה בתוך האפליקציה: {gender === 'f' ? 'לשון נקבה' : 'לשון זכר'}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">כרטיסיות שבוצעו</p>
+                    <p className="text-xl font-black text-indigo-600">{completedCards.length}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">מועדפים</p>
+                    <p className="text-xl font-black text-rose-500">{favorites.length}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full py-6 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    חזרה למצפן
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    className="w-full py-6 rounded-2xl font-black shadow-lg shadow-rose-500/10"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="ml-2 h-4 w-4" />
+                    התנתקות מהמערכת
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* AI Search Section */}
