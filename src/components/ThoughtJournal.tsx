@@ -37,7 +37,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
-  const lastProcessedTextRef = useRef<string>("");
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
 
@@ -69,7 +68,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
       handlePlayAudio(stepsConfig[step as keyof typeof stepsConfig].prompt);
     }
     
-    // Initialize speech recognition
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -79,22 +77,22 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         recognitionRef.current.lang = 'he-IL';
 
         recognitionRef.current.onresult = (event: any) => {
-          let currentBatchText = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-              currentBatchText += event.results[i][0].transcript;
+              finalTranscript += event.results[i][0].transcript;
             }
           }
           
-          if (currentBatchText.trim()) {
+          if (finalTranscript.trim()) {
             setData(prev => {
-              const currentVal = prev[step as keyof typeof data];
-              // Avoid duplicates on mobile (Chrome often repeats the transcript)
-              if (currentVal.includes(currentBatchText.trim())) return prev;
+              const currentText = prev[step as keyof typeof data];
+              // מניעת כפילות פשוטה - אם הטקסט האחרון כבר קיים בסוף השדה, אל תוסיף
+              if (currentText.endsWith(finalTranscript.trim())) return prev;
               
               return { 
                 ...prev, 
-                [step]: (currentVal + ' ' + currentBatchText).trim() 
+                [step]: (currentText + ' ' + finalTranscript).trim() 
               };
             });
           }
@@ -155,10 +153,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
-    // CRITICAL: Stop recording AND update state immediately to ensure mic shuts down
+    // אם מקליטים - עוצרים וממתינים רגע לעיבוד הסופי
     if (isRecording) {
       setIsRecording(false);
       recognitionRef.current?.stop();
+      // המתנה קלה כדי לתת ל-onresult להספיק להתעדכן
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
@@ -373,7 +373,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </Button>
         <Button 
           onClick={handleNext}
-          disabled={!currentVal.trim()}
+          disabled={!currentVal.trim() && !isRecording}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all"
         >
           {step === "reaction" ? "ניתוח התהליך" : "המשך"}
