@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Settings, Check } from "lucide-react";
+import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Check } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
@@ -121,22 +120,28 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
   const placeholderText = displayGender === "f" ? "איך את מרגישה כרגע?" : "איך אתה מרגיש כרגע?";
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-xl mx-auto space-y-8 py-4 animate-fade-in-up">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-400 tracking-wider">{welcomeText}{displayName} 🌿</p>
-            <h2 className="text-3xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
-            <p className="text-xs text-slate-400 font-medium">{CATS.length} קטגוריות • {Object.values(BANK).flat().length} כרטיסיות חוסן</p>
+    <div className="min-h-screen bg-[#F8FAFC]">
+      {/* Visual Bridge: Dark Header like Landing Page */}
+      <header className="bg-slate-900 text-white pt-8 pb-12 px-6 rounded-b-[3rem] shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+        <div className="max-w-xl mx-auto flex justify-between items-center relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Compass size={24} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-headline font-black tracking-tight">המצפן הרגשי</h1>
+              <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">ארגז הכלים לחוסן</p>
+            </div>
           </div>
-          
+
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DialogTrigger asChild>
                   <button
                     aria-label="פתח פרופיל אישי"
-                    className="w-12 h-12 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors overflow-hidden relative group"
+                    className="w-12 h-12 rounded-full border-2 border-white/20 hover:border-indigo-500 transition-all overflow-hidden relative group"
                   >
                     {user?.photoURL ? (
                       <Image 
@@ -147,9 +152,10 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Compass size={20} aria-hidden="true" />
+                      <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
+                        <UserIcon size={20} aria-hidden="true" />
+                      </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                   </button>
                 </DialogTrigger>
               </TooltipTrigger>
@@ -160,7 +166,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 <DialogTitle>פרופיל אישי</DialogTitle>
                 <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
               </DialogHeader>
-              <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
+              <div className="h-24 bg-slate-900 w-full" />
               <div className="px-8 pb-8 -mt-12">
                 <div className="relative mb-4">
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 mx-auto">
@@ -254,16 +260,21 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             </DialogContent>
           </Dialog>
         </div>
+      </header>
 
-        <div className="bg-white/60 backdrop-blur-md rounded-[2rem] p-6 border border-indigo-100 shadow-xl shadow-indigo-500/5">
-          <form onSubmit={handleSearch} className="relative">
+      <div className="max-w-xl mx-auto px-6 -mt-8 space-y-8 pb-12 animate-fade-in-up">
+        <div className="glass-panel rounded-[2rem] p-8 space-y-2">
+          <p className="text-xs font-bold text-indigo-600 tracking-wider">{welcomeText}{displayName} 🌿</p>
+          <h2 className="text-2xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
+          
+          <form onSubmit={handleSearch} className="relative mt-6">
             <input 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={placeholderText}
               aria-label={placeholderText}
-              className="w-full bg-white px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-12 font-medium"
+              className="w-full bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all pr-12 font-medium"
             />
             <button 
               type="submit"
@@ -276,17 +287,17 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </form>
 
           {recommendation && (
-            <div className="mt-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 animate-in fade-in slide-in-from-top-4 duration-300 relative">
+            <div className="mt-6 p-6 bg-white rounded-2xl border-2 border-indigo-100 animate-in fade-in slide-in-from-top-4 duration-300 relative shadow-inner">
               <button 
                 onClick={clearRecommendation} 
                 aria-label="סגור המלצה"
-                className="absolute top-2 left-2 text-indigo-300 hover:text-indigo-600"
+                className="absolute top-3 left-3 text-slate-300 hover:text-indigo-600 transition-colors"
               >
-                <X size={16} aria-hidden="true" />
+                <X size={18} aria-hidden="true" />
               </button>
               
               <div className="flex gap-3 mb-4">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
                   <Image 
                     src={PROFESSIONAL_PHOTO_URL}
                     alt="תמונת המטפל עמיר אייל"
@@ -295,17 +306,17 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <p className="text-[10px] font-black text-indigo-900/50 uppercase tracking-widest leading-none mb-1">המלצת המצפן 🧭</p>
-                  <p className="text-xs font-black text-indigo-900 leading-none">עמיר אייל</p>
+                  <p className="text-[10px] font-black text-indigo-600/60 uppercase tracking-widest leading-none mb-1">המלצת המצפן 🧭</p>
+                  <p className="text-xs font-black text-slate-900 leading-none">עמיר אייל</p>
                 </div>
               </div>
 
-              <p className="text-sm text-indigo-700 leading-relaxed mb-4 font-medium border-r-2 border-indigo-200 pr-3">{recommendation.explanation}</p>
+              <p className="text-sm text-slate-700 leading-relaxed mb-5 font-medium border-r-4 border-indigo-500 pr-4">{recommendation.explanation}</p>
               
               <button 
                 onClick={() => onSelectCategory(recommendation.categoryKey)}
                 aria-label={`עבור לקטגוריית ${CATS.find(c => c.key === recommendation.categoryKey)?.label}`}
-                className="w-full py-3 bg-white border-2 border-indigo-200 rounded-xl text-indigo-600 font-black text-sm hover:bg-indigo-100 transition-all shadow-sm"
+                className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
               >
                 {displayGender === 'f' ? 'לכי' : 'לך'} לעמוד {CATS.find(c => c.key === recommendation.categoryKey)?.label}
               </button>
@@ -315,21 +326,23 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
         {favorites.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-black text-slate-400 tracking-[0.2em] uppercase pr-2">מועדפים ששמרת</h3>
+            <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase pr-2">מועדפים ששמרת</h3>
             <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
               {favorites.map((fav, i) => {
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
                 if (!cat) return null;
+                const Icon = cat.icon;
                 return (
                   <button 
                     key={i}
                     onClick={() => onSelectCategory(catKey)}
                     aria-label={`עבור למועדף: ${cat.label}`}
-                    className="flex-shrink-0 px-5 py-3 rounded-full bg-white border border-slate-100 shadow-sm flex items-center gap-2 hover:border-indigo-200 transition-all"
+                    className="flex-shrink-0 px-6 py-3 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center gap-2.5 hover:border-indigo-200 transition-all hover:shadow-md"
                   >
-                    <Heart size={14} className="text-rose-500 fill-rose-500" aria-hidden="true" />
+                    <Icon size={14} style={{ color: cat.hue }} aria-hidden="true" />
                     <span className="text-xs font-bold text-slate-700">{cat.label}</span>
+                    <Heart size={10} className="text-rose-500 fill-rose-500" aria-hidden="true" />
                   </button>
                 )
               })}
@@ -349,7 +362,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 key={c.key}
                 onClick={() => onSelectCategory(c.key)}
                 aria-label={`קטגוריית ${c.label}. ${c.tagLine}`}
-                className="group relative flex flex-col gap-3 p-5 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 text-right overflow-hidden active:scale-95"
+                className="group relative flex flex-col gap-3 p-6 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 text-right overflow-hidden active:scale-95"
                 style={{ backgroundColor: c.light }}
               >
                 <div 
@@ -357,19 +370,19 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   style={{ backgroundColor: c.hue }}
                 />
                 <div 
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300" 
-                  style={{ backgroundColor: `${c.hue}15` }}
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm" 
+                  style={{ backgroundColor: `white` }}
                 >
-                  <Icon size={20} style={{ color: c.hue }} aria-hidden="true" />
+                  <Icon size={24} style={{ color: c.hue }} aria-hidden="true" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-headline text-lg font-bold tracking-tight" style={{ color: c.hue }}>{c.label}</h3>
+                  <h3 className="font-headline text-lg font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">{c.label}</h3>
                   <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{c.tagLine}</p>
                 </div>
                 <div className="flex items-center justify-between mt-auto">
                    <div 
-                    className="inline-flex items-center text-[9px] font-black px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: `${c.hue}15`, color: c.hue }}
+                    className="inline-flex items-center text-[9px] font-black px-2.5 py-1 rounded-full bg-white/50 border border-black/5"
+                    style={{ color: c.hue }}
                   >
                     {count} כרטיסיות
                   </div>
@@ -385,15 +398,15 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           })}
         </div>
 
-        <footer className="text-center py-8 space-y-4">
-          <div className="flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <footer className="text-center py-12 border-t border-slate-100 space-y-4">
+          <div className="flex justify-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא תנאי שימוש">תנאי שימוש</button>} />
-            <span className="opacity-30">|</span>
+            <span className="opacity-20">|</span>
             <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא דיסקליימר">דיסקליימר</button>} />
-            <span className="opacity-30">|</span>
+            <span className="opacity-20">|</span>
             <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors" aria-label="קרא הצהרת נגישות">נגישות</button>} />
           </div>
-          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-80">
+          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-50">
             © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
           </p>
         </footer>

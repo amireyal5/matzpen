@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { 
   ArrowRight, RotateCcw, Zap, ListChecks, BookOpen, Check, Info, 
-  Volume2, Heart, CheckCircle2, Loader2 
+  Volume2, Heart, CheckCircle2, Loader2, Compass 
 } from "lucide-react";
 import { BANK, CATS, TIP_MAP } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/carousel";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateSpeech } from "@/ai/flows/tts-flow";
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 
 interface DeckScreenProps {
@@ -140,11 +139,45 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const isCardCompleted = completedCards.includes(`${catKey}:${idx}`);
 
   return (
-    <div className="min-h-screen w-full flex flex-col transition-colors duration-500" style={{ backgroundColor: cat.light }}>
+    <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC]">
       <audio ref={audioRef} hidden />
       
+      {/* Visual Bridge Header */}
+      <header className="bg-slate-900 text-white pt-8 pb-10 px-6 rounded-b-[3rem] shadow-xl relative z-10">
+        <div className="max-w-lg mx-auto w-full flex items-center justify-between">
+          <button 
+            onClick={onBack} 
+            aria-label="חזרה למסך הבית"
+            className="flex items-center gap-2 text-xs font-black text-indigo-400 hover:text-white transition-all uppercase tracking-widest"
+          >
+            <ArrowRight size={18} aria-hidden="true" />
+            חזרה
+          </button>
+          
+          <div className="flex items-center gap-2.5">
+            <div 
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-black text-xs"
+            >
+              <CatIcon size={14} aria-hidden="true" />
+              {cat.label}
+            </div>
+            <button 
+              onClick={() => setShowIntro(true)}
+              aria-label="מידע על הקטגוריה"
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all"
+            >
+              <Info size={16} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="text-[10px] font-black text-white/40 tracking-widest">
+            {idx + 1}/{cards.length}
+          </div>
+        </div>
+      </header>
+      
       {showIntro && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6 border border-slate-100">
             <div 
               className="w-20 h-20 rounded-3xl flex items-center justify-center mb-2"
@@ -172,47 +205,9 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1">
-        <div className="w-full px-6 pt-8 pb-4 flex items-center justify-between">
-          <button 
-            onClick={onBack} 
-            aria-label="חזרה למסך הבית"
-            className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-          >
-            <ArrowRight size={18} aria-hidden="true" />
-            חזרה
-          </button>
-          
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  onClick={() => setShowIntro(true)}
-                  aria-label="מידע על הקטגוריה"
-                  className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:bg-white/50"
-                  style={{ color: cat.hue }}
-                >
-                  <Info size={18} aria-hidden="true" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>מידע</TooltipContent>
-            </Tooltip>
-            <div 
-              className="flex items-center gap-2.5 px-4 py-2 rounded-full text-white font-black text-xs shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 8px 20px ${cat.hue}30` }}
-            >
-              <CatIcon size={14} aria-hidden="true" />
-              {cat.label}
-            </div>
-          </div>
-
-          <div className="text-xs font-black" style={{ color: cat.hue }}>
-            {idx + 1}/{cards.length}
-          </div>
-        </div>
-
-        <div className="w-full px-6 mb-4">
-          <div className="h-1.5 w-full bg-white/50 rounded-full overflow-hidden border border-slate-200/50">
+      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1 -mt-5">
+        <div className="w-full px-8 mb-4">
+          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <div 
               className="h-full transition-all duration-500 ease-out rounded-full"
               style={{ 
@@ -225,16 +220,17 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
 
         <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
-            <CarouselContent className="-ml-0 py-10">
+            <CarouselContent className="-ml-0 py-8">
               {cards.map((card, i) => (
-                <CarouselItem key={i} className="pl-0 flex items-center justify-center px-6">
-                  <div className="w-full h-[480px] perspective-1000">
+                <CarouselItem key={i} className="pl-0 flex items-center justify-center px-8">
+                  <div className="w-full h-[500px] perspective-1000">
                     <div className={cn(
                       "relative w-full h-full transition-transform duration-700 preserve-3d cursor-pointer",
                       flipped && idx === i ? "rotate-y-180" : ""
                     )}>
                       
-                      <div className="absolute inset-0 bg-white rounded-[2.5rem] p-10 flex flex-col items-center justify-between shadow-2xl backface-hidden border border-slate-100">
+                      {/* FRONT CARD */}
+                      <div className="absolute inset-0 bg-white rounded-[3rem] p-10 flex flex-col items-center justify-between shadow-xl backface-hidden border border-slate-100">
                         <div className="w-full flex justify-between items-center">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -263,14 +259,14 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                           </Tooltip>
                         </div>
 
-                        <div className="flex-1 flex flex-col items-center justify-center px-2 gap-4">
+                        <div className="flex-1 flex flex-col items-center justify-center px-2 gap-6">
                           <div 
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                            className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center shadow-lg"
                             style={{ backgroundColor: `${cat.hue}15` }}
                           >
-                            <CatIcon size={32} style={{ color: cat.hue }} aria-hidden="true" />
+                            <CatIcon size={36} style={{ color: cat.hue }} aria-hidden="true" />
                           </div>
-                          <h3 className="font-headline text-3xl font-black text-slate-900 text-center leading-[1.3]">
+                          <h3 className="font-headline text-3xl font-black text-slate-900 text-center leading-tight">
                             {g(card.t)}
                           </h3>
                         </div>
@@ -279,17 +275,18 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                           <button 
                             onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
                             aria-label="הפוך קלף וצפה בשלבי התרגול"
-                            className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 text-white font-black text-base transition-all active:scale-[0.97]"
-                            style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}40` }}
+                            className="w-full py-5 rounded-2xl flex items-center justify-center gap-2 text-white font-black text-lg transition-all active:scale-[0.97]"
+                            style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})`, boxShadow: `0 10px 30px ${cat.hue}30` }}
                           >
-                            <BookOpen size={20} aria-hidden="true" />
+                            <BookOpen size={22} aria-hidden="true" />
                             {gender === 'f' ? 'איך את עושה את זה?' : 'איך עושים את זה?'}
                           </button>
                         </div>
                       </div>
 
-                      <div className="absolute inset-0 bg-white rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl backface-hidden rotate-y-180 border border-slate-100">
-                        <div className="p-8 pb-5 flex justify-between items-start" style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}>
+                      {/* BACK CARD */}
+                      <div className="absolute inset-0 bg-white rounded-[3rem] flex flex-col overflow-hidden shadow-xl backface-hidden rotate-y-180 border border-slate-100">
+                        <div className="p-8 pb-6 flex justify-between items-start" style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}>
                           <div className="flex-1">
                             <p className="text-[10px] font-black text-white/60 tracking-widest uppercase mb-1">{cat.label}</p>
                             <h4 className="font-headline text-xl font-bold text-white leading-tight">{g(card.t)}</h4>
@@ -318,22 +315,18 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                             const active = backTab === tab.id;
                             const TIcon = tab.icon;
                             return (
-                              <Tooltip key={tab.id}>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setBackTab(tab.id as any); }}
-                                    aria-label={tab.tooltip}
-                                    className={cn(
-                                      "flex-1 py-4 flex flex-col items-center gap-1 transition-all border-b-2",
-                                      active ? "bg-white border-primary" : "border-transparent text-slate-400"
-                                    )}
-                                  >
-                                    <TIcon size={16} style={{ color: active ? cat.hue : undefined }} aria-hidden="true" />
-                                    <span className="text-[10px] font-bold" style={{ color: active ? cat.hue : undefined }}>{tab.label}</span>
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent>{tab.tooltip}</TooltipContent>
-                              </Tooltip>
+                              <button
+                                key={tab.id}
+                                onClick={(e) => { e.stopPropagation(); setBackTab(tab.id as any); }}
+                                aria-label={tab.tooltip}
+                                className={cn(
+                                  "flex-1 py-4 flex flex-col items-center gap-1 transition-all border-b-2",
+                                  active ? "bg-white border-indigo-600" : "border-transparent text-slate-400"
+                                )}
+                              >
+                                <TIcon size={16} style={{ color: active ? cat.hue : undefined }} aria-hidden="true" />
+                                <span className="text-[10px] font-bold" style={{ color: active ? cat.hue : undefined }}>{tab.label}</span>
+                              </button>
                             );
                           })}
                         </div>
@@ -384,11 +377,11 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                           )}
                         </div>
 
-                        <div className="p-6 pt-0 bg-white">
+                        <div className="p-8 pt-0 bg-white">
                           <button 
                             onClick={(e) => { e.stopPropagation(); setFlipped(false); }}
                             aria-label="החזר את הקלף לצדו הקדמי"
-                            className="w-full py-3.5 rounded-2xl border-2 font-bold text-sm transition-all hover:bg-slate-50 flex items-center justify-center gap-2"
+                            className="w-full py-4 rounded-2xl border-2 font-black text-sm transition-all hover:bg-slate-50 flex items-center justify-center gap-2"
                             style={{ borderColor: `${cat.hue}20`, color: cat.hue }}
                           >
                             <RotateCcw size={16} aria-hidden="true" />
@@ -404,9 +397,9 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </Carousel>
         </div>
 
-        <footer className="w-full text-center py-6 mt-auto">
-          <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors" aria-label="אתר עמיר אייל">עמיר אייל</a>
+        <footer className="w-full text-center py-8 mt-auto">
+          <p className="text-[10px] font-black tracking-widest text-slate-900 uppercase opacity-30">
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
           </p>
         </footer>
       </div>
