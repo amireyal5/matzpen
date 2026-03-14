@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -191,6 +191,18 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                     onChange={(e) => setEditName(e.target.value)} 
                     className="rounded-2xl border-slate-100 h-14 px-6 text-base font-bold text-slate-900 focus:ring-indigo-500/20"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">כתובת אימייל</Label>
+                  <div className="relative">
+                    <Input 
+                      value={user?.email || ""} 
+                      readOnly 
+                      className="rounded-2xl border-slate-50 bg-slate-50 h-14 px-6 pr-12 text-base font-medium text-slate-500 cursor-not-allowed"
+                    />
+                    <Mail size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
