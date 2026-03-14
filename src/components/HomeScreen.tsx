@@ -391,7 +391,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             <Compass size={14} className="text-indigo-600" aria-hidden="true" />
             <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">ספריית הכלים</h3>
           </div>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
             {CATS.map((c) => {
               const Icon = c.icon;
               const count = (BANK[c.key] || []).length;
@@ -403,34 +403,34 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   key={c.key}
                   onClick={() => onSelectCategory(c.key)}
                   aria-label={`קטגוריית ${c.label}. ${c.tagLine}`}
-                  className="group relative flex flex-col gap-4 p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-right overflow-hidden active:scale-95"
+                  className="group relative flex flex-col gap-2 sm:gap-4 p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-right overflow-hidden active:scale-95 aspect-square"
                   style={{ backgroundColor: c.light }}
                 >
                   <div 
-                    className="absolute -top-4 -left-4 w-24 h-24 rounded-full opacity-10 pointer-events-none" 
+                    className="absolute -top-4 -left-4 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 pointer-events-none" 
                     style={{ backgroundColor: c.hue }}
                   />
                   <div 
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm" 
+                    className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm" 
                     style={{ backgroundColor: `white` }}
                   >
-                    <Icon size={28} style={{ color: c.hue }} aria-hidden="true" />
+                    <Icon className="size-5 sm:size-7" style={{ color: c.hue }} aria-hidden="true" />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-headline text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">{c.label}</h3>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{c.tagLine}</p>
+                  <div className="flex-1 flex flex-col justify-center gap-1">
+                    <h3 className="font-headline text-sm sm:text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">{c.label}</h3>
+                    <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">{c.tagLine}</p>
                   </div>
                   <div className="flex items-center justify-between mt-auto">
                      <div 
-                      className="inline-flex items-center text-[10px] font-black px-3 py-1.5 rounded-full bg-white/50 border border-black/5"
+                      className="inline-flex items-center text-[8px] sm:text-[10px] font-black px-2 sm:px-3 py-1 rounded-full bg-white/50 border border-black/5"
                       style={{ color: c.hue }}
                     >
                       {count} כרטיסיות
                     </div>
                     {categoryCompletedCount > 0 && (
-                      <div className={cn("flex items-center gap-1.5", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
-                        <CheckCircle2 size={14} aria-hidden="true" />
-                        <span className="text-[10px] font-bold">{categoryCompletedCount}/{count}</span>
+                      <div className={cn("flex items-center gap-1", isFullyCompleted ? "text-emerald-600" : "text-slate-400")}>
+                        <CheckCircle2 className="size-3 sm:size-3.5" aria-hidden="true" />
+                        <span className="text-[8px] sm:text-[10px] font-bold">{categoryCompletedCount}/{count}</span>
                       </div>
                     )}
                   </div>
