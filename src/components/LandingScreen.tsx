@@ -39,7 +39,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden">
                 <Image 
-                  src="/logo.png" 
+                  src="/logo.svg" 
                   alt="לוגו המצפן הרגשי" 
                   width={48} 
                   height={48} 
@@ -62,10 +62,12 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
             </p>
           </div>
 
-          <div className="dark-glass-panel rounded-[2.5rem] p-8 text-center border-indigo-500/10 mt-4">
-            <p className="text-slate-300 text-sm leading-relaxed font-medium max-w-[320px] mx-auto">
-              שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
-            </p>
+          <div className="dark-glass-panel rounded-[2.5rem] p-8 text-center border-indigo-500/10 mt-10">
+            <div className="max-w-[320px] mx-auto">
+              <p className="text-slate-300 text-sm leading-relaxed font-medium">
+                שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
+              </p>
+            </div>
           </div>
         </div>
 

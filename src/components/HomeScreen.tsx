@@ -75,7 +75,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
-                <Image src="/logo.png" alt="לוגו" width={40} height={40} className="object-cover" />
+                <Image src="/logo.svg" alt="לוגו" width={40} height={40} className="object-cover" />
               </div>
               <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">המצפן הרגשי</p>
             </div>

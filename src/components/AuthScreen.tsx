@@ -165,7 +165,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
         <CardHeader className="space-y-4 pt-12 pb-6 flex flex-col items-center">
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 overflow-hidden mb-2">
             <Image 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="לוגו המצפן הרגשי" 
               width={64} 
               height={64} 

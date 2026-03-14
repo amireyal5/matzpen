@@ -23,7 +23,7 @@ export default function SplashScreen() {
           <div className="absolute inset-0 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700" />
           <div className="relative w-full h-full">
             <Image 
-              src="/logo.png" 
+              src="/logo.svg" 
               alt="המצפן הרגשי" 
               fill 
               priority
