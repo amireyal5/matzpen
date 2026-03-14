@@ -17,14 +17,31 @@ const JournalAnalysisInputSchema = z.object({
 export type JournalAnalysisInput = z.infer<typeof JournalAnalysisInputSchema>;
 
 const JournalAnalysisOutputSchema = z.object({
-  distortions: z.array(z.string()).describe('רשימת עיוותי חשיבה שזוהו (למשל: חשיבה קטסטרופלית, הכל או כלום).'),
+  distortions: z.array(z.string()).describe('רשימת עיוותי חשיבה שזוהו.'),
   healthyPerspective: z.string().describe('הצעה לפרשנות חלופית ומאוזנת יותר.'),
   summary: z.string().describe('סיכום קצר, תומך ומחזק של התהליך.'),
 });
 export type JournalAnalysisOutput = z.infer<typeof JournalAnalysisOutputSchema>;
 
+// פונקציית עזר לביצוע ניסיונות חוזרים במקרה של עומס (429)
+async function fetchWithRetry(fn: () => Promise<any>, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error?.status === 429 || error?.message?.includes('429')) {
+        const delay = Math.pow(2, i) * 1000;
+        if (i === retries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
 export async function analyzeJournal(input: JournalAnalysisInput): Promise<JournalAnalysisOutput> {
-  return journalAnalysisFlow(input);
+  return fetchWithRetry(() => journalAnalysisFlow(input));
 }
 
 const prompt = ai.definePrompt({

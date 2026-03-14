@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -86,13 +85,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           
           if (finalTranscript.trim()) {
             setData(prev => {
-              const currentText = prev[step as keyof typeof data];
-              // מניעת כפילות פשוטה - אם הטקסט האחרון כבר קיים בסוף השדה, אל תוסיף
+              const currentStepKey = step as keyof typeof data;
+              const currentText = prev[currentStepKey];
               if (currentText.endsWith(finalTranscript.trim())) return prev;
-              
               return { 
                 ...prev, 
-                [step]: (currentText + ' ' + finalTranscript).trim() 
+                [currentStepKey]: (currentText + ' ' + finalTranscript).trim() 
               };
             });
           }
@@ -153,12 +151,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
-    // אם מקליטים - עוצרים וממתינים רגע לעיבוד הסופי
+    // עצירה יזומה ומיידית של המיקרופון
     if (isRecording) {
       setIsRecording(false);
       recognitionRef.current?.stop();
-      // המתנה קלה כדי לתת ל-onresult להספיק להתעדכן
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // המתנה כדי לתת לעיבוד הקול האחרון להסתיים ולהתעדכן בסטייט
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
@@ -185,6 +183,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         handlePlayAudio(result.summary);
       } catch (err) {
         console.error("Analysis failed", err);
+        // אם הניתוח נכשל לחלוטין אחרי ה-retries, ננסה להציג מסך סיום בסיסי או הודעה
         setStep("finish");
       }
     }
@@ -234,7 +233,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
           </div>
 
-          {analysis && (
+          {analysis ? (
             <div className="space-y-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pr-2">
@@ -269,6 +268,10 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   {analysis.summary}
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 text-center text-slate-400">
+              התרגול נשמר, אך הניתוח המורחב לא היה זמין ברגע זה. ניתן לנסות שוב מאוחר יותר דרך היסטוריית היומנים.
             </div>
           )}
 
