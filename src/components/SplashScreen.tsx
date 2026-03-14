@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,8 +17,8 @@ export default function SplashScreen() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/20 blur-[120px] rounded-full animate-pulse" />
 
       <div className={`flex flex-col items-center text-center transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 transform translate-y-0 scale-100' : 'opacity-0 transform translate-y-4 scale-95'}`}>
-        {/* Logo with building animation effect - No circle border, larger size */}
-        <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8 group">
+        {/* Logo - Large, unconstrained by borders */}
+        <div className="relative w-56 h-56 md:w-72 md:h-72 mb-8 group">
           <div className="absolute inset-0 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700" />
           <div className="relative w-full h-full">
             <Image 
@@ -35,7 +34,7 @@ export default function SplashScreen() {
         {/* Title and Slogan */}
         <div className="space-y-3">
           <h1 className="font-headline text-5xl font-black text-slate-900 tracking-tight leading-none drop-shadow-sm">
-            המצפן הרגשי <span className="text-indigo-600">🧭</span>
+            המצפן הרגשי
           </h1>
           <p className="text-slate-500 font-medium text-lg tracking-wide opacity-80 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-forwards">
             מרחב בטוח לוויסות וצמיחה
