@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -142,7 +143,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC]">
       <audio ref={audioRef} hidden />
       
-      {/* Visual Bridge Header */}
+      {/* Header: Dark Slate to match Landing */}
       <header className="bg-slate-900 text-white pt-8 pb-10 px-6 rounded-b-[3rem] shadow-xl relative z-10">
         <div className="max-w-lg mx-auto w-full flex items-center justify-between">
           <button 
@@ -176,6 +177,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
       </header>
       
+      {/* Intro Gateway Modal */}
       {showIntro && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6 border border-slate-100">
@@ -206,6 +208,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       )}
 
       <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1 -mt-5">
+        {/* Progress Bar */}
         <div className="w-full px-8 mb-4">
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
             <div 
@@ -218,6 +221,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </div>
         </div>
 
+        {/* Carousel */}
         <div className="w-full">
           <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
             <CarouselContent className="-ml-0 py-8">
@@ -229,7 +233,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                       flipped && idx === i ? "rotate-y-180" : ""
                     )}>
                       
-                      {/* FRONT CARD */}
+                      {/* FRONT CARD: Focus on the instruction */}
                       <div className="absolute inset-0 bg-white rounded-[3rem] p-10 flex flex-col items-center justify-between shadow-xl backface-hidden border border-slate-100">
                         <div className="w-full flex justify-between items-center">
                           <Tooltip>
@@ -242,7 +246,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                                 <Heart size={20} className={isCardFavorite ? "fill-current" : ""} aria-hidden="true" />
                               </button>
                             </TooltipTrigger>
-                            <TooltipContent>{isCardFavorite ? "הסר מהמועדפים" : "הוסף למועדפים"}</TooltipContent>
+                            <TooltipContent>{isCardFavorite ? "הסר מהעוגנים" : "הוסף לעוגנים"}</TooltipContent>
                           </Tooltip>
                           <span className="text-[10px] font-black text-slate-300 tracking-[0.2em] uppercase">כרטיסייה {i + 1}</span>
                           <Tooltip>
@@ -284,7 +288,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                         </div>
                       </div>
 
-                      {/* BACK CARD */}
+                      {/* BACK CARD: The "How" and "Why" */}
                       <div className="absolute inset-0 bg-white rounded-[3rem] flex flex-col overflow-hidden shadow-xl backface-hidden rotate-y-180 border border-slate-100">
                         <div className="p-8 pb-6 flex justify-between items-start" style={{ background: `linear-gradient(135deg, ${cat.gFrom}, ${cat.gTo})` }}>
                           <div className="flex-1">

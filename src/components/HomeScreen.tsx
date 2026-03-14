@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Check } from "lucide-react";
+import { Compass, Search, Sparkles, Heart, CheckCircle2, X, LogOut, User as UserIcon, Check, Anchor } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
@@ -121,7 +122,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Visual Bridge: Dark Header like Landing Page */}
+      {/* Header: Exact match to Landing background (slate-900) */}
       <header className="bg-slate-900 text-white pt-8 pb-12 px-6 rounded-b-[3rem] shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
         <div className="max-w-xl mx-auto flex justify-between items-center relative z-10">
@@ -207,7 +208,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                             editGender === "m" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                           )}
                         >
-                          זכר {editGender === "m" && <Check size={14} className="mr-2" />}
+                          גבר {editGender === "m" && <Check size={14} className="mr-2" />}
                         </Label>
                       </div>
                       <div className="relative">
@@ -219,7 +220,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                             editGender === "f" ? "border-indigo-600 bg-indigo-50 text-indigo-600" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                           )}
                         >
-                          נקבה {editGender === "f" && <Check size={14} className="mr-2" />}
+                          אישה {editGender === "f" && <Check size={14} className="mr-2" />}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -232,7 +233,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     <p className="text-xl font-black text-indigo-600">{completedCards.length}</p>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">מועדפים</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">עוגנים</p>
                     <p className="text-xl font-black text-rose-500">{favorites.length}</p>
                   </div>
                 </div>
@@ -263,6 +264,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
       </header>
 
       <div className="max-w-xl mx-auto px-6 -mt-8 space-y-8 pb-12 animate-fade-in-up">
+        {/* Main Interaction Card */}
         <div className="glass-panel rounded-[2rem] p-8 space-y-2">
           <p className="text-xs font-bold text-indigo-600 tracking-wider">{welcomeText}{displayName} 🌿</p>
           <h2 className="text-2xl font-headline font-black text-slate-900 leading-tight">{actionText}</h2>
@@ -324,10 +326,14 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           )}
         </div>
 
+        {/* Anchors (Favorites) Section */}
         {favorites.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase pr-2">מועדפים ששמרת</h3>
-            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+            <div className="flex items-center gap-2 px-2">
+              <Anchor size={14} className="text-rose-500" aria-hidden="true" />
+              <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">העוגנים שלי</h3>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
               {favorites.map((fav, i) => {
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
@@ -338,11 +344,16 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                     key={i}
                     onClick={() => onSelectCategory(catKey)}
                     aria-label={`עבור למועדף: ${cat.label}`}
-                    className="flex-shrink-0 px-6 py-3 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center gap-2.5 hover:border-indigo-200 transition-all hover:shadow-md"
+                    className="flex-shrink-0 px-6 py-4 rounded-[1.5rem] bg-white border border-slate-100 shadow-sm flex items-center gap-3 hover:border-rose-200 transition-all hover:shadow-md active:scale-95"
                   >
-                    <Icon size={14} style={{ color: cat.hue }} aria-hidden="true" />
-                    <span className="text-xs font-bold text-slate-700">{cat.label}</span>
-                    <Heart size={10} className="text-rose-500 fill-rose-500" aria-hidden="true" />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50">
+                      <Icon size={16} style={{ color: cat.hue }} aria-hidden="true" />
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-xs font-black text-slate-900 leading-none mb-1">{cat.label}</span>
+                      <span className="block text-[9px] text-slate-400 font-bold uppercase tracking-widest">תרגיל שמור</span>
+                    </div>
+                    <Heart size={12} className="text-rose-500 fill-rose-500 ml-1" aria-hidden="true" />
                   </button>
                 )
               })}
@@ -350,6 +361,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
           </div>
         )}
 
+        {/* Categories Grid */}
         <div className="grid grid-cols-2 gap-4">
           {CATS.map((c) => {
             const Icon = c.icon;
