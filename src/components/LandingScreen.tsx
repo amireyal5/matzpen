@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { LogIn, UserPlus, Compass, Loader2 } from "lucide-react";
+import { LogIn, UserPlus, Loader2 } from "lucide-react";
 import { LegalDialog } from "@/components/LegalDialogs";
 import { useAuth, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -184,7 +184,6 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
                 disabled={!name.trim()}
                 className="w-full py-5 rounded-[1.5rem] text-xl font-black bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-30 flex items-center justify-center gap-3 transition-all hover:bg-indigo-700"
               >
-                <UserPlus size={22} aria-hidden="true" />
                 יצירת חשבון
               </button>
             </div>
@@ -212,7 +211,7 @@ export default function LandingScreen({ onComplete, onGoToAuth, initialName = ""
             <LegalDialog type="accessibility" trigger={<button className="hover:text-white transition-colors">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">עמיר אייל</a>
           </p>
         </footer>
       </div>

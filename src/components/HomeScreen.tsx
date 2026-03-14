@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, LogOut, User as UserIcon, Anchor } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -181,12 +181,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
         <footer className="text-center py-16 border-t border-slate-100 space-y-6">
           <div className="flex justify-center gap-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-            <LegalDialog type="terms" trigger={<button>תנאי שימוש</button>} />
-            <LegalDialog type="disclaimer" trigger={<button>דיסקליימר</button>} />
-            <LegalDialog type="accessibility" trigger={<button>נגישות</button>} />
+            <LegalDialog type="terms" trigger={<button className="hover:text-indigo-600 transition-colors">תנאי שימוש</button>} />
+            <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-600 transition-colors">דיסקליימר</button>} />
+            <LegalDialog type="accessibility" trigger={<button className="hover:text-indigo-600 transition-colors">נגישות</button>} />
           </div>
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase opacity-50">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-100 transition-opacity">עמיר אייל</a>
           </p>
         </footer>
       </div>
