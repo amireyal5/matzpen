@@ -1,13 +1,13 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2 } from "lucide-react";
+import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { generateSpeech } from "@/ai/flows/tts-flow";
+import { analyzeJournal, JournalAnalysisOutput } from "@/ai/flows/journal-analysis-flow";
 
 interface ThoughtJournalProps {
   gender: "m" | "f";
@@ -16,7 +16,7 @@ interface ThoughtJournalProps {
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
-type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "finish";
+type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "analyzing" | "finish";
 
 export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) {
   const [step, setStep] = useState<EfratStep>("event");
@@ -26,6 +26,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     feeling: "",
     reaction: ""
   });
+  const [analysis, setAnalysis] = useState<JournalAnalysisOutput | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
@@ -58,7 +59,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   useEffect(() => {
-    if (step !== "finish") {
+    if (step !== "finish" && step !== "analyzing") {
       handlePlayAudio(stepsConfig[step as keyof typeof stepsConfig].prompt);
     }
     
@@ -130,35 +131,119 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     }
   };
 
-  const handleNext = () => {
-    const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction", "finish"];
-    const nextIdx = sequence.indexOf(step) + 1;
-    setStep(sequence[nextIdx]);
+  const handleNext = async () => {
+    const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
+    const currentIdx = sequence.indexOf(step as any);
+    
+    if (currentIdx < sequence.length - 1) {
+      setStep(sequence[currentIdx + 1]);
+    } else {
+      // Final step reached, start analysis
+      setStep("analyzing");
+      try {
+        const result = await analyzeJournal({ ...data, gender });
+        setAnalysis(result);
+        setStep("finish");
+        // Play the final summary
+        handlePlayAudio(result.summary);
+      } catch (err) {
+        console.error("Analysis failed", err);
+        setStep("finish");
+      }
+    }
   };
 
   const currentVal = data[step as keyof typeof data] || "";
 
-  if (step === "finish") {
+  if (step === "analyzing") {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700">
         <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150" />
-          <div className="relative w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden shadow-2xl">
-            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+          <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
+          <div className="relative w-24 h-24 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+            <BrainCircuit size={48} className="animate-bounce" />
           </div>
         </div>
-        <div className="space-y-4 max-w-sm">
-          <h2 className="text-3xl font-black text-white">השלמת את מודל אפר"ת</h2>
-          <p className="text-slate-400 font-medium">
-            {g("הצלחת לפרק את האירוע ולהבין את המנגנון שמפעיל אותך. זהו כלי אדיר לשליטה רגשית.", "הצלחת לפרק את האירוע ולהבין את המנגנון שמפעיל אותך. זהו כלי אדיר לשליטה רגשית.")}
-          </p>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white">מנתח את התובנות...</h2>
+          <p className="text-slate-400 font-medium">כבר חוזר אליך עם זווית חדשה ומחזקת.</p>
         </div>
-        <Button 
-          onClick={onBack}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 px-12 rounded-[2rem] text-xl shadow-xl active:scale-95 transition-all"
-        >
-          חזרה למסך הבית
-        </Button>
+      </div>
+    );
+  }
+
+  if (step === "finish") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col overflow-y-auto" dir="rtl">
+        <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
+              <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+            </div>
+            <div>
+              <span className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">ניתוח חכם</span>
+              <span className="block text-sm font-bold">עמיר אייל</span>
+            </div>
+          </div>
+          <button onClick={onBack} className="text-xs font-black text-slate-500 hover:text-white transition-colors">סגירה</button>
+        </header>
+
+        <main className="p-8 max-w-lg mx-auto w-full space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto">
+              <CheckCircle2 size={32} />
+            </div>
+            <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
+          </div>
+
+          {analysis && (
+            <div className="space-y-8">
+              {/* Distortions */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pr-2">
+                  <Sparkles size={16} className="text-amber-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.distortions.map((d, i) => (
+                    <span key={i} className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold">
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Healthy Perspective */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pr-2">
+                  <BrainCircuit size={16} className="text-indigo-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h3>
+                </div>
+                <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 text-lg leading-relaxed italic border-r-4 border-r-indigo-500">
+                  "{analysis.healthyPerspective}"
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pr-2">
+                  <BookText size={16} className="text-emerald-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+                </div>
+                <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
+                  {analysis.summary}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Button 
+            onClick={onBack}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-[2rem] text-xl shadow-xl active:scale-95 transition-all"
+          >
+            חזרה למסך הבית
+          </Button>
+        </main>
       </div>
     );
   }
@@ -242,9 +327,9 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         <Button 
           variant="outline"
           onClick={() => {
-            const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction", "finish"];
-            const prevIdx = sequence.indexOf(step) - 1;
-            if (prevIdx >= 0) setStep(sequence[prevIdx]);
+            const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
+            const currentIdx = sequence.indexOf(step as any);
+            if (currentIdx > 0) setStep(sequence[currentIdx - 1]);
           }}
           disabled={step === "event"}
           className="border-white/10 bg-transparent text-slate-400 h-16 rounded-[1.5rem] font-bold hover:bg-white/5"
@@ -256,7 +341,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           disabled={!currentVal.trim() || isRecording}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all"
         >
-          {step === "reaction" ? "סיום התהליך" : "המשך"}
+          {step === "reaction" ? "ניתוח התהליך" : "המשך"}
           <Send size={20} className="mr-2 rotate-180" />
         </Button>
       </footer>
