@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -42,11 +43,11 @@ export default function SplashScreen() {
         </div>
       </div>
 
-      {/* Bottom Branding */}
-      <div className={`absolute bottom-12 flex flex-col items-center gap-2 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      {/* Bottom Branding - Moved up for better proportions (Pyramid structure) */}
+      <div className={`absolute bottom-24 flex flex-col items-center gap-2 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <div className="w-8 h-[1px] bg-slate-200 mb-2" />
         <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">
-          מבית עמיר אייל
+          מבית עמיר
         </p>
       </div>
     </div>
