@@ -174,23 +174,22 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                   <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
                 </DialogHeader>
                 
-                {/* High-End Glassmorphism Header */}
-                <div className="relative h-32 w-full overflow-hidden rounded-t-[3rem] translate-z-0">
-                  <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-2xl z-0" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent z-1" />
+                {/* Full Bleed Header Fix */}
+                <div className="relative h-40 w-full overflow-hidden rounded-t-[3rem] bg-slate-900 translate-z-0">
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent z-1" />
                   
                   {/* Custom Elegant Close Button */}
-                  <DialogClose className="absolute left-6 top-6 z-20 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none">
-                    <X size={16} />
+                  <DialogClose className="absolute left-6 top-6 z-20 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none border border-white/5">
+                    <X size={20} />
                   </DialogClose>
                   
-                  <div className="absolute bottom-0 right-0 left-0 h-px bg-white/10 z-2" />
+                  <div className="absolute bottom-0 right-0 left-0 h-px bg-white/5 z-2" />
                 </div>
                 
-                <div className="px-10 pb-10 -mt-16 relative z-10">
+                <div className="px-10 pb-12 -mt-20 relative z-10">
                   <div className="relative mb-8">
-                    <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 mx-auto rotate-3">
-                      <div className="-rotate-3 w-full h-full">
+                    <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 mx-auto rotate-3 transition-transform hover:rotate-0 duration-500">
+                      <div className="-rotate-3 w-full h-full hover:rotate-0 transition-transform duration-500">
                         {user?.photoURL ? (
                           <Image src={user.photoURL} alt={`תמונת הפרופיל של ${displayName}`} width={128} height={128} className="w-full h-full object-cover" />
                         ) : (
@@ -261,7 +260,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
                   <div className="space-y-4">
                     <Button 
-                      className="w-full py-7 rounded-[1.5rem] bg-indigo-600 text-white font-black hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all active:scale-[0.98] text-lg"
+                      className="w-full py-8 rounded-[1.5rem] bg-gradient-to-br from-indigo-600 to-indigo-700 text-white font-black hover:from-indigo-700 hover:to-indigo-800 shadow-2xl shadow-indigo-500/40 transition-all active:scale-[0.98] text-lg border-t border-white/10"
                       onClick={handleSaveProfile}
                       disabled={isSaving}
                       aria-label="שמור שינויים בפרופיל"
@@ -269,12 +268,12 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                       {isSaving ? "שומר..." : "שמירת שינויים"}
                     </Button>
                     <button 
-                      className="w-full flex items-center justify-center gap-2 text-rose-500/60 font-bold hover:text-rose-500 transition-colors py-2 text-xs uppercase tracking-widest"
+                      className="w-full flex items-center justify-center gap-2 text-rose-500/60 font-bold hover:text-rose-500 transition-colors py-2 text-xs uppercase tracking-widest mt-2"
                       onClick={handleLogout}
                       aria-label="התנתק מהמערכת"
                     >
                       <LogOut size={14} aria-hidden="true" />
-                      <span>התנתקות</span>
+                      <span>התנתקות מהמצפן</span>
                     </button>
                   </div>
                 </div>
@@ -471,4 +470,3 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     </div>
   );
 }
-
