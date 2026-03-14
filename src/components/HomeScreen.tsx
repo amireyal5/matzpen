@@ -116,6 +116,10 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
               </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <DialogHeader className="sr-only">
+                <DialogTitle>פרופיל אישי</DialogTitle>
+                <DialogDescription>צפייה בפרטים וניהול החשבון שלך</DialogDescription>
+              </DialogHeader>
               <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 w-full" />
               <div className="px-8 pb-8 -mt-12">
                 <div className="relative mb-6">
@@ -282,7 +286,7 @@ export default function HomeScreen({ name, gender, onSelectCategory, onBack }: H
 
         <footer className="text-center py-8 opacity-80">
           <p className="text-[10px] font-bold tracking-widest text-slate-900 uppercase">
-            © {currentYear} המצפן הרגשי • כל הזכויות שמורות ל<a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-600 transition-colors">עמיר אייל</a>
+            © {currentYear} המצפן הרגשי • כל הזכויות שמורות לעמיר אייל
           </p>
         </footer>
       </div>
