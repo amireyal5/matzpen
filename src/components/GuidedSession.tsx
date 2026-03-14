@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Sparkles, Check, ChevronLeft, Volume2, RotateCcw, Loader2 } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
-import { generateSpeech } from "@/ai/flows/tts-flow";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
@@ -21,9 +20,7 @@ const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/uploa
 export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: GuidedSessionProps) {
   const [stepIdx, setStepIdx] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const cat = CATS.find(c => c.key === catKey) || CATS[0];
   const practice = BANK[catKey]?.[practiceIdx] || BANK[catKey]?.[0];
@@ -48,27 +45,24 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
   useEffect(() => {
     // Auto-play audio when step changes
     handlePlayAudio(currentStep.text);
+    return () => {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
   }, [stepIdx]);
 
-  const handlePlayAudio = async (text: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    setIsPlaying(false);
-    setIsLoadingAudio(true);
-    try {
-      const { audioUri } = await generateSpeech({ text, gender });
-      if (audioRef.current) {
-        audioRef.current.src = audioUri;
-        audioRef.current.play();
-        setIsPlaying(true);
-        audioRef.current.onended = () => setIsPlaying(false);
-      }
-    } catch (err) {
-      console.error("Audio failed", err);
-    } finally {
-      setIsLoadingAudio(false);
+  const handlePlayAudio = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'he-IL';
+      utterance.rate = 0.9;
+      
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -112,8 +106,6 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      <audio ref={audioRef} hidden />
-      
       {/* Header */}
       <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
         <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
@@ -162,7 +154,7 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
               onClick={() => handlePlayAudio(currentStep.text)}
               className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
             >
-              {isLoadingAudio ? <Loader2 className="animate-spin" /> : (isPlaying ? <RotateCcw size={24} /> : <Volume2 size={24} />)}
+              {isPlaying ? <RotateCcw size={24} /> : <Volume2 size={24} />}
             </button>
           </div>
         </div>

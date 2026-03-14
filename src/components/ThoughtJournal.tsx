@@ -1,11 +1,9 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { generateSpeech } from "@/ai/flows/tts-flow";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +25,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     reaction: ""
   });
   const [isRecording, setIsRecording] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
@@ -88,28 +84,23 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     };
   }, [step]);
 
-  const handlePlayAudio = async (text: string) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    setIsPlaying(false);
-    setIsLoadingAudio(true);
-    try {
-      const { audioUri } = await generateSpeech({ text, gender });
-      if (audioRef.current) {
-        audioRef.current.src = audioUri;
-        audioRef.current.play();
-        setIsPlaying(true);
-        audioRef.current.onended = () => setIsPlaying(false);
-      }
-    } catch (err) {
-      console.error("Audio failed", err);
-    } finally {
-      setIsLoadingAudio(false);
+  const handlePlayAudio = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'he-IL';
+      utterance.rate = 0.9;
+      
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -159,8 +150,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      <audio ref={audioRef} hidden />
-      
       <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
         <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
           <ArrowRight size={18} />
@@ -195,7 +184,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             onClick={() => handlePlayAudio(currentConfig.prompt)}
             className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors"
           >
-            {isLoadingAudio ? <Loader2 className="animate-spin size-4" /> : (isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />)}
+            {isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
             {isPlaying ? "שמע שוב" : "השמע הנחיה"}
           </button>
         </div>
