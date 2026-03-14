@@ -168,14 +168,14 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 </TooltipTrigger>
                 <TooltipContent>פרופיל אישי</TooltipContent>
               </Tooltip>
-              <DialogContent className="sm:max-w-md rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate" dir="rtl">
+              <DialogContent className="sm:max-w-md rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate translate-z-0" dir="rtl">
                 <DialogHeader className="sr-only">
                   <DialogTitle>פרופיל אישי</DialogTitle>
                   <DialogDescription>עריכת פרטים וניהול החשבון שלך</DialogDescription>
                 </DialogHeader>
                 
-                {/* Full Bleed Header Fix */}
-                <div className="relative h-40 w-full overflow-hidden rounded-t-[3rem] bg-slate-900 translate-z-0">
+                {/* Full Bleed Header Fix with absolute positioning to guarantee overlap */}
+                <div className="relative h-40 w-full bg-slate-900 rounded-t-[3rem] overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent z-1" />
                   
                   {/* Custom Elegant Close Button */}
@@ -470,3 +470,4 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
     </div>
   );
 }
+
