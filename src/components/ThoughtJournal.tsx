@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { generateSpeech } from "@/ai/flows/tts-flow";
 
 interface ThoughtJournalProps {
   gender: "m" | "f";
@@ -26,6 +28,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   });
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
@@ -84,23 +88,36 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (currentAudio) currentAudio.pause();
     };
   }, [step]);
 
-  const handlePlayAudio = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'he-IL';
-      utterance.rate = 0.9;
-      
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
+  const handlePlayAudio = async (text: string) => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
 
-      window.speechSynthesis.speak(utterance);
+    setIsLoadingAudio(true);
+    try {
+      const { audioUri } = await generateSpeech({ text, gender });
+      const audio = new Audio(audioUri);
+      setCurrentAudio(audio);
+      
+      audio.onplay = () => {
+        setIsPlaying(true);
+        setIsLoadingAudio(false);
+      };
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+      };
+      
+      audio.play();
+    } catch (err) {
+      console.error("Audio generation failed", err);
+      setIsLoadingAudio(false);
     }
   };
 
@@ -168,7 +185,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         <div className="flex flex-col items-center text-center space-y-6">
           <div className={cn(
             "w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 transition-all duration-500",
-            isPlaying ? "scale-110 shadow-2xl shadow-indigo-500/20" : ""
+            (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20" : ""
           )}>
             <BookText size={32} />
           </div>
@@ -182,10 +199,11 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           </div>
           <button 
             onClick={() => handlePlayAudio(currentConfig.prompt)}
-            className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors"
+            disabled={isLoadingAudio}
+            className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors disabled:opacity-50"
           >
-            {isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
-            {isPlaying ? "שמע שוב" : "השמע הנחיה"}
+            {isLoadingAudio ? <Loader2 size={14} className="animate-spin" /> : isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
+            {isLoadingAudio ? "מייצר קריינות..." : isPlaying ? "שמע שוב" : "השמע הנחיה"}
           </button>
         </div>
 

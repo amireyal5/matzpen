@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { generateSpeech } from "@/ai/flows/tts-flow";
 
 interface GuidedSessionProps {
   catKey: string;
@@ -21,6 +23,8 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
   const [stepIdx, setStepIdx] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   const cat = CATS.find(c => c.key === catKey) || CATS[0];
   const practice = BANK[catKey]?.[practiceIdx] || BANK[catKey]?.[0];
@@ -46,23 +50,38 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
     // Auto-play audio when step changes
     handlePlayAudio(currentStep.text);
     return () => {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (currentAudio) {
+        currentAudio.pause();
+      }
     };
   }, [stepIdx]);
 
-  const handlePlayAudio = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'he-IL';
-      utterance.rate = 0.9;
-      
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
+  const handlePlayAudio = async (text: string) => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
 
-      window.speechSynthesis.speak(utterance);
+    setIsLoadingAudio(true);
+    try {
+      const { audioUri } = await generateSpeech({ text, gender });
+      const audio = new Audio(audioUri);
+      setCurrentAudio(audio);
+      
+      audio.onplay = () => {
+        setIsPlaying(true);
+        setIsLoadingAudio(false);
+      };
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+      };
+      
+      audio.play();
+    } catch (err) {
+      console.error("Audio generation failed", err);
+      setIsLoadingAudio(false);
     }
   };
 
@@ -134,7 +153,7 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
           <div className="flex justify-center">
              <div className={cn(
                "w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500",
-               isPlaying ? "scale-110 shadow-2xl shadow-indigo-500/20" : "scale-100"
+               (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20" : "scale-100"
              )} style={{ backgroundColor: `${cat.hue}15` }}>
                <cat.icon size={40} style={{ color: cat.hue }} />
              </div>
@@ -152,9 +171,10 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
           <div className="flex justify-center gap-4">
             <button 
               onClick={() => handlePlayAudio(currentStep.text)}
-              className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
+              disabled={isLoadingAudio}
+              className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all disabled:opacity-50"
             >
-              {isPlaying ? <RotateCcw size={24} /> : <Volume2 size={24} />}
+              {isLoadingAudio ? <Loader2 size={24} className="animate-spin" /> : isPlaying ? <RotateCcw size={24} /> : <Volume2 size={24} />}
             </button>
           </div>
         </div>

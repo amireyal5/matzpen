@@ -1,11 +1,13 @@
+
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Info } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
+import { generateSpeech } from "@/ai/flows/tts-flow";
 import PracticeCard from "./PracticeCard";
 
 interface DeckScreenProps {
@@ -21,6 +23,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
   const [api, setApi] = useState<CarouselApi>();
   const [showIntro, setShowIntro] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   const { user } = useUser();
   const firestore = useFirestore();
@@ -65,7 +69,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     updateDocumentNonBlocking(profileRef, { completed: newCompleted });
   };
 
-  const handleAudioPlay = (card: any) => {
+  const handleAudioPlay = async (card: any) => {
     if (isPlaying) {
       stopAudio();
       return;
@@ -74,22 +78,33 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     const g = (obj: any) => gender === 'f' ? (obj.f || obj.m) : (obj.m || obj.f);
     const textToSpeak = `${g(card.t)}. הרציונל: ${g(card.why)}. השלבים: ${card.steps.map((s: any, i: number) => `שלב ${i + 1}, ${g(s)}`).join(". ")}`;
     
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = 'he-IL';
-      utterance.rate = 0.9; // קצב מעט איטי יותר ומרגיע
+    setIsLoadingAudio(true);
+    try {
+      const { audioUri } = await generateSpeech({ text: textToSpeak, gender });
+      const audio = new Audio(audioUri);
+      setCurrentAudio(audio);
       
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
-
-      window.speechSynthesis.speak(utterance);
+      audio.onplay = () => {
+        setIsPlaying(true);
+        setIsLoadingAudio(false);
+      };
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+      };
+      
+      audio.play();
+    } catch (err) {
+      console.error("Audio generation failed", err);
+      setIsLoadingAudio(false);
     }
   };
 
   const stopAudio = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
     }
     setIsPlaying(false);
   };
@@ -160,7 +175,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
                     isFlipped={flipped && idx === i} onFlip={setFlipped}
                     isFavorite={favorites.includes(`${catKey}:${i}`)} onToggleFavorite={() => toggleFavorite(i)}
                     isCompleted={completedCards.includes(`${catKey}:${i}`)} onToggleComplete={() => toggleComplete(i)}
-                    onPlayAudio={() => handleAudioPlay(card)} isLoadingAudio={false} isPlaying={isPlaying && idx === i}
+                    onPlayAudio={() => handleAudioPlay(card)} isLoadingAudio={isLoadingAudio && idx === i} isPlaying={isPlaying && idx === i}
                     gender={gender} category={cat} backTab={backTab} onTabChange={setBackTab}
                     onShowIntro={() => setShowIntro(true)}
                   />
