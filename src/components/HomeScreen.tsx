@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -79,7 +80,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="bg-slate-950 text-white pt-10 pb-20 px-6 relative z-10 overflow-hidden">
+      <header className="bg-slate-950 text-white pt-10 pb-16 px-6 relative z-10 overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
@@ -105,8 +106,11 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             </Tooltip>
           </div>
 
-          {/* Placeholder to maintain header height during animation */}
-          <div className="h-24 w-full flex justify-center items-center relative">
+          {/* Animated Placeholder that shrinks after 5 seconds */}
+          <div className={cn(
+            "w-full flex justify-center items-center relative transition-all duration-1000 ease-in-out overflow-hidden",
+            isMinimized ? "h-0 opacity-0 mb-0" : "h-24 opacity-100 mb-4"
+          )}>
             <div className={cn(
               "absolute z-30 transition-welcome-photo",
               isMinimized 
