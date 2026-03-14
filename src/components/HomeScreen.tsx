@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -111,7 +110,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
             <div className={cn(
               "absolute z-30 transition-welcome-photo",
               isMinimized 
-                ? "translate-y-[150px] translate-x-[-180px] scale-[0.4] opacity-0 pointer-events-none" 
+                ? "translate-y-[148px] translate-x-[240px] scale-[0.4] opacity-0 pointer-events-none" 
                 : "translate-y-0 translate-x-0 scale-100 opacity-100"
             )}>
               <div className="relative">
