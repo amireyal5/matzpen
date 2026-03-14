@@ -1,9 +1,8 @@
 
 "use client";
 
-import { Heart, CheckCircle2, Volume2, RotateCcw, Zap, ListChecks, Check, Loader2, Sparkles } from "lucide-react";
+import { Heart, CheckCircle2, Volume2, RotateCcw, Zap, ListChecks, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TIP_MAP } from "@/lib/data";
 
 interface PracticeCardProps {
@@ -40,14 +39,17 @@ export default function PracticeCard({
 
   const CatIcon = category.icon;
 
+  // Outer wrapper classes shared by both sides to ensure consistent "lying on background" look
+  const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl shadow-slate-300/60 backface-hidden border border-white";
+
   return (
-    <div className="w-full h-[520px] md:h-[580px] perspective-1000 relative">
+    <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative">
       <div className={cn(
         "relative w-full h-full transition-transform duration-[800ms] preserve-3d cursor-pointer",
         isFlipped ? "rotate-y-180" : ""
       )}>
         {/* FRONT SIDE */}
-        <div className="absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl shadow-slate-200/50 backface-hidden border border-white">
+        <div className={cardShellClasses}>
           {/* Header (40% height) */}
           <div 
             className="h-[40%] w-full relative flex flex-col items-center justify-center p-8 text-white overflow-hidden"
@@ -76,12 +78,15 @@ export default function PracticeCard({
             </div>
 
             {/* Center: Category Icon Bubble */}
-            <div className="relative group/icon" onClick={(e) => { e.stopPropagation(); onShowIntro(); }}>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onShowIntro(); }}
+              className="relative group/icon outline-none"
+            >
               <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
-              <div className="relative w-20 h-20 rounded-[2rem] bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center shadow-2xl transition-transform group-hover/icon:scale-110">
+              <div className="relative w-20 h-20 rounded-[2.2rem] bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center shadow-2xl transition-transform group-hover/icon:scale-110">
                 <CatIcon className="size-10 text-white" />
               </div>
-            </div>
+            </button>
             
             <span className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{category.label}</span>
           </div>
@@ -118,13 +123,13 @@ export default function PracticeCard({
         </div>
 
         {/* BACK SIDE */}
-        <div className="absolute inset-0 bg-white rounded-[45px] flex flex-col overflow-hidden shadow-2xl backface-hidden rotate-y-180 border border-white">
+        <div className={cn(cardShellClasses, "rotate-y-180")}>
           {/* Header (25% height) */}
           <div 
             className="h-[25%] w-full relative flex flex-col items-center justify-center p-6 text-white overflow-hidden shrink-0"
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
           >
-            <div className="w-full flex justify-between items-start">
+            <div className="w-full flex justify-between items-start relative z-10">
               <div className="flex flex-col text-right">
                 <span className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">{category.label}</span>
                 <h4 className="font-headline text-base md:text-lg font-black text-white leading-tight line-clamp-2 max-w-[200px]">{g(card.t)}</h4>
@@ -140,7 +145,7 @@ export default function PracticeCard({
           </div>
 
           {/* Sub-Tabs Navigation (Clean White Overlap) */}
-          <div className="bg-white px-4 pt-2 border-b border-slate-100 -mt-4 rounded-t-[30px] relative z-10 flex shrink-0">
+          <div className="bg-white px-4 pt-2 border-b border-slate-100 -mt-4 rounded-t-[35px] relative z-20 flex shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
             {[
               { id: "why", label: "תובנה", icon: Zap },
               { id: "steps", label: "שלבים", icon: ListChecks },
@@ -160,15 +165,15 @@ export default function PracticeCard({
                   <TIcon className="size-4" style={{ color: active ? category.hue : undefined }} />
                   <span className="text-[10px] font-black uppercase tracking-wider">{tab.label}</span>
                   {active && (
-                    <div className="absolute bottom-0 inset-x-6 h-1 rounded-full" style={{ backgroundColor: category.hue }} />
+                    <div className="absolute bottom-0 inset-x-6 h-1 rounded-full animate-in fade-in duration-300" style={{ backgroundColor: category.hue }} />
                   )}
                 </button>
               );
             })}
           </div>
 
-          {/* Tab Content (Subtle Grey Background) */}
-          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-[#F9FBFC]">
+          {/* Tab Content (Maintains the card shape and depth) */}
+          <div className="flex-1 overflow-y-auto p-8 md:p-10 hide-scrollbar bg-white relative z-10">
             {backTab === "why" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex gap-5 items-start">
@@ -198,9 +203,9 @@ export default function PracticeCard({
 
             {backTab === "tip" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-50" style={{ color: category.hue }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm" style={{ color: category.hue }}>
                       <Check size={16} strokeWidth={3} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: category.hue }}>טיפ זהב</span>
@@ -210,7 +215,7 @@ export default function PracticeCard({
                   </p>
                 </div>
                 
-                <div className="mt-6 flex gap-3 items-center bg-white/50 p-4 rounded-2xl border border-slate-100">
+                <div className="mt-6 flex gap-3 items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                   <span className="text-xl">💡</span>
                   <p className="text-[11px] text-slate-500 font-bold leading-relaxed">
                     {gender === 'f' ? 'ככל שתתרגלי, כך הפעולה תהפוך לאוטומטית ומרגיעה.' : 'ככל שתתרגל, כך הפעולה תהפוך לאוטומטית ומרגיעה.'}
@@ -220,12 +225,12 @@ export default function PracticeCard({
             )}
           </div>
 
-          {/* Footer Toggle (Outline Style) */}
-          <div className="p-8 pt-0 bg-[#F9FBFC] shrink-0">
+          {/* Footer Toggle */}
+          <div className="p-8 pt-0 bg-white shrink-0 relative z-10">
             <button 
               onClick={(e) => { e.stopPropagation(); onFlip(false); }}
-              className="w-full py-4 rounded-[2rem] border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-white active:scale-95 group"
-              style={{ borderColor: `${category.hue}30`, color: category.hue }}
+              className="w-full py-4 rounded-[2rem] border-2 font-black text-xs transition-all flex items-center justify-center gap-3 hover:bg-slate-50 active:scale-95 group"
+              style={{ borderColor: `${category.hue}20`, color: category.hue }}
             >
               <RotateCcw className="size-4 transition-transform duration-500 group-hover:rotate-180" />
               הפוך את הקלף
