@@ -10,11 +10,12 @@ import { LegalDialog } from "@/components/LegalDialogs";
 interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
   onGoToAuth: () => void;
+  onGoToAbout: () => void;
   initialName?: string;
   initialGender?: "m" | "f";
 }
 
-export default function LandingScreen({ onGoToAuth }: LandingScreenProps) {
+export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
@@ -49,18 +50,18 @@ export default function LandingScreen({ onGoToAuth }: LandingScreenProps) {
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-2">
             <h1 className="font-headline text-5xl md:text-6xl font-black text-slate-50 tracking-tight leading-none">
               המצפן הרגשי
             </h1>
-            <p className="text-indigo-400 font-bold text-xl tracking-wide">
+            <p className="text-indigo-400 font-bold text-lg md:text-xl tracking-wide">
               ארגז הכלים לחוסן ושקט נפשי
             </p>
           </div>
 
           <div className="dark-glass-panel rounded-[2.5rem] p-8 text-right border-indigo-500/10">
             <p className="text-slate-300 text-sm leading-relaxed font-medium">
-              שלום, אני <a href="https://www.amireyal.co.il/" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</a>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
+              שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
             </p>
           </div>
         </div>

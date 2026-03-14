@@ -6,12 +6,13 @@ import LandingScreen from "@/components/LandingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
+import AboutScreen from "@/components/AboutScreen";
 import SplashScreen from "@/components/SplashScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
-type Screen = "landing" | "auth" | "home" | "deck";
+type Screen = "landing" | "auth" | "home" | "deck" | "about";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
@@ -63,7 +64,7 @@ function AppContent() {
 
   // Redirect to landing if user logs out
   useEffect(() => {
-    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth") {
+    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about") {
       setScreen("landing");
     }
   }, [user, isUserLoading, isHydrated, screen]);
@@ -95,7 +96,11 @@ function AppContent() {
         <LandingScreen 
           onComplete={() => setScreen("auth")} 
           onGoToAuth={handleGoToAuth}
+          onGoToAbout={() => setScreen("about")}
         />
+      )}
+      {screen === "about" && (
+        <AboutScreen onBack={() => setScreen("landing")} />
       )}
       {screen === "auth" && (
         <AuthScreen 
