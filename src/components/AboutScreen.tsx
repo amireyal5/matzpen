@@ -59,7 +59,7 @@ export default function AboutScreen({ onBack }: AboutScreenProps) {
 
           <div className="space-y-4">
             <h1 className="text-3xl md:text-4xl font-black font-headline leading-tight">
-              אודות: פסיכותרפיה וחוסן בעידן הדיגיטלי
+              ברוכים הבאים למצפן הרגשי
             </h1>
             <p className="text-lg md:text-xl text-indigo-300 font-bold leading-relaxed max-w-md mx-auto">
               שמי עמיר אייל, פסיכותרפיסט (MSW), מומחה CBT וטיפול גוף-נפש (SE).
