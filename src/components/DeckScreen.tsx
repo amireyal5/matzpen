@@ -143,8 +143,8 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
     <div className="min-h-screen w-full flex flex-col bg-[#F8FAFC]">
       <audio ref={audioRef} hidden />
       
-      {/* Header: Dark Slate to match Landing */}
-      <header className="bg-slate-900 text-white pt-8 pb-10 px-6 rounded-b-[3rem] shadow-xl relative z-10">
+      {/* Header: Straight edges, no overlap */}
+      <header className="bg-slate-900 text-white pt-8 pb-10 px-6 shadow-xl relative z-10">
         <div className="max-w-lg mx-auto w-full flex items-center justify-between">
           <button 
             onClick={onBack} 
@@ -207,7 +207,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1 -mt-5">
+      <div className="max-w-lg mx-auto w-full flex flex-col items-center flex-1 mt-8">
         {/* Progress Bar */}
         <div className="w-full px-8 mb-4">
           <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">

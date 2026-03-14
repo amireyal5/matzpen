@@ -122,8 +122,8 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Header: Exact match to Landing background (slate-900) */}
-      <header className="bg-slate-900 text-white pt-8 pb-12 px-6 rounded-b-[3rem] shadow-2xl relative overflow-hidden">
+      {/* Header: Straight edge, no overlap */}
+      <header className="bg-slate-900 text-white pt-8 pb-10 px-6 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
         <div className="max-w-xl mx-auto flex justify-between items-center relative z-10">
           <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
         </div>
       </header>
 
-      <div className="max-w-xl mx-auto px-6 -mt-8 space-y-8 pb-12 animate-fade-in-up">
+      <div className="max-w-xl mx-auto px-6 mt-10 space-y-8 pb-12 animate-fade-in-up">
         {/* Main Interaction Card */}
         <div className="glass-panel rounded-[2rem] p-8 space-y-2">
           <p className="text-xs font-bold text-indigo-600 tracking-wider">{welcomeText}{displayName} 🌿</p>
