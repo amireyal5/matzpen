@@ -35,23 +35,35 @@ import {
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
-/**
- * הגדרת הקטגוריות והמשפטים עם הקישורים המקוריים של עמיר.
- */
 const CATEGORIES = [
   {
     id: 'anxiety',
     title: 'ויסות חרדה',
-    subtitle: 'גירוי בילטרלי 128Hz Harmonics',
+    subtitle: 'הקלטות מקוריות - עמיר אייל',
     icon: Wind,
     color: 'from-blue-600/90 via-indigo-900/95 to-black',
     accent: '#60A5FA',
     affirmations: [
-      { text: "אני בטוח כאן ועכשיו.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" },
-      { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%99%D7%9E%D7%94%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%99%D7%90%20%D7%94%D7%A2%D7%95%D7%92%D7%9F%20%D7%A9%D7%9C%D7%99.mp3?alt=media&token=72105974-72f0-4d89-aece-40d23bacccab" },
-      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%91%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%A4%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" },
-      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" },
-      { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A9%D7%A7%D7%98%20%D7%A9%D7%91%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" }
+      { 
+        text: "אני בטוח כאן ועכשיו.", 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" 
+      },
+      { 
+        text: "הנשימה שלי היא העוגן שלי.", 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%99%D7%9E%D7%94%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%99%D7%90%20%D7%94%D7%A2%D7%95%D7%92%D7%9F%20%D7%A9%D7%9C%D7%99.mp3?alt=media&token=72105974-72f0-4d89-aece-40d23bacccab" 
+      },
+      { 
+        text: "אני מאפשר למחשבות לחלוף.", 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9 title:D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%9C%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" 
+      },
+      { 
+        text: "הגוף שלי חוזר לאיזון.", 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%97%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" 
+      },
+      { 
+        text: "השקט שבי חזק מכל סערה בחוץ.", 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%A7%D7%98%20%D7%A9%D7%91%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" 
+      }
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
     blsSpeed: 5500 
@@ -64,7 +76,6 @@ const CATEGORIES = [
     color: 'from-amber-600/90 via-orange-900/95 to-black',
     accent: '#FBBF24',
     affirmations: [
-      { text: "אני ראוי לטוב.", audioUrl: "" },
       { text: "יש בי את הכוח להתמודד.", audioUrl: "" },
       { text: "אני סומך על עצמי.", audioUrl: "" },
       { text: "הערך שלי יציב וקיים.", audioUrl: "" },
@@ -72,74 +83,6 @@ const CATEGORIES = [
     ],
     voiceTone: "בטון חם, יציב ומעודד. זרימה אטית.",
     blsSpeed: 5000
-  },
-  {
-    id: 'anger',
-    title: 'שחרור כעס ותסכול',
-    subtitle: 'פריקה וקרקע לרגשות עזים',
-    icon: Flame,
-    color: 'from-rose-900 via-red-950 to-black',
-    accent: '#F43F5E',
-    affirmations: [
-      { text: "מותר לי להרגיש את מה שאני מרגיש.", audioUrl: "" },
-      { text: "הכעס עובר דרכי ויוצא החוצה.", audioUrl: "" },
-      { text: "אני בוחר להגיב מתוך רוגע.", audioUrl: "" },
-      { text: "אני משחרר את המתח מהגוף.", audioUrl: "" },
-      { text: "אני מוצא שלווה בתוך המרחב הפנימי שלי.", audioUrl: "" }
-    ],
-    voiceTone: "בטון מקורקע, יציב אך אטי וזורם.",
-    blsSpeed: 4500
-  },
-  {
-    id: 'focus',
-    title: 'מיקוד וריכוז (Flow)',
-    subtitle: 'סנכרון גלי מוח לעבודה',
-    icon: Brain,
-    color: 'from-emerald-900 via-teal-950 to-black',
-    accent: '#10B981',
-    affirmations: [
-      { text: "התודעה שלי צלולה וממוקדת.", audioUrl: "" },
-      { text: "אני נוכח במשימה שלפניי.", audioUrl: "" },
-      { text: "היצירתיות זורמת ממני בקלות.", audioUrl: "" },
-      { text: "אני שקט ובשליטה.", audioUrl: "" },
-      { text: "תשומת הלב שלי חדה ונינוחה.", audioUrl: "" }
-    ],
-    voiceTone: "בטון ברור, קצבי ואטי.",
-    blsSpeed: 4000
-  },
-  {
-    id: 'compassion',
-    title: 'חמלה עצמית',
-    subtitle: 'חיזוק הקול הפנימי המיטיב',
-    icon: Heart,
-    color: 'from-pink-900 via-fuchsia-950 to-black',
-    accent: '#EC4899',
-    affirmations: [
-      { text: "אני נותן לעצמי רשות להיות אנושי.", audioUrl: "" },
-      { text: "אני מתייחס לעצמי כאל חבר טוב.", audioUrl: "" },
-      { text: "זה בסדר לא להיות בסדר לפעמים.", audioUrl: "" },
-      { text: "אני סולח לעצמי על העבר.", audioUrl: "" },
-      { text: "אני עוטף את עצמי בהבנה ובחום.", audioUrl: "" }
-    ],
-    voiceTone: "בטון רך מאוד, אוהב ועוטף. זרימה אטית.",
-    blsSpeed: 6000
-  },
-  {
-    id: 'sleep',
-    title: 'שינה עמוקה',
-    subtitle: 'שחרור לקראת מנוחה',
-    icon: Moon,
-    color: 'from-purple-900 via-slate-900 to-black',
-    accent: '#A78BFA',
-    affirmations: [
-      { text: "אני משחרר את היום.", audioUrl: "" },
-      { text: "זה הזמן שלי לנוח.", audioUrl: "" },
-      { text: "המיטה שלי היא מקום שקט.", audioUrl: "" },
-      { text: "אני נרדם בביטחון.", audioUrl: "" },
-      { text: "המחשבות נרגעות והגוף מרפה אל תוך השינה.", audioUrl: "" }
-    ],
-    voiceTone: "בטון נמוך מאוד, לחישתי ואטי. כמו שיר ערש.",
-    blsSpeed: 7000 
   }
 ];
 
@@ -159,117 +102,29 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   
   useWakeLock(isPlaying);
   
-  const [droneVolume, setDroneVolume] = useState(0.6);
+  const [droneVolume, setDroneVolume] = useState(0); // עוצמת רקע מופסקת כברירת מחדל
   const [droneFreq, setDroneFrequency] = useState(128);
   
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const pannerRef = useRef<StereoPannerNode | null>(null);
-  const musicGainNodeRef = useRef<GainNode | null>(null); 
-  const masterGainRef = useRef<GainNode | null>(null);
-  const filterNodeRef = useRef<BiquadFilterNode | null>(null);
-  const activeOscillators = useRef<OscillatorNode[]>([]);
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const blsIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
-  const voiceSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-
-  const initAudio = () => {
-    if (!audioCtxRef.current) {
-      const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
-      audioCtxRef.current = new AudioContextClass();
-      
-      masterGainRef.current = audioCtxRef.current!.createGain();
-      musicGainNodeRef.current = audioCtxRef.current!.createGain();
-      pannerRef.current = audioCtxRef.current!.createStereoPanner();
-      filterNodeRef.current = audioCtxRef.current!.createBiquadFilter();
-      
-      filterNodeRef.current.type = 'lowpass';
-      filterNodeRef.current.frequency.setValueAtTime(800, audioCtxRef.current!.currentTime);
-      filterNodeRef.current.Q.setValueAtTime(0.7, audioCtxRef.current!.currentTime);
-
-      musicGainNodeRef.current!.connect(filterNodeRef.current);
-      filterNodeRef.current.connect(pannerRef.current!);
-      pannerRef.current!.connect(masterGainRef.current!);
-      masterGainRef.current!.connect(audioCtxRef.current!.destination);
-
-      voiceAudioRef.current = new Audio();
-      voiceAudioRef.current.crossOrigin = "anonymous";
-    }
-  };
 
   const stopAll = () => {
-    activeOscillators.current.forEach(osc => {
-      try { osc.stop(); } catch(e) {}
-    });
-    activeOscillators.current = [];
-    
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current.src = "";
     }
-    
     if (affIntervalRef.current) clearInterval(affIntervalRef.current);
     if (blsIntervalRef.current) clearInterval(blsIntervalRef.current);
   };
 
-  const playBackgroundDrone = () => {
-    const ctx = audioCtxRef.current;
-    if (!ctx || !musicGainNodeRef.current) return;
-
-    activeOscillators.current.forEach(o => { try { o.stop(); } catch(e) {} });
-    activeOscillators.current = [];
-
-    const baseFreq = droneFreq; 
-    const harmonicRatios = [1, 2, 4, 0.5];
-    const gains = [0.5, 0.3, 0.1, 0.1];
-    
-    harmonicRatios.forEach((ratio, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      
-      osc.type = 'sine'; 
-      osc.frequency.setValueAtTime(baseFreq * ratio, ctx.currentTime);
-      
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(gains[i] * droneVolume, ctx.currentTime + 4);
-      
-      osc.connect(g).connect(musicGainNodeRef.current!);
-      osc.start();
-      activeOscillators.current.push(osc);
-    });
-  };
-
-  useEffect(() => {
-    if (musicGainNodeRef.current && audioCtxRef.current) {
-      musicGainNodeRef.current.gain.setTargetAtTime(droneVolume, audioCtxRef.current.currentTime, 0.2);
-    }
-  }, [droneVolume]);
-
-  useEffect(() => {
-    if (activeOscillators.current.length > 0 && audioCtxRef.current) {
-      const harmonicRatios = [1, 2, 4, 0.5];
-      activeOscillators.current.forEach((osc, i) => {
-        osc.frequency.setTargetAtTime(droneFreq * harmonicRatios[i], audioCtxRef.current!.currentTime, 1.0);
-      });
-    }
-  }, [droneFreq]);
-
   const speakAffirmation = async (aff: { text: string, audioUrl?: string }) => {
-    if (!audioCtxRef.current || !selectedCat || !voiceAudioRef.current) return;
+    if (!selectedCat) return;
     
     setIsSpeaking(true);
     setIsLoading(true);
 
     try {
-      if (audioCtxRef.current.state === 'suspended') {
-        await audioCtxRef.current.resume();
-      }
-
-      if (musicGainNodeRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.1, audioCtxRef.current.currentTime + 1.5);
-      }
-
       let audioSrc = "";
       if (aff.audioUrl) {
         audioSrc = aff.audioUrl;
@@ -281,34 +136,23 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         audioSrc = audioUri;
       }
       
-      const audio = voiceAudioRef.current;
-      audio.src = audioSrc;
-
-      // ניסיון ראשון: חיבור למנוע האודיו הדינמי (צידוד)
-      try {
-        if (!voiceSourceRef.current) {
-          voiceSourceRef.current = audioCtxRef.current.createMediaElementSource(audio);
-          voiceSourceRef.current.connect(pannerRef.current!);
-        }
-      } catch (corsErr) {
-        // אם זה נכשל בגלל CORS, הסאונד ינגן ישירות מהאלמנט (ללא צידוד) אך יישמע!
-        console.warn("CORS/AudioContext Connection failed, playing directly.");
+      // יצירת אלמנט אודיו חדש בכל פעם לניגון נקי
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause();
       }
+
+      const audio = new Audio(audioSrc);
+      voiceAudioRef.current = audio;
 
       audio.onended = () => {
         setIsSpeaking(false);
-        if (musicGainNodeRef.current && audioCtxRef.current) {
-          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 3);
-        }
+        setIsLoading(false);
       };
 
       audio.onerror = (e) => {
-        console.warn("Audio load error, trying fallback if possible.");
+        console.warn("Audio Load/Play Error (Skipping):", e);
         setIsSpeaking(false);
         setIsLoading(false);
-        if (musicGainNodeRef.current && audioCtxRef.current) {
-          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 1);
-        }
       };
       
       await audio.play();
@@ -317,9 +161,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       console.warn("General Playback Error:", error);
       setIsSpeaking(false);
       setIsLoading(false);
-      if (musicGainNodeRef.current && audioCtxRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 1.0);
-      }
     }
   };
 
@@ -329,31 +170,23 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     setCurrentAffText(randomAffObj.text);
     setShowAff(true);
     speakAffirmation(randomAffObj);
-    setTimeout(() => { setShowAff(false); }, 18000); 
+    // המשפט נעלם אחרי 12 שניות לקראת הבא
+    setTimeout(() => { setShowAff(false); }, 12000); 
   };
 
   useEffect(() => {
     if (isPlaying && selectedCat) {
-      initAudio();
       stopAll();
-      playBackgroundDrone();
       triggerStep();
       
+      // תזמון הצידוד הויזואלי (הנקודה המהבהבת)
       const tickDuration = selectedCat.blsSpeed / 2;
       blsIntervalRef.current = setInterval(() => {
-        setBlsSide(prev => {
-          const newSide = prev === 'right' ? 'left' : 'right';
-          if (pannerRef.current && audioCtxRef.current) {
-            pannerRef.current.pan.linearRampToValueAtTime(
-                newSide === 'right' ? 0.85 : -0.85, 
-                audioCtxRef.current.currentTime + (tickDuration / 1000)
-            );
-          }
-          return newSide;
-        });
+        setBlsSide(prev => prev === 'right' ? 'left' : 'right');
       }, tickDuration);
 
-      affIntervalRef.current = setInterval(triggerStep, 35000); 
+      // תזמון קבוע למשפטים (כל 25 שניות)
+      affIntervalRef.current = setInterval(triggerStep, 25000); 
     } else {
       stopAll();
       setShowAff(false);
@@ -386,7 +219,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
           <main className="max-w-xl mx-auto pt-16 pb-12 px-6 relative z-10 overflow-y-auto flex-1">
             <header className="mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
               <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">המצפן הטיפולי</h1>
-              <p className="text-white/40 text-sm font-medium italic">עיבוד רגשי בילטרלי הרמוני לסנכרון המוח. ההקלטות המקוריות בקולו של עמיר אייל זמינות ב'ויסות חרדה'.</p>
+              <p className="text-white/40 text-sm font-medium italic">התמקדנו כעת בהקלטות המקוריות שלך. צלילי הרקע הושבתו כדי לאפשר הקשבה נקייה.</p>
             </header>
 
             <div className="grid gap-4 mb-20">
@@ -428,23 +261,17 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                 <div className="space-y-6">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-white/60">
-                      <span className="text-[10px] font-black uppercase tracking-widest">עוצמת צליל רקע</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">עוצמת צליל רקע (מושבת)</span>
                       <Volume2 size={14} />
                     </div>
                     <Slider value={[droneVolume * 100]} max={100} onValueChange={(vals) => setDroneVolume(vals[0] / 100)} className="cursor-pointer" />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-white/60">
-                      <span className="text-[10px] font-black uppercase tracking-widest">תדר בסיס: {droneFreq}Hz</span>
-                      <Activity size={14} />
-                    </div>
-                    <Slider value={[droneFreq]} min={64} max={512} onValueChange={(vals) => setDroneFrequency(vals[0])} className="cursor-pointer" />
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
           </div>
 
+          {/* ויזואליזציה של נקודת הצידוד הבילטרלית */}
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
                className="w-10 h-10 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
@@ -485,7 +312,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                </button>
                <div className="flex items-center gap-2 text-white/20">
                  {isLoading ? <Loader2 size={14} className="animate-spin text-indigo-400" /> : <Zap size={14} className={isSpeaking ? 'text-indigo-400' : ''} />}
-                 <span className="text-[9px] font-black tracking-widest uppercase">Pure Harmonic Flow</span>
+                 <span className="text-[9px] font-black tracking-widest uppercase">Pure Voice Focus</span>
                </div>
             </div>
           </div>
