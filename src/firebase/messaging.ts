@@ -5,7 +5,6 @@ import { getApp } from "firebase/app";
 
 /**
  * פונקציה לבקשת הרשאה והפקת טוקן להתראות פוש.
- * משתמשת אך ורק במפתח הציבורי (Public Key).
  * @returns ה-FCM Token אם ההרשאה ניתנה, אחרת null.
  */
 export async function requestNotificationPermission(): Promise<string | null> {
@@ -20,14 +19,13 @@ export async function requestNotificationPermission(): Promise<string | null> {
       const messaging = getMessaging(getApp());
       
       /**
-       * !!! הגדרת מפתח VAPID !!!
-       * כאן עליך להדביק את ה-Public Key שייצרת ב-Firebase Console:
-       * Project Settings -> Cloud Messaging -> Web Push certificates
+       * !!! כאן עליך להדביק את ה-Public Key (VAPID) שייצרת ב-Firebase Console !!!
+       * נתיב ב-Console: Project Settings -> Cloud Messaging -> Web Push certificates
        */
       const VAPID_PUBLIC_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
       
       if (VAPID_PUBLIC_KEY === "YOUR_VAPID_PUBLIC_KEY_HERE") {
-        console.error("יש להגדיר מפתח VAPID ציבורי ב-src/firebase/messaging.ts");
+        console.error("יש להגדיר מפתח VAPID ציבורי ב-src/firebase/messaging.ts כדי שההתראות יעבדו.");
         return null;
       }
       
@@ -53,9 +51,9 @@ export function onMessageListener() {
     const messaging = getMessaging(getApp());
     onMessage(messaging, (payload) => {
       console.log("הודעה התקבלה בזמן שהאפליקציה פתוחה:", payload);
-      // כאן ניתן להציג התראה מותאמת אישית בתוך ה-UI
+      // כאן ניתן להפעיל Toast או התראה בתוך ה-UI
     });
   } catch (e) {
-    console.error("Messaging not initialized", e);
+    // Messaging עשוי לא להיות נתמך בדפדפן הספציפי
   }
 }
