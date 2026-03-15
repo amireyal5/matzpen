@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,6 +12,7 @@ import { doc } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
+import NotificationCenter from "@/components/NotificationCenter";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -186,10 +188,8 @@ export default function HomeScreen({
   const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
   const placeholderText = displayGender === "f" ? "ספרי לי מה עובר עלייך..." : "ספר לי מה עובר עליך...";
 
-  // Unified Chat Component
   const ChatInterface = () => (
     <div className="mb-6 bg-white rounded-[2.5rem] border border-indigo-100 shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
-      {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-slate-50 bg-slate-50/30 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
@@ -205,7 +205,6 @@ export default function HomeScreen({
         </button>
       </div>
       
-      {/* Messages Area */}
       <div 
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar scroll-smooth"
@@ -253,7 +252,6 @@ export default function HomeScreen({
 
         {!isSearching && recommendation && (
           <div className="space-y-4 pt-2">
-            {/* Quick Replies - Interactive suggestions for continuation */}
             {recommendation.quickReplies && recommendation.quickReplies.length > 0 && (
               <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
                 {recommendation.quickReplies.map((reply, i) => (
@@ -268,7 +266,6 @@ export default function HomeScreen({
               </div>
             )}
 
-            {/* Strategic Options - Direct links to tools */}
             {recommendation.options && recommendation.options.length > 0 && (
               <div className="grid gap-3 pt-2 animate-in fade-in duration-1000">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
@@ -298,7 +295,6 @@ export default function HomeScreen({
         <div ref={chatEndRef} className="h-4 shrink-0" />
       </div>
 
-      {/* Fixed Input Area at bottom of Chat */}
       <div className="p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
         <form onSubmit={handleSearch} className="relative">
           <div className="relative glass-panel rounded-2xl p-1.5 flex items-center shadow-md overflow-hidden bg-white/90">
@@ -328,20 +324,24 @@ export default function HomeScreen({
               <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">המצפן הרגשי</p>
             </div>
             
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative">
-                  {user?.photoURL ? (
-                    <Image src={user.photoURL} alt="פרופיל" width={40} height={40} className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
-                      <UserIcon size={16} />
-                    </div>
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>פרופיל אישי</TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              <NotificationCenter />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative">
+                    {user?.photoURL ? (
+                      <Image src={user.photoURL} alt="פרופיל" width={40} height={40} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
+                        <UserIcon size={16} />
+                      </div>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>פרופיל אישי</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
 
           <div className={cn(
@@ -410,7 +410,6 @@ export default function HomeScreen({
 
       <div className="max-w-xl mx-auto px-6 mt-12 space-y-12 pb-20">
         
-        {/* Strategic Tools Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 px-2">
             <Sparkles size={14} className="text-indigo-600" />

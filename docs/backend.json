@@ -72,6 +72,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "event", "interpretation", "feeling", "reaction", "createdAt"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "type": "object",
+      "description": "התראה בתוך האפליקציה למשתמש.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "read": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["system", "reminder", "insight"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "body", "read", "createdAt"]
     }
   },
   "auth": {
@@ -94,6 +109,13 @@
         "$ref": "#/backend/entities/ThoughtJournalEntry"
       },
       "description": "אחסון יומני מחשבות באוסף נפרד עם קישור ל-userId."
+    },
+    "notifications": {
+      "path": "/notifications/{notificationId}",
+      "schema": {
+        "$ref": "#/backend/entities/AppNotification"
+      },
+      "description": "אחסון התראות למשתמשים."
     }
   }
 }

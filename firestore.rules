@@ -27,15 +27,14 @@ service cloud.firestore {
     }
 
     match /thoughtJournals/{journalId} {
-      // קריאה ומחיקה: מותר רק אם המשתמש הוא הבעלים של המסמך
-      // ב-list (שאילתה), Firestore יוודא שהשאילתה כוללת פילטר על userId
       allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      
-      // יצירה: מותר רק אם ה-userId בנתונים תואם למשתמש המחובר
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // עדכון: מותר רק לבעל היומן ובתנאי שלא משנים את הבעלות
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /categories/{categoryId} {
