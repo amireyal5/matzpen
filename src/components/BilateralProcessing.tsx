@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -32,7 +33,7 @@ const CATEGORIES = [
   {
     id: 'anxiety',
     title: 'ויסות חרדה',
-    subtitle: 'גירוי בילטרלי 432Hz',
+    subtitle: 'גירוי בילטרלי 128Hz Harmonics',
     icon: Wind,
     color: 'from-blue-600/90 via-indigo-900/95 to-black',
     accent: '#60A5FA',
@@ -147,9 +148,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const [blsSide, setBlsSide] = useState<'left' | 'right'>('right');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Audio Controls State
-  const [droneVolume, setDroneVolume] = useState(0.5);
-  const [droneFreq, setDroneFrequency] = useState(432);
+  // Audio Controls State - Using 128Hz as the harmonic base
+  const [droneVolume, setDroneVolume] = useState(0.6);
+  const [droneFreq, setDroneFrequency] = useState(128);
   
   const audioCtxRef = useRef<AudioContext | null>(null);
   const pannerRef = useRef<StereoPannerNode | null>(null);
@@ -171,10 +172,10 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       pannerRef.current = audioCtxRef.current!.createStereoPanner();
       filterNodeRef.current = audioCtxRef.current!.createBiquadFilter();
       
-      // Setup Filter for a smoother "meditation" sound
+      // Setup Filter for a smoother "meditation" sound, cutting harsh highs
       filterNodeRef.current.type = 'lowpass';
-      filterNodeRef.current.frequency.setValueAtTime(1200, audioCtxRef.current!.currentTime);
-      filterNodeRef.current.Q.setValueAtTime(1, audioCtxRef.current!.currentTime);
+      filterNodeRef.current.frequency.setValueAtTime(800, audioCtxRef.current!.currentTime);
+      filterNodeRef.current.Q.setValueAtTime(0.7, audioCtxRef.current!.currentTime);
 
       musicGainNodeRef.current!.connect(filterNodeRef.current);
       filterNodeRef.current.connect(pannerRef.current!);
@@ -195,8 +196,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const stopAll = () => {
     activeOscillators.current.forEach(osc => {
       try { 
-        // Fade out before stopping
-        osc.frequency.cancelScheduledValues(0);
         osc.stop(); 
       } catch(e) {}
     });
@@ -214,22 +213,21 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     activeOscillators.current.forEach(o => { try { o.stop(); } catch(e) {} });
     activeOscillators.current = [];
 
-    // Create a rich harmonic series around the target frequency
-    // Using multiples that are higher to avoid "tractor" rattle sounds
+    // Using pure octaves (128Hz, 256Hz, 512Hz) to ensure a clean, non-mechanical sound
     const baseFreq = droneFreq; 
-    const harmonicRatios = [1, 0.5, 1.5, 2]; // Base, Octave below, Perfect Fifth, Octave above
-    const gains = [0.4, 0.3, 0.2, 0.1]; // Volume distribution
+    const harmonicRatios = [1, 2, 4, 0.5]; // 128, 256, 512, 64
+    const gains = [0.5, 0.3, 0.1, 0.1]; // Volume distribution
     
     harmonicRatios.forEach((ratio, i) => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       
-      osc.type = 'sine'; // Sine is the purest and softest wave
+      osc.type = 'sine'; 
       osc.frequency.setValueAtTime(baseFreq * ratio, ctx.currentTime);
       
-      // Start muted and fade in slowly
+      // Start muted and fade in slowly for atmosphere
       g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(gains[i] * droneVolume, ctx.currentTime + 5);
+      g.gain.linearRampToValueAtTime(gains[i] * droneVolume, ctx.currentTime + 4);
       
       osc.connect(g).connect(musicGainNodeRef.current!);
       osc.start();
@@ -247,7 +245,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   // Update frequency in real-time
   useEffect(() => {
     if (activeOscillators.current.length > 0 && audioCtxRef.current) {
-      const harmonicRatios = [1, 0.5, 1.5, 2];
+      const harmonicRatios = [1, 2, 4, 0.5];
       activeOscillators.current.forEach((osc, i) => {
         osc.frequency.setTargetAtTime(droneFreq * harmonicRatios[i], audioCtxRef.current!.currentTime, 1.0);
       });
@@ -261,9 +259,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     setIsLoading(true);
 
     try {
-      // Duck background music significantly during speech
+      // Duck background music during speech
       if (musicGainNodeRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.2, audioCtxRef.current.currentTime + 1.5);
+        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.15, audioCtxRef.current.currentTime + 1.5);
       }
 
       const { audioUri } = await generateSpeech({ 
@@ -324,9 +322,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         setBlsSide(prev => {
           const newSide = prev === 'right' ? 'left' : 'right';
           if (pannerRef.current && audioCtxRef.current) {
-            // Using a very slow ramp for the "Pendulum" feel
+            // Pendulum easing through the pan parameter
             pannerRef.current.pan.linearRampToValueAtTime(
-                newSide === 'right' ? 0.8 : -0.8, 
+                newSide === 'right' ? 0.85 : -0.85, 
                 audioCtxRef.current.currentTime + (tickDuration / 1000)
             );
           }
@@ -375,7 +373,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
           <main className="max-w-xl mx-auto pt-16 pb-12 px-6 relative z-10 overflow-y-auto flex-1">
             <header className="mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
               <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">המצפן הטיפולי</h1>
-              <p className="text-white/40 text-sm font-medium italic">עיבוד רגשי בילטרלי המבוסס על סנכרון שתי המיספרות המוח בתנועת מטוטלת רכה.</p>
+              <p className="text-white/40 text-sm font-medium italic">עיבוד רגשי בילטרלי הרמוני (128Hz-512Hz) לסנכרון שתי המיספרות המוח.</p>
             </header>
 
             <div className="grid gap-4 mb-20">
@@ -436,13 +434,13 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-white/60">
-                      <span className="text-[10px] font-black uppercase tracking-widest">תדר (Hz): {droneFreq}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">תדר בסיס (Hz): {droneFreq}</span>
                       <Activity size={14} />
                     </div>
                     <Slider 
                       value={[droneFreq]} 
-                      min={100}
-                      max={800} 
+                      min={64}
+                      max={512} 
                       step={1} 
                       onValueChange={(vals) => setDroneFrequency(vals[0])}
                       className="cursor-pointer"
@@ -468,13 +466,13 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
                className={cn(
-                 "w-8 h-8 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
+                 "w-10 h-10 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
                )}
                style={{ 
                  transition: `left ${selectedCat.blsSpeed / 2}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 2000ms, transform 1000ms`,
-                 left: blsSide === 'left' ? '15%' : '85%',
+                 left: blsSide === 'left' ? '12%' : '88%',
                  opacity: showAff ? 0.7 : 0.15,
-                 scale: isSpeaking ? '2.8' : '1',
+                 scale: isSpeaking ? '2.5' : '1',
                  boxShadow: isSpeaking ? `0 0 60px ${selectedCat.accent}` : 'none'
                }}
              />
@@ -517,7 +515,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
                <div className="flex items-center gap-2 text-white/20">
                  {isLoading ? <Loader2 size={14} className="animate-spin text-indigo-400" /> : <Zap size={14} className={isSpeaking ? 'text-indigo-400' : ''} />}
-                 <span className="text-[9px] font-black tracking-widest uppercase">Pendulum Flow</span>
+                 <span className="text-[9px] font-black tracking-widest uppercase">Pure Harmonic Flow</span>
                </div>
             </div>
           </div>
