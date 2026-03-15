@@ -1,38 +1,36 @@
 'use server';
 /**
- * @fileOverview ניתוח CBT של יומן מחשבות לפי מודל אפר"ת.
- * מזהה עיוותי חשיבה ומציע פרשנות בריאה יותר.
+ * @fileOverview ניתוח CBT של יומן מחשבות עם מנגנון זיהוי סיכון.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const JournalAnalysisInputSchema = z.object({
-  event: z.string().describe('תיאור האירוע'),
-  interpretation: z.string().describe('הפרשנות של המשתמש'),
-  feeling: z.string().describe('הרגש שחווה המשתמש'),
-  reaction: z.string().describe('התגובה של המשתמש'),
-  gender: z.enum(['m', 'f']).describe('מגדר המשתמש'),
+  event: z.string(),
+  interpretation: z.string(),
+  feeling: z.string(),
+  reaction: z.string(),
+  gender: z.enum(['m', 'f']),
 });
 export type JournalAnalysisInput = z.infer<typeof JournalAnalysisInputSchema>;
 
 const JournalAnalysisOutputSchema = z.object({
-  distortions: z.array(z.string()).describe('רשימת עיוותי חשיבה שזוהו.'),
-  healthyPerspective: z.string().describe('הצעה לפרשנות חלופית ומאוזנת יותר.'),
-  summary: z.string().describe('סיכום קצר, תומך ומחזק של התהליך.'),
+  distortions: z.array(z.string()),
+  healthyPerspective: z.string(),
+  summary: z.string(),
+  isCrisis: z.boolean().describe('האם התוכן מעיד על סיכון עצמי.'),
 });
 export type JournalAnalysisOutput = z.infer<typeof JournalAnalysisOutputSchema>;
 
-// פונקציית עזר לביצוע ניסיונות חוזרים במקרה של עומס (429)
-// הוגדל ל-7 ניסיונות כדי לכסות השהיה של מעל דקה במקרה של חריגת מכסה
 async function fetchWithRetry(fn: () => Promise<any>, retries = 7) {
   for (let i = 0; i < retries; i++) {
     try {
       return await fn();
     } catch (error: any) {
       const errorMsg = error?.message || '';
-      if (error?.status === 429 || errorMsg.includes('429') || errorMsg.includes('RESOURCE_EXHAUSTED')) {
-        const delay = Math.pow(2, i) * 1500; // זמן המתנה הולך וגדל (1.5s, 3s, 6s, 12s, 24s, 48s...)
+      if (error?.status === 429 || errorMsg.includes('429')) {
+        const delay = Math.pow(2, i) * 1500;
         if (i === retries - 1) throw error;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -50,21 +48,16 @@ const prompt = ai.definePrompt({
   name: 'journalAnalysisPrompt',
   input: { schema: JournalAnalysisInputSchema },
   output: { schema: JournalAnalysisOutputSchema },
-  prompt: `אתה פסיכותרפיסט מומחה ב-CBT. המשתמש מילא יומן מחשבות לפי מודל אפר"ת.
+  prompt: `אתה פסיכותרפיסט מומחה ב-CBT. המשתמש מילא יומן אפר"ת.
 מגדר המשתמש: {{gender}}.
 
-הנתונים שמולאו:
-- אירוע: {{{event}}}
-- פרשנות (מחשבה): {{{interpretation}}}
-- רגש: {{{feeling}}}
-- תגובה: {{{reaction}}}
+**בטיחות מעל הכל**:
+אם התוכן מעיד על כוונה לפגיעה עצמית או אובדנות:
+1. הגדר isCrisis כ-true.
+2. כתוב בסיכום (summary) שאתה מזהה מצוקה קשה מאוד ושחשוב לפנות לסיוע אנושי מקצועי ברגע זה, כיוון שהאפליקציה אינה כלי לניהול מצבי חירום.
 
-המשימה שלך:
-1. זהה לפחות 1-2 עיוותי חשיבה נפוצים בפרשנות של המשתמש (למשל: הכללה מופרזת, קריאת מחשבות, חשיבה קטסטרופלית, הכל או כלום, "חייב/צריך", הסקה רגשית).
-2. הצע פרשנות חלופית (זווית חדשה) שהיא מאוזנת יותר, מציאותית ומפחיתה מצוקה.
-3. כתוב סיכום קצר ומחזק המעודד את המשתמש על העבודה שעשה.
-
-פנה למשתמש בשפה המותאמת למגדר שלו ({{gender}}). היה אמפתי, מקצועי וחד.`,
+אם אין סיכון:
+נתח עיוותי חשיבה, הצע פרשנות בריאה וכתוב סיכום מחזק.`,
 });
 
 const journalAnalysisFlow = ai.defineFlow(

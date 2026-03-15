@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface HomeScreenProps {
   name: string;
@@ -82,6 +83,63 @@ export default function HomeScreen({
       setIsSearching(false);
     }
   };
+
+  const CrisisSupport = () => (
+    <div className="mt-6 p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 shadow-xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
+      <div className="flex items-center gap-4 text-rose-600">
+        <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
+          <AlertTriangle size={28} />
+        </div>
+        <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
+      </div>
+      
+      <p className="text-slate-800 leading-relaxed font-bold text-lg">
+        {recommendation?.explanation}
+      </p>
+
+      <div className="grid gap-4">
+        <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Phone size={20} />
+            </div>
+            <div>
+              <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
+              <span className="block text-xs text-slate-500">חיוג חינם ומיידי: 1201</span>
+            </div>
+          </div>
+          <ChevronLeft size={20} className="text-rose-300" />
+        </a>
+
+        <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Phone size={20} />
+            </div>
+            <div>
+              <span className="block font-black text-emerald-700">מד"א - מצבי חירום רפואיים</span>
+              <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
+            </div>
+          </div>
+          <ChevronLeft size={20} className="text-rose-300" />
+        </a>
+
+        <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4">
+          <UserPlus className="text-indigo-500 shrink-0" size={24} />
+          <p className="text-sm font-bold text-indigo-900 leading-relaxed">
+            בבקשה, פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישאר לבד עם התחושות האלה.
+          </p>
+        </div>
+      </div>
+
+      <button 
+        onClick={() => setRecommendation(null)}
+        className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors"
+      >
+        סגור וחזור לכלים הרגילים
+      </button>
+    </div>
+  );
 
   const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
@@ -170,7 +228,9 @@ export default function HomeScreen({
           </div>
         </form>
 
-        {recommendation && (
+        {recommendation && recommendation.isCrisis ? (
+          <CrisisSupport />
+        ) : recommendation && (
           <div className="mt-6 p-8 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 space-y-8" dir="rtl">
             <div className="space-y-4">
               <div className="flex items-center gap-2">

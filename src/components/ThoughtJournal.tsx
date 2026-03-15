@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit } from "lucide-react";
+import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit, Phone, AlertTriangle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -38,7 +38,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
 
-  // מניעת כיבוי מסך בזמן מילוי היומן
   useWakeLock(step !== 'finish');
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
@@ -67,11 +66,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   useEffect(() => {
-    // מנטרלים הקראה אוטומטית של ההנחיה
-    // if (step !== "finish" && step !== "analyzing") {
-    //   handlePlayAudio(stepsConfig[step as keyof typeof stepsConfig].prompt);
-    // }
-    
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -84,7 +78,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           let finalTranscript = '';
           for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
+              const transcript = event.results[i][0].transcript.trim();
+              if (transcript) finalTranscript += transcript + ' ';
             }
           }
           
@@ -95,7 +90,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               if (currentText.includes(finalTranscript.trim())) return prev;
               return { 
                 ...prev, 
-                [currentStepKey]: (currentText + ' ' + finalTranscript).trim() 
+                [currentStepKey]: (currentText + ' ' + finalTranscript.trim()).trim() 
               };
             });
           }
@@ -159,7 +154,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     if (isRecording) {
       setIsRecording(false);
       recognitionRef.current?.stop();
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 600));
     }
 
     const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
@@ -183,8 +178,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         }
 
         setStep("finish");
-        // מנטרלים הקראה אוטומטית של הסיכום
-        // handlePlayAudio(result.summary);
       } catch (err) {
         console.error("Analysis failed", err);
         setStep("finish");
@@ -228,64 +221,117 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </header>
 
         <main className="p-8 max-w-lg mx-auto w-full space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
-            <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
-          </div>
-
-          {analysis ? (
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pr-2">
-                  <Sparkles size={16} className="text-amber-400" />
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h3>
+          
+          {analysis?.isCrisis ? (
+            <div className="p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 text-right space-y-8">
+              <div className="flex items-center gap-4 text-rose-600">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
+                  <AlertTriangle size={28} />
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.distortions.map((d, i) => (
-                    <span key={i} className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold">
-                      {d}
-                    </span>
-                  ))}
-                </div>
+                <h3 className="text-xl font-black">זיהוי מצוקה קשה</h3>
               </div>
+              
+              <p className="text-slate-800 leading-relaxed font-bold text-lg">
+                {analysis.summary}
+              </p>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pr-2">
-                  <BrainCircuit size={16} className="text-indigo-400" />
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h3>
-                </div>
-                <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 text-lg leading-relaxed italic border-r-4 border-r-indigo-500">
-                  "{analysis.healthyPerspective}"
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pr-2">
-                  <div className="flex items-center gap-2">
-                    <BookText size={16} className="text-emerald-400" />
-                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+              <div className="grid gap-4">
+                <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                  <div className="flex items-center gap-4 text-right">
+                    <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Phone size={20} />
+                    </div>
+                    <div>
+                      <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
+                      <span className="block text-xs text-slate-500">חיוג חינם: 1201</span>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => handlePlayAudio(analysis.summary)}
-                    disabled={isLoadingAudio}
-                    className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
-                  >
-                    {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
-                    השמע סיכום
-                  </button>
-                </div>
-                <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
-                  {analysis.summary}
+                  <ChevronLeft size={20} className="text-rose-300 rotate-180" />
+                </a>
+
+                <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                  <div className="flex items-center gap-4 text-right">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Phone size={20} />
+                    </div>
+                    <div>
+                      <span className="block font-black text-emerald-700">מד"א - חירום רפואי</span>
+                      <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
+                    </div>
+                  </div>
+                  <ChevronLeft size={20} className="text-rose-300 rotate-180" />
+                </a>
+
+                <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
+                  <UserPlus className="text-indigo-500 shrink-0" size={24} />
+                  <p className="text-sm font-bold text-indigo-900 leading-relaxed">
+                    בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.
+                  </p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 text-center text-slate-400">
-              התרגול נשמר, אך הניתוח המורחב לא היה זמין ברגע זה. ניתן לנסות שוב מאוחר יותר דרך היסטוריית היומנים.
-            </div>
+            <>
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
+                <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
+              </div>
+
+              {analysis ? (
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pr-2">
+                      <Sparkles size={16} className="text-amber-400" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.distortions.map((d, i) => (
+                        <span key={i} className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold">
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pr-2">
+                      <BrainCircuit size={16} className="text-indigo-400" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h3>
+                    </div>
+                    <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 text-lg leading-relaxed italic border-r-4 border-r-indigo-500">
+                      "{analysis.healthyPerspective}"
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pr-2">
+                      <div className="flex items-center gap-2">
+                        <BookText size={16} className="text-emerald-400" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+                      </div>
+                      <button 
+                        onClick={() => handlePlayAudio(analysis.summary)}
+                        disabled={isLoadingAudio}
+                        className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
+                      >
+                        {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
+                        השמע סיכום
+                      </button>
+                    </div>
+                    <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
+                      {analysis.summary}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 text-center text-slate-400">
+                  התרגול נשמר, אך הניתוח המורחב לא היה זמין ברגע זה. ניתן לנסות שוב מאוחר יותר דרך היסטוריית היומנים.
+                </div>
+              )}
+            </>
           )}
 
           <Button 
@@ -389,7 +435,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </Button>
         <Button 
           onClick={handleNext}
-          disabled={!currentVal.trim() && !isRecording}
+          disabled={(!currentVal.trim() && !isRecording)}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all"
         >
           {step === "reaction" ? "ניתוח התהליך" : "המשך"}

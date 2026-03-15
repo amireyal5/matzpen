@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview מנוע המלצות חכם ואבחוני למצפן הרגשי.
+ * @fileOverview מנוע המלצות חכם ואבחוני למצפן הרגשי עם מנגנון הגנה למצבי סיכון.
  */
 
 import { ai } from '@/ai/genkit';
@@ -14,19 +14,20 @@ const RecommendationInputSchema = z.object({
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 
 const RecommendationOptionSchema = z.object({
-  label: z.string().describe('טקסט קצר על הכפתור (למשל: "עבודה על המחשבות").'),
-  description: z.string().describe('הסבר קצר על למה האופציה הזו תעזור למשתמש כרגע.'),
-  categoryKey: z.string().describe('המפתח של הקטגוריה או הכלי האסטרטגי.'),
-  practiceIndex: z.number().optional().describe('אינדקס התרגיל המומלץ בתוך הקטגוריה (אופציונלי).'),
+  label: z.string().describe('טקסט קצר על הכפתור.'),
+  description: z.string().describe('הסבר קצר על התועלת.'),
+  categoryKey: z.string().describe('המפתח של הקטגוריה.'),
+  practiceIndex: z.number().optional().describe('אינדקס התרגיל.'),
 });
 
 const RecommendationOutputSchema = z.object({
-  explanation: z.string().describe('התייחסות אמפתית, תיקוף המצב ושאלת מכווינה המציעה נתיבי עבודה.'),
-  options: z.array(RecommendationOptionSchema).describe('רשימה של 3-4 נתיבי עבודה מותאמים אישית.'),
+  explanation: z.string().describe('התייחסות אמפתית ותיקוף.'),
+  options: z.array(RecommendationOptionSchema).describe('רשימת נתיבי עבודה.'),
+  isCrisis: z.boolean().describe('האם זוהה סיכון עצמי או אובדנות.'),
+  crisisMessage: z.string().optional().describe('מסר הבהרה והפניה לחירום במידת הצורך.'),
 });
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>;
 
-// פונקציית עזר לביצוע ניסיונות חוזרים במקרה של עומס (429)
 async function fetchWithRetry(fn: () => Promise<any>, retries = 7) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -56,24 +57,24 @@ const prompt = ai.definePrompt({
 המשתמש משתף: "{{{feeling}}}".
 מגדר המשתמש: {{gender}}.
 
-המשימה שלך היא לא לתת פתרון חד-מימדי, אלא לקיים דיאלוג מעמיק:
-1. **אמפתיה ותיקוף**: התחל בשיקוף אמפתי של מה שהמשתמש מרגיש. אם הוא מדוכא, תן מקום לעצב. אם הוא חרד, תן מקום לחוסר האונים.
-2. **שאלה מכווינה**: שאל את המשתמש איך הוא היה רוצה לגשת לבעיה כרגע.
-3. **נתיבי עבודה**: הצע 3-4 אופציות ספציפיות מתוך המאגר שלנו, כשלכל אחת יש הסבר קליני קצר למה היא מתאימה למצב שתיאר.
+**משימה קריטית - בטיחות**:
+אם המשתמש מביע כוונות לפגיעה עצמית, מחשבות אובדניות או ייאוש קיצוני (גם אם ברמז):
+1. הגדר את isCrisis כ-true.
+2. ב-explanation, הבע אמפתיה עמוקה אך הצהר מפורשות: "אני שומע את המצוקה הכבדה שלך וחשוב לי לומר שבמצב הזה, המצפן הדיגיטלי אינו יכול לתת את המענה הנדרש. במצבי קיצון כאלה יש צורך בסיוע אנושי מקצועי ומיידי".
+3. שאל שאלת הבהרה מפורשת: "האם יש לך מחשבה לפגוע בעצמך כרגע או תוכנית כזו? בבקשה אל תישאר עם זה לבד".
+4. המשך להציע את אפשרויות החירום המופיעות ב-UI.
 
-נתיבים אפשריים לייצוג:
-- עבודה קוגניטיבית (מחשבות) -> JOURNAL או THOUGHTS.
-- הנעה לפעולה וחיבור לערכים -> VALUES או MICRO.
-- ויסות פיזיולוגי וקרקע (Grounding) -> SOS או BODY.
-- עיבוד עמוק ושקט -> BILATERAL או MEDITATION או COMPASSION.
+אם אין סיכון חיים:
+1. קיים דיאלוג מעמיק: אמפתיה, תיקוף ושאלה מכווינה לגבי דרך העבודה המועדפת (מחשבות, גוף, ערכים).
+2. הצע 3-4 אופציות רלוונטיות מהקטגוריות הקיימות.
 
-הקטגוריות והכלים הקיימים במערכת:
+הקטגוריות הקיימות:
 {{#each categories}}
 - {{key}}: {{label}} ({{tagLine}})
 {{/each}}
-כלים אסטרטגיים נוספים: JOURNAL (יומן מחשבות), MEDITATION (מדיטציה), BILATERAL (עיבוד בילטרלי).
+כלים נוספים: JOURNAL, MEDITATION, BILATERAL.
 
-פנה למשתמש בשפה המותאמת למגדר שלו ({{gender}}). היה מקצועי, רגיש ולא פשטני.`,
+פנה למשתמש בשפה המותאמת למגדר שלו ({{gender}}).`,
 });
 
 const recommendationFlow = ai.defineFlow(
