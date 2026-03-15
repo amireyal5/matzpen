@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
@@ -27,7 +28,10 @@ export async function requestNotificationPermission(): Promise<string | null> {
         vapidKey: VAPID_PUBLIC_KEY 
       });
       
+      console.log("FCM Token נוצר בהצלחה:", token);
       return token;
+    } else {
+      console.warn("המשתמש סירב לקבלת התראות.");
     }
   } catch (error) {
     console.error("שגיאה בבקשת הרשאה להתראות:", error);
@@ -45,7 +49,10 @@ export function onMessageListener() {
     const messaging = getMessaging(getApp());
     onMessage(messaging, (payload) => {
       console.log("הודעה התקבלה בזמן שהאפליקציה פתוחה:", payload);
-      // כאן ניתן להפעיל Toast או התראה בתוך ה-UI בעתיד
+      // בעתיד נוכל להוסיף כאן Toast שקופץ למשתמש
+      if (payload.notification) {
+        alert(`${payload.notification.title}\n${payload.notification.body}`);
+      }
     });
   } catch (e) {
     // Messaging עשוי לא להיות נתמך בדפדפן הספציפי

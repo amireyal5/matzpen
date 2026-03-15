@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,6 +15,7 @@ import BilateralProcessing from "@/components/BilateralProcessing";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import { onMessageListener } from "@/firebase/messaging";
 
 type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "meditation" | "bilateral";
 
@@ -28,6 +30,9 @@ function AppContent() {
   const firestore = useFirestore();
 
   useEffect(() => {
+    // אתחול האזנה להודעות פוש כשהאפליקציה פתוחה
+    onMessageListener();
+    
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3200);
