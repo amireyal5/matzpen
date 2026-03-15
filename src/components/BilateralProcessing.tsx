@@ -15,11 +15,16 @@ import {
   ChevronRight,
   Zap,
   ArrowRight,
-  Loader2
+  Loader2,
+  Settings2,
+  Volume2,
+  Activity
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
@@ -142,11 +147,15 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const [blsSide, setBlsSide] = useState<'left' | 'right'>('right');
   const [isLoading, setIsLoading] = useState(false);
   
+  // Audio Controls State
+  const [droneVolume, setDroneVolume] = useState(0.4);
+  const [droneFreq, setDroneFrequency] = useState(432);
+  
   const audioCtxRef = useRef<AudioContext | null>(null);
   const pannerRef = useRef<StereoPannerNode | null>(null);
   const musicGainNodeRef = useRef<GainNode | null>(null); 
   const masterGainRef = useRef<GainNode | null>(null);
-  const activeNodes = useRef<OscillatorNode[]>([]);
+  const activeOscillators = useRef<OscillatorNode[]>([]);
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const blsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -175,10 +184,10 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   };
 
   const stopAll = () => {
-    activeNodes.current.forEach(node => {
-      try { node.stop(); } catch(e) {}
+    activeOscillators.current.forEach(osc => {
+      try { osc.stop(); } catch(e) {}
     });
-    activeNodes.current = [];
+    activeOscillators.current = [];
     clearCurrentAudio();
     if (affIntervalRef.current) clearInterval(affIntervalRef.current);
     if (blsIntervalRef.current) clearInterval(blsIntervalRef.current);
@@ -188,20 +197,46 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     const ctx = audioCtxRef.current;
     if (!ctx || !musicGainNodeRef.current) return;
 
-    const baseFreq = 432 / 8; 
-    const freqs = [baseFreq, baseFreq * 2, baseFreq * 1.5]; 
-    freqs.forEach((f, i) => {
+    // Clear existing
+    activeOscillators.current.forEach(o => { try { o.stop(); } catch(e) {} });
+    activeOscillators.current = [];
+
+    const baseFreq = droneFreq / 8; 
+    const harmonics = [1, 2, 1.5, 0.5]; 
+    
+    harmonics.forEach((h, i) => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(f, ctx.currentTime);
+      osc.frequency.setValueAtTime(baseFreq * h, ctx.currentTime);
+      
+      // Start muted and fade in
       g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(0.04 / (i + 1), ctx.currentTime + 4);
+      g.gain.linearRampToValueAtTime((droneVolume / (i + 1)) * 0.5, ctx.currentTime + 4);
+      
       osc.connect(g).connect(musicGainNodeRef.current!);
       osc.start();
-      activeNodes.current.push(osc);
+      activeOscillators.current.push(osc);
     });
   };
+
+  // Update volume in real-time
+  useEffect(() => {
+    if (musicGainNodeRef.current && audioCtxRef.current) {
+      musicGainNodeRef.current.gain.setTargetAtTime(droneVolume, audioCtxRef.current.currentTime, 0.1);
+    }
+  }, [droneVolume]);
+
+  // Update frequency in real-time
+  useEffect(() => {
+    if (activeOscillators.current.length > 0 && audioCtxRef.current) {
+      const baseFreq = droneFreq / 8;
+      const harmonics = [1, 2, 1.5, 0.5];
+      activeOscillators.current.forEach((osc, i) => {
+        osc.frequency.setTargetAtTime(baseFreq * harmonics[i], audioCtxRef.current!.currentTime, 0.5);
+      });
+    }
+  }, [droneFreq]);
 
   const speakAffirmation = async (text: string) => {
     if (!audioCtxRef.current || !selectedCat) return;
@@ -210,8 +245,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     setIsLoading(true);
 
     try {
+      // Duck background music slightly
       if (musicGainNodeRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(0.2, audioCtxRef.current.currentTime + 1.5);
+        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.3, audioCtxRef.current.currentTime + 1.5);
       }
 
       const { audioUri } = await generateSpeech({ 
@@ -228,7 +264,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       audio.onended = () => {
         setIsSpeaking(false);
         if (musicGainNodeRef.current && audioCtxRef.current) {
-          musicGainNodeRef.current.gain.linearRampToValueAtTime(1.0, audioCtxRef.current.currentTime + 3);
+          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 3);
         }
       };
       
@@ -239,7 +275,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       setIsSpeaking(false);
       setIsLoading(false);
       if (musicGainNodeRef.current && audioCtxRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(1.0, audioCtxRef.current.currentTime + 1.0);
+        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 1.0);
       }
     }
   };
@@ -357,9 +393,51 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
              <button onClick={() => { setSelectedCat(null); setIsPlaying(false); }} className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
               <X size={20} />
             </button>
-            <div className="text-left">
+            
+            {/* Audio Settings Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
+                  <Settings2 size={20} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 bg-slate-900/90 backdrop-blur-xl border-white/10 rounded-[2rem] p-6 shadow-2xl" side="bottom" align="end">
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-white/60">
+                      <span className="text-[10px] font-black uppercase tracking-widest">עוצמת צליל רקע</span>
+                      <Volume2 size={14} />
+                    </div>
+                    <Slider 
+                      value={[droneVolume * 100]} 
+                      max={100} 
+                      step={1} 
+                      onValueChange={(vals) => setDroneVolume(vals[0] / 100)}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-white/60">
+                      <span className="text-[10px] font-black uppercase tracking-widest">תדר (Hz): {droneFreq}</span>
+                      <Activity size={14} />
+                    </div>
+                    <Slider 
+                      value={[droneFreq]} 
+                      min={100}
+                      max={800} 
+                      step={1} 
+                      onValueChange={(vals) => setDroneFrequency(vals[0])}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <div className="text-left absolute left-1/2 -translate-x-1/2 top-10 pointer-events-none">
                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] block mb-1">Active Processing</span>
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2 justify-center">
                  <div className={cn(
                    "w-1.5 h-1.5 rounded-full transition-all duration-500",
                    isSpeaking ? "bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]" : "bg-white/10"
