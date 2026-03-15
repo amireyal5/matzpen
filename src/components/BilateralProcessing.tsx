@@ -32,13 +32,14 @@ const CATEGORIES = [
     color: 'from-blue-600/90 via-indigo-900/95 to-black',
     accent: '#60A5FA',
     affirmations: [
-      "אני בטוח כאן ועכשיו",
-      "הנשימה שלי היא העוגן שלי",
-      "אני מאפשר למחשבות לחלוף",
-      "הגוף שלי חוזר לאיזון"
+      "אני בטוח כאן ועכשיו.",
+      "הנשימה שלי היא העוגן שלי.",
+      "אני מאפשר למחשבות לחלוף.",
+      "הגוף שלי חוזר לאיזון.",
+      "השקט שבי חזק מכל סערה בחוץ."
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
-    blsSpeed: 4500 // אטי יותר למקצב מטוטלת
+    blsSpeed: 4500 
   },
   {
     id: 'confidence',
@@ -48,10 +49,11 @@ const CATEGORIES = [
     color: 'from-amber-600/90 via-orange-900/95 to-black',
     accent: '#FBBF24',
     affirmations: [
-      "אני ראוי לטוב",
-      "יש בי את הכוח להתמודד",
-      "אני סומך על עצמי",
-      "הערך שלי יציב וקיים"
+      "אני ראוי לטוב.",
+      "יש בי את הכוח להתמודד.",
+      "אני סומך על עצמי.",
+      "הערך שלי יציב וקיים.",
+      "אני בוחר להאמין ביכולות שלי היום."
     ],
     voiceTone: "בטון חם, יציב ומעודד. זרימה אטית.",
     blsSpeed: 4000
@@ -64,10 +66,11 @@ const CATEGORIES = [
     color: 'from-rose-900 via-red-950 to-black',
     accent: '#F43F5E',
     affirmations: [
-      "מותר לי להרגיש את מה שאני מרגיש",
-      "הכעס עובר דרכי ויוצא החוצה",
-      "אני בוחר להגיב מתוך רוגע",
-      "אני משחרר את המתח מהכתפיים"
+      "מותר לי להרגיש את מה שאני מרגיש.",
+      "הכעס עובר דרכי ויוצא החוצה.",
+      "אני בוחר להגיב מתוך רוגע.",
+      "אני משחרר את המתח מהגוף.",
+      "אני מוצא שלווה בתוך המרחב הפנימי שלי."
     ],
     voiceTone: "בטון מקורקע, יציב אך אטי וזורם.",
     blsSpeed: 3500
@@ -80,10 +83,11 @@ const CATEGORIES = [
     color: 'from-emerald-900 via-teal-950 to-black',
     accent: '#10B981',
     affirmations: [
-      "התודעה שלי צלולה וממוקדת",
-      "אני נוכח במשימה שלפניי",
-      "היצירתיות זורמת ממני בקלות",
-      "אני שקט ובשליטה"
+      "התודעה שלי צלולה וממוקדת.",
+      "אני נוכח במשימה שלפניי.",
+      "היצירתיות זורמת ממני בקלות.",
+      "אני שקט ובשליטה.",
+      "תשומת הלב שלי חדה ונינוחה."
     ],
     voiceTone: "בטון ברור, קצבי ואטי.",
     blsSpeed: 3000
@@ -96,10 +100,11 @@ const CATEGORIES = [
     color: 'from-pink-900 via-fuchsia-950 to-black',
     accent: '#EC4899',
     affirmations: [
-      "אני נותן לעצמי רשות להיות אנושי",
-      "אני מתייחס לעצמי כאל חבר טוב",
-      "זה בסדר לא להיות בסדר לפעמים",
-      "אני סולח לעצמי על העבר"
+      "אני נותן לעצמי רשות להיות אנושי.",
+      "אני מתייחס לעצמי כאל חבר טוב.",
+      "זה בסדר לא להיות בסדר לפעמים.",
+      "אני סולח לעצמי על העבר.",
+      "אני עוטף את עצמי בהבנה ובחום."
     ],
     voiceTone: "בטון רך מאוד, אוהב ועוטף. זרימה אטית.",
     blsSpeed: 5000
@@ -112,13 +117,14 @@ const CATEGORIES = [
     color: 'from-purple-900 via-slate-900 to-black',
     accent: '#A78BFA',
     affirmations: [
-      "אני משחרר את היום",
-      "זה הזמן שלי לנוח",
-      "המיטה שלי היא מקום שקט",
-      "אני נרדם בביטחון"
+      "אני משחרר את היום.",
+      "זה הזמן שלי לנוח.",
+      "המיטה שלי היא מקום שקט.",
+      "אני נרדם בביטחון.",
+      "המחשבות נרגעות והגוף מרפה אל תוך השינה."
     ],
     voiceTone: "בטון נמוך מאוד, לחישתי ואטי. כמו שיר ערש.",
-    blsSpeed: 6000 // מקצב אטי מאוד לשינה
+    blsSpeed: 6000 
   }
 ];
 
@@ -260,14 +266,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       
       triggerStep();
       
-      // המקצב הוא חצי מהירות המחזור למעבר צד אחד
       const tickDuration = selectedCat.blsSpeed / 2;
 
       blsIntervalRef.current = setInterval(() => {
         setBlsSide(prev => {
           const newSide = prev === 'right' ? 'left' : 'right';
           if (pannerRef.current && audioCtxRef.current) {
-            // מעבר אודיו רך ואטי (Linear Ramp על פני כל משך הצעד)
             pannerRef.current.pan.linearRampToValueAtTime(
                 newSide === 'right' ? 0.85 : -0.85, 
                 audioCtxRef.current.currentTime + (tickDuration / 1000)
@@ -372,7 +376,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                  "w-6 h-6 rounded-full bg-white/30 blur-md shadow-[0_0_30px_rgba(255,255,255,0.4)] absolute transform-gpu"
                )}
                style={{ 
-                 // מעבר חלק בשיטת Ease-In-Out המדמה מטוטלת
                  transition: `left ${selectedCat.blsSpeed / 2}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 2000ms, transform 1000ms`,
                  left: blsSide === 'left' ? '10%' : '90%',
                  opacity: showAff ? 0.6 : 0.1,
