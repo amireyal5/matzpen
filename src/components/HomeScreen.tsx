@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -48,6 +49,7 @@ export default function HomeScreen({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -67,15 +69,19 @@ export default function HomeScreen({
     return () => clearTimeout(timer);
   }, []);
 
+  // מנגנון גלילה משופר למניעת קפיצות ואיבוד פוקוס
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0) {
+      const timer = setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [messages, isSearching, recommendation]);
 
   const favorites = profileData?.favorites || [];
   const completedCards = profileData?.completed || [];
-  const displayName = profileData?.name || initialName;
+  const displayName = profileData?.name || initialName || "משתמש";
   const displayGender = (profileData?.gender || initialGender) as "m" | "f";
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -236,10 +242,10 @@ export default function HomeScreen({
 
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
         
-        {/* Dialogue View - Redesigned for stability and personal touch */}
+        {/* Dialogue View - Stabilized Layout */}
         {messages.length > 0 && !recommendation?.isCrisis && (
-          <div className="mb-6 p-6 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col space-y-4" dir="rtl">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-50">
+          <div className="mb-6 p-6 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col space-y-4 overflow-hidden" dir="rtl">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
                   <MessageCircle size={16} />
@@ -251,7 +257,10 @@ export default function HomeScreen({
               </button>
             </div>
             
-            <div className="space-y-6 pt-4 max-h-[350px] overflow-y-auto hide-scrollbar scroll-smooth">
+            <div 
+              ref={scrollContainerRef}
+              className="space-y-6 pt-4 max-h-[400px] overflow-y-auto hide-scrollbar scroll-smooth flex-1"
+            >
               {messages.map((msg, i) => (
                 <div key={i} className={cn(
                   "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
@@ -263,12 +272,14 @@ export default function HomeScreen({
                   )}>
                     {msg.role === 'user' ? (
                       user?.photoURL ? (
-                        <Image src={user.photoURL} alt="את/ה" width={36} height={36} className="w-full h-full object-cover" />
+                        <Image src={user.photoURL} alt={displayName} width={36} height={36} className="w-full h-full object-cover" />
                       ) : (
                         <UserIcon size={16} className="text-slate-400" />
                       )
                     ) : (
-                      <Logo variant="icon" className="p-1.5" />
+                      <div className="p-1.5 w-full h-full flex items-center justify-center">
+                        <Logo variant="icon" className="w-full h-full" />
+                      </div>
                     )}
                   </div>
                   <div className={cn(
@@ -315,7 +326,7 @@ export default function HomeScreen({
                   ))}
                 </div>
               )}
-              <div ref={chatEndRef} />
+              <div ref={chatEndRef} className="h-4 shrink-0" />
             </div>
           </div>
         )}
