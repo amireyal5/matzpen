@@ -4,6 +4,11 @@
 import { Heart, CheckCircle2, Volume2, RotateCcw, Zap, ListChecks, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TIP_MAP } from "@/lib/data";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PracticeCardProps {
   card: any;
@@ -40,7 +45,6 @@ export default function PracticeCard({
   const CatIcon = category.icon;
   const currentTip = TIP_MAP[category.key] || "ככל שתתרגלו, כך הפעולה תהפוך לאוטומטית ומרגיעה יותר.";
 
-  // עיצוב שטוח (Flat): ללא צללים, עם גבול עדין המשתלב ברקע הצבעוני של הדף
   const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-black/5 isolate overflow-hidden";
 
   return (
@@ -59,30 +63,43 @@ export default function PracticeCard({
             style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
           >
             <div className="absolute top-6 inset-x-6 flex justify-between items-center z-10">
-              <button 
-                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} 
-                className={cn(
-                  "w-10 h-10 rounded-2xl flex items-center justify-center transition-all backdrop-blur-md border border-white/20", 
-                  isFavorite ? "bg-white text-rose-500 shadow-lg" : "bg-white/10 text-white hover:bg-white/20"
-                )}
-              >
-                <Heart className={cn("size-5", isFavorite ? "fill-current" : "")} />
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); onToggleComplete(); }} 
-                className={cn(
-                  "w-10 h-10 rounded-2xl flex items-center justify-center transition-all backdrop-blur-md border border-white/20", 
-                  isCompleted ? "bg-white text-emerald-500 shadow-lg" : "bg-white/10 text-white hover:bg-white/20"
-                )}
-              >
-                <CheckCircle2 className={cn("size-5", isCompleted ? "fill-current" : "")} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }} 
+                    className={cn(
+                      "w-10 h-10 rounded-2xl flex items-center justify-center transition-all backdrop-blur-md border border-white/20", 
+                      isFavorite ? "bg-white text-rose-500 shadow-lg" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    aria-label={isFavorite ? "הסר מהמועדפים" : "הוסף למועדפים"}
+                  >
+                    <Heart className={cn("size-5", isFavorite ? "fill-current" : "")} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isFavorite ? "הסר מהעוגנים שלי" : "שמור לעוגנים שלי"}</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onToggleComplete(); }} 
+                    className={cn(
+                      "w-10 h-10 rounded-2xl flex items-center justify-center transition-all backdrop-blur-md border border-white/20", 
+                      isCompleted ? "bg-white text-emerald-500 shadow-lg" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    aria-label={isCompleted ? "סמן כלא בוצע" : "סמן כבוצע"}
+                  >
+                    <CheckCircle2 className={cn("size-5", isCompleted ? "fill-current" : "")} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isCompleted ? "סמן כלא בוצע" : "סמן כבוצע"}</TooltipContent>
+              </Tooltip>
             </div>
 
             <div onClick={(e) => { e.stopPropagation(); onShowIntro(); }} className="relative group/icon">
               <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
               <div className="relative w-20 h-20 rounded-[2.2rem] bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center shadow-2xl transition-transform group-hover/icon:scale-110">
-                <CatIcon className="size-10 text-white" />
+                <CatIcon className="size-10 text-white" aria-hidden="true" />
               </div>
             </div>
             <span className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{category.label}</span>
@@ -90,7 +107,7 @@ export default function PracticeCard({
 
           <div className="flex-1 relative flex flex-col items-center justify-between p-8 md:p-12 text-center bg-white">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.03] pointer-events-none z-0">
-               <svg viewBox="70 80 180 123" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+               <svg viewBox="70 80 180 123" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
                 <path d="M70 170C70 120.294 110.294 80 160 80C209.706 80 250 120.294 250 170H205C205 145.147 184.853 125 160 125C135.147 125 115 145.147 115 170H70Z" fill={category.hue} />
                 <rect x="70" y="185" width="180" height="18" fill={category.hue} />
               </svg>
@@ -119,13 +136,19 @@ export default function PracticeCard({
                 <span className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">{category.label}</span>
                 <h4 className="font-headline text-base md:text-lg font-black text-white leading-tight line-clamp-2 max-w-[200px]">{g(card.t)}</h4>
               </div>
-              <button 
-                onClick={(e) => { e.stopPropagation(); onPlayAudio(); }} 
-                disabled={isLoadingAudio} 
-                className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90"
-              >
-                {isLoadingAudio ? <Loader2 className="size-5 animate-spin" /> : (isPlaying ? <RotateCcw className="size-5" /> : <Volume2 className="size-5" />)}
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onPlayAudio(); }} 
+                    disabled={isLoadingAudio} 
+                    className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90"
+                    aria-label={isPlaying ? "עצור קריינות" : "השמע קריינות"}
+                  >
+                    {isLoadingAudio ? <Loader2 className="size-5 animate-spin" /> : (isPlaying ? <RotateCcw className="size-5" /> : <Volume2 className="size-5" />)}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isPlaying ? "שמע שוב" : "השמע הנחיה"}</TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
@@ -143,7 +166,7 @@ export default function PracticeCard({
                   onClick={(e) => { e.stopPropagation(); onTabChange(tab.id as any); }} 
                   className={cn("flex-1 py-5 flex flex-col items-center gap-1.5 transition-all relative", active ? "text-slate-900" : "text-slate-300 hover:text-slate-400")}
                 >
-                  <TIcon className="size-4" style={{ color: active ? category.hue : undefined }} />
+                  <TIcon className="size-4" style={{ color: active ? category.hue : undefined }} aria-hidden="true" />
                   <span className="text-[10px] font-black uppercase tracking-wider">{tab.label}</span>
                   {active && <div className="absolute bottom-0 inset-x-6 h-1 rounded-full" style={{ backgroundColor: category.hue }} />}
                 </button>
@@ -155,7 +178,7 @@ export default function PracticeCard({
              {backTab === "why" && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex gap-5 items-start">
-                  <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: category.hue }} />
+                  <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: category.hue }} aria-hidden="true" />
                   <p className="text-lg md:text-xl text-slate-800 leading-relaxed font-bold">{g(card.why)}</p>
                 </div>
               </div>
@@ -167,6 +190,7 @@ export default function PracticeCard({
                     <div 
                       className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-sm" 
                       style={{ background: `linear-gradient(135deg, ${category.gFrom}, ${category.gTo})` }}
+                      aria-hidden="true"
                     >
                       {i + 1}
                     </div>
@@ -180,7 +204,7 @@ export default function PracticeCard({
                 <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white shadow-sm" style={{ color: category.hue }}>
-                      <Check size={16} strokeWidth={3} />
+                      <Check size={16} strokeWidth={3} aria-hidden="true" />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: category.hue }}>טיפ זהב</span>
                   </div>

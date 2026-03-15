@@ -12,6 +12,11 @@ import { generateSpeech } from "@/ai/flows/tts-flow";
 import { analyzeJournal, JournalAnalysisOutput } from "@/ai/flows/journal-analysis-flow";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ThoughtJournalProps {
   gender: "m" | "f";
@@ -170,7 +175,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         setAnalysis(result);
         
         if (user && firestore) {
-          // שמירה באוסף ראשי נפרד עם מזהה משתמש
           const journalsRef = collection(firestore, "thoughtJournals");
           addDocumentNonBlocking(journalsRef, {
             userId: user.uid,
@@ -196,7 +200,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         <div className="relative">
           <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
           <div className="relative w-24 h-24 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-            <BrainCircuit size={48} className="animate-bounce" />
+            <BrainCircuit size={48} className="animate-bounce" aria-hidden="true" />
           </div>
         </div>
         <div className="space-y-2">
@@ -229,7 +233,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             <div className="p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 text-right space-y-8">
               <div className="flex items-center gap-4 text-rose-600">
                 <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
-                  <AlertTriangle size={28} />
+                  <AlertTriangle size={28} aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-black">זיהוי מצוקה קשה</h3>
               </div>
@@ -239,7 +243,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               </p>
 
               <div className="grid gap-4">
-                <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group" aria-label="התקשר לערן">
                   <div className="flex items-center gap-4 text-right">
                     <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Phone size={20} />
@@ -252,7 +256,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   <ChevronLeft size={20} className="text-rose-300 rotate-180" />
                 </a>
 
-                <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group" aria-label="התקשר למדא">
                   <div className="flex items-center gap-4 text-right">
                     <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Phone size={20} />
@@ -266,7 +270,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 </a>
 
                 <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
-                  <UserPlus className="text-indigo-500 shrink-0" size={24} />
+                  <UserPlus className="text-indigo-500 shrink-0" size={24} aria-hidden="true" />
                   <p className="text-sm font-bold text-indigo-900 leading-relaxed">
                     {g(
                       "בבקשה, פנה עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.",
@@ -280,7 +284,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             <>
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto">
-                  <CheckCircle2 size={32} />
+                  <CheckCircle2 size={32} aria-hidden="true" />
                 </div>
                 <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
                 <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
@@ -290,7 +294,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 pr-2">
-                      <Sparkles size={16} className="text-amber-400" />
+                      <Sparkles size={16} className="text-amber-400" aria-hidden="true" />
                       <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -304,7 +308,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 pr-2">
-                      <BrainCircuit size={16} className="text-indigo-400" />
+                      <BrainCircuit size={16} className="text-indigo-400" aria-hidden="true" />
                       <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h3>
                     </div>
                     <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 text-lg leading-relaxed italic border-r-4 border-r-indigo-500">
@@ -315,17 +319,23 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between pr-2">
                       <div className="flex items-center gap-2">
-                        <BookText size={16} className="text-emerald-400" />
+                        <BookText size={16} className="text-emerald-400" aria-hidden="true" />
                         <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
                       </div>
-                      <button 
-                        onClick={() => handlePlayAudio(analysis.summary)}
-                        disabled={isLoadingAudio}
-                        className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
-                      >
-                        {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
-                        השמע סיכום
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button 
+                            onClick={() => handlePlayAudio(analysis.summary)}
+                            disabled={isLoadingAudio}
+                            className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
+                            aria-label="השמע סיכום"
+                          >
+                            {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
+                            השמע סיכום
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>השמע סיכום בקול</TooltipContent>
+                      </Tooltip>
                     </div>
                     <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
                       {analysis.summary}
@@ -375,7 +385,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             "w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 transition-all duration-500",
             (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20" : ""
           )}>
-            <BookText size={32} />
+            <BookText size={32} aria-hidden="true" />
           </div>
           <div className="space-y-2">
             <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
@@ -385,14 +395,20 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               {currentConfig.prompt}
             </h3>
           </div>
-          <button 
-            onClick={() => handlePlayAudio(currentConfig.prompt)}
-            disabled={isLoadingAudio}
-            className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors disabled:opacity-50"
-          >
-            {isLoadingAudio ? <Loader2 size={14} className="animate-spin" /> : isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
-            {isLoadingAudio ? "מייצר קריינות..." : isPlaying ? "שמע שוב" : "השמע הנחיה"}
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                onClick={() => handlePlayAudio(currentConfig.prompt)}
+                disabled={isLoadingAudio}
+                className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors disabled:opacity-50"
+                aria-label="השמע הנחיה"
+              >
+                {isLoadingAudio ? <Loader2 size={14} className="animate-spin" /> : isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
+                {isLoadingAudio ? "מייצר קריינות..." : isPlaying ? "שמע שוב" : "השמע הנחיה"}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>השמע את השאלה בקול</TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="w-full space-y-4 animate-in fade-in duration-700 relative">
@@ -401,19 +417,25 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             onChange={(e) => setData(prev => ({ ...prev, [step]: e.target.value }))}
             placeholder={currentConfig.placeholder}
             className="min-h-[220px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
+            aria-label={currentConfig.title}
           />
           
           <div className="absolute left-4 bottom-4 flex gap-2">
-            <button 
-              onClick={toggleRecording}
-              className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
-                isRecording ? "bg-rose-500 animate-pulse" : "bg-white/10 hover:bg-white/20 text-white"
-              )}
-              title={isRecording ? "עצור הקלטה" : "דבר אליי (הקלטה)"}
-            >
-              {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={toggleRecording}
+                  className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
+                    isRecording ? "bg-rose-500 animate-pulse" : "bg-white/10 hover:bg-white/20 text-white"
+                  )}
+                  aria-label={isRecording ? "עצור הקלטה" : "דבר אליי (הקלטה)"}
+                >
+                  {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isRecording ? "עצור הקלטה" : "השתמש בקול במקום להקליד"}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

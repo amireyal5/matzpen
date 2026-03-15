@@ -10,6 +10,11 @@ import { doc } from "firebase/firestore";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import PracticeCard from "./PracticeCard";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DeckScreenProps {
   catKey: string;
@@ -136,19 +141,25 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
           </div>
         </div>
 
-        <button 
-          onClick={() => setShowIntro(true)} 
-          className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors border border-slate-100"
-        >
-          <Info className="size-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button 
+              onClick={() => setShowIntro(true)} 
+              className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors border border-slate-100"
+              aria-label="מידע על הקטגוריה"
+            >
+              <Info className="size-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>מידע על הקטגוריה</TooltipContent>
+        </Tooltip>
       </header>
       
       {showIntro && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-[3rem] p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center space-y-6">
             <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center" style={{ backgroundColor: `${cat.hue}15` }}>
-              <cat.icon className="size-10" style={{ color: cat.hue }} />
+              <cat.icon className="size-10" style={{ color: cat.hue }} aria-hidden="true" />
             </div>
             <div className="space-y-4">
               <h2 className="text-2xl font-headline font-black text-slate-900">{cat.label}</h2>

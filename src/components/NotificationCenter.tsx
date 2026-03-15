@@ -14,6 +14,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export default function NotificationCenter() {
@@ -57,12 +62,9 @@ export default function NotificationCenter() {
   const clearAll = async () => {
     if (!user || !firestore || notifications.length === 0) return;
     
-    // בגלל שאין לנו פונקציה מובנית למחיקה המונית ב-non-blocking utils,
-    // נבצע זאת כאן בצורה יעילה (Batch)
     const q = query(collection(firestore, "notifications"), where("userId", "==", user.uid));
     const snap = await getDocs(q);
     
-    // פיצול למחיקה ב-batches אם יש הרבה הודעות (מגבלה של 500 ב-Firestore)
     const chunks = [];
     for (let i = 0; i < snap.docs.length; i += 500) {
       chunks.push(snap.docs.slice(i, i + 500));
@@ -77,24 +79,33 @@ export default function NotificationCenter() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'insight': return <Sparkles size={16} className="text-amber-500" />;
-      case 'reminder': return <Info size={16} className="text-indigo-500" />;
-      default: return <AlertCircle size={16} className="text-slate-400" />;
+      case 'insight': return <Sparkles size={16} className="text-amber-500" aria-hidden="true" />;
+      case 'reminder': return <Info size={16} className="text-indigo-500" aria-hidden="true" />;
+      default: return <AlertCircle size={16} className="text-slate-400" aria-hidden="true" />;
     }
   };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <button className="relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-95">
-          <Bell size={20} />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-slate-950 animate-in zoom-in duration-300">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-      </SheetTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SheetTrigger asChild>
+            <button 
+              className="relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-95"
+              aria-label="מרכז התראות"
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-slate-950 animate-in zoom-in duration-300">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </SheetTrigger>
+        </TooltipTrigger>
+        <TooltipContent>מרכז התראות</TooltipContent>
+      </Tooltip>
+
       <SheetContent side="right" className="w-full sm:max-w-md bg-white border-none p-0 flex flex-col" dir="rtl">
         <SheetHeader className="p-6 border-b border-slate-50 bg-slate-50/30 shrink-0">
           <div className="flex items-center justify-between">
@@ -148,28 +159,38 @@ export default function NotificationCenter() {
 
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   {!n.read && (
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
-                      className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg"
-                      title="סמן כנקרא"
-                    >
-                      <Check size={14} />
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
+                          className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg"
+                          aria-label="סמן כנקרא"
+                        >
+                          <Check size={14} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>סמן כנקרא</TooltipContent>
+                    </Tooltip>
                   )}
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
-                    className="w-8 h-8 rounded-full bg-white border border-slate-100 text-slate-400 hover:text-rose-500 flex items-center justify-center shadow-sm"
-                    title="מחק"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                        className="w-8 h-8 rounded-full bg-white border border-slate-100 text-slate-400 hover:text-rose-500 flex items-center justify-center shadow-sm"
+                        aria-label="מחק התראה"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>מחק התראה</TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             ))
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-30">
               <div className="w-20 h-20 rounded-[2.5rem] bg-slate-100 flex items-center justify-center text-slate-400">
-                <BellOff size={40} />
+                <BellOff size={40} aria-hidden="true" />
               </div>
               <div className="space-y-1">
                 <p className="font-black text-slate-900">הכל שקט כאן</p>

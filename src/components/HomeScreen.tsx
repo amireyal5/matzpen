@@ -331,7 +331,7 @@ export default function HomeScreen({
                 <TooltipTrigger asChild>
                   <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative">
                     {user?.photoURL ? (
-                      <Image src={user.photoURL} alt="פרופיל" width={40} height={40} className="w-full h-full object-cover rounded-full" />
+                      <Image src={user.photoURL} alt="פרופיל אישי" width={40} height={40} className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
                         <UserIcon size={16} />
@@ -339,7 +339,7 @@ export default function HomeScreen({
                     )}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>פרופיל אישי</TooltipContent>
+                <TooltipContent>פרופיל והגדרות</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -400,9 +400,19 @@ export default function HomeScreen({
                 placeholder={placeholderText} 
                 className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
               />
-              <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
-                {isSearching ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    type="submit" 
+                    disabled={isSearching || !searchQuery.trim()} 
+                    className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all"
+                    aria-label="שלח שאלה לדיאלוג החכם"
+                  >
+                    {isSearching ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>שלח לדיאלוג החכם</TooltipContent>
+              </Tooltip>
             </div>
           </form>
         )}
@@ -416,42 +426,59 @@ export default function HomeScreen({
             <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כלים אסטרטגיים</h3>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <button 
-              onClick={onGoToJournal}
-              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
-                <BookText size={20} />
-              </div>
-              <div className="space-y-0.5">
-                <span className="block text-[11px] font-black text-slate-900">יומן מחשבות</span>
-                <span className="block text-[8px] text-slate-400 font-bold">CBT</span>
-              </div>
-            </button>
-            <button 
-              onClick={onGoToBilateral}
-              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                <Zap size={20} className="fill-current" />
-              </div>
-              <div className="space-y-0.5">
-                <span className="block text-[11px] font-black text-slate-900">עיבוד בילטרלי</span>
-                <span className="block text-[8px] text-slate-400 font-bold">EMDR Style</span>
-              </div>
-            </button>
-            <button 
-              onClick={onGoToMeditation}
-              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <Flower2 size={20} />
-              </div>
-              <div className="space-y-0.5">
-                <span className="block text-[11px] font-black text-slate-900">מדיטציה</span>
-                <span className="block text-[8px] text-slate-400 font-bold">שקט פנימי</span>
-              </div>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={onGoToJournal}
+                  className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                    <BookText size={20} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="block text-[11px] font-black text-slate-900">יומן מחשבות</span>
+                    <span className="block text-[8px] text-slate-400 font-bold">CBT</span>
+                  </div>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>תרגול מודל אפר"ת</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={onGoToBilateral}
+                  className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                    <Zap size={20} className="fill-current" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="block text-[11px] font-black text-slate-900">עיבוד בילטרלי</span>
+                    <span className="block text-[8px] text-slate-400 font-bold">EMDR Style</span>
+                  </div>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>ויסות באמצעות גירוי דו-צדדי</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={onGoToMeditation}
+                  className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Flower2 size={20} />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="block text-[11px] font-black text-slate-900">מדיטציה</span>
+                    <span className="block text-[8px] text-slate-400 font-bold">שקט פנימי</span>
+                  </div>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>מרחב השקט והמיינדפולנס</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
