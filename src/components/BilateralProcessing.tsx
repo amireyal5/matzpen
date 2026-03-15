@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -29,6 +30,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
+/**
+ * הגדרת הקטגוריות והמשפטים.
+ * לכל משפט ניתן להוסיף audioUrl - אם השדה קיים, המערכת תנגן את הקובץ המוקלט במקום להשתמש ב-AI.
+ */
 const CATEGORIES = [
   {
     id: 'anxiety',
@@ -38,11 +43,11 @@ const CATEGORIES = [
     color: 'from-blue-600/90 via-indigo-900/95 to-black',
     accent: '#60A5FA',
     affirmations: [
-      "אני בטוח כאן ועכשיו.",
-      "הנשימה שלי היא העוגן שלי.",
-      "אני מאפשר למחשבות לחלוף.",
-      "הגוף שלי חוזר לאיזון.",
-      "השקט שבי חזק מכל סערה בחוץ."
+      { text: "אני בטוח כאן ועכשיו.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 הראשון
+      { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 השני
+      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 השלישי
+      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 הרביעי
+      { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "" } // הדבק כאן את הלינק ל-MP3 החמישי
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
     blsSpeed: 5500 
@@ -55,11 +60,11 @@ const CATEGORIES = [
     color: 'from-amber-600/90 via-orange-900/95 to-black',
     accent: '#FBBF24',
     affirmations: [
-      "אני ראוי לטוב.",
-      "יש בי את הכוח להתמודד.",
-      "אני סומך על עצמי.",
-      "הערך שלי יציב וקיים.",
-      "אני בוחר להאמין ביכולות שלי היום."
+      { text: "אני ראוי לטוב.", audioUrl: "" },
+      { text: "יש בי את הכוח להתמודד.", audioUrl: "" },
+      { text: "אני סומך על עצמי.", audioUrl: "" },
+      { text: "הערך שלי יציב וקיים.", audioUrl: "" },
+      { text: "אני בוחר להאמין ביכולות שלי היום.", audioUrl: "" }
     ],
     voiceTone: "בטון חם, יציב ומעודד. זרימה אטית.",
     blsSpeed: 5000
@@ -72,11 +77,11 @@ const CATEGORIES = [
     color: 'from-rose-900 via-red-950 to-black',
     accent: '#F43F5E',
     affirmations: [
-      "מותר לי להרגיש את מה שאני מרגיש.",
-      "הכעס עובר דרכי ויוצא החוצה.",
-      "אני בוחר להגיב מתוך רוגע.",
-      "אני משחרר את המתח מהגוף.",
-      "אני מוצא שלווה בתוך המרחב הפנימי שלי."
+      { text: "מותר לי להרגיש את מה שאני מרגיש.", audioUrl: "" },
+      { text: "הכעס עובר דרכי ויוצא החוצה.", audioUrl: "" },
+      { text: "אני בוחר להגיב מתוך רוגע.", audioUrl: "" },
+      { text: "אני משחרר את המתח מהגוף.", audioUrl: "" },
+      { text: "אני מוצא שלווה בתוך המרחב הפנימי שלי.", audioUrl: "" }
     ],
     voiceTone: "בטון מקורקע, יציב אך אטי וזורם.",
     blsSpeed: 4500
@@ -89,11 +94,11 @@ const CATEGORIES = [
     color: 'from-emerald-900 via-teal-950 to-black',
     accent: '#10B981',
     affirmations: [
-      "התודעה שלי צלולה וממוקדת.",
-      "אני נוכח במשימה שלפניי.",
-      "היצירתיות זורמת ממני בקלות.",
-      "אני שקט ובשליטה.",
-      "תשומת הלב שלי חדה ונינוחה."
+      { text: "התודעה שלי צלולה וממוקדת.", audioUrl: "" },
+      { text: "אני נוכח במשימה שלפניי.", audioUrl: "" },
+      { text: "היצירתיות זורמת ממני בקלות.", audioUrl: "" },
+      { text: "אני שקט ובשליטה.", audioUrl: "" },
+      { text: "תשומת הלב שלי חדה ונינוחה.", audioUrl: "" }
     ],
     voiceTone: "בטון ברור, קצבי ואטי.",
     blsSpeed: 4000
@@ -106,11 +111,11 @@ const CATEGORIES = [
     color: 'from-pink-900 via-fuchsia-950 to-black',
     accent: '#EC4899',
     affirmations: [
-      "אני נותן לעצמי רשות להיות אנושי.",
-      "אני מתייחס לעצמי כאל חבר טוב.",
-      "זה בסדר לא להיות בסדר לפעמים.",
-      "אני סולח לעצמי על העבר.",
-      "אני עוטף את עצמי בהבנה ובחום."
+      { text: "אני נותן לעצמי רשות להיות אנושי.", audioUrl: "" },
+      { text: "אני מתייחס לעצמי כאל חבר טוב.", audioUrl: "" },
+      { text: "זה בסדר לא להיות בסדר לפעמים.", audioUrl: "" },
+      { text: "אני סולח לעצמי על העבר.", audioUrl: "" },
+      { text: "אני עוטף את עצמי בהבנה ובחום.", audioUrl: "" }
     ],
     voiceTone: "בטון רך מאוד, אוהב ועוטף. זרימה אטית.",
     blsSpeed: 6000
@@ -123,11 +128,11 @@ const CATEGORIES = [
     color: 'from-purple-900 via-slate-900 to-black',
     accent: '#A78BFA',
     affirmations: [
-      "אני משחרר את היום.",
-      "זה הזמן שלי לנוח.",
-      "המיטה שלי היא מקום שקט.",
-      "אני נרדם בביטחון.",
-      "המחשבות נרגעות והגוף מרפה אל תוך השינה."
+      { text: "אני משחרר את היום.", audioUrl: "" },
+      { text: "זה הזמן שלי לנוח.", audioUrl: "" },
+      { text: "המיטה שלי היא מקום שקט.", audioUrl: "" },
+      { text: "אני נרדם בביטחון.", audioUrl: "" },
+      { text: "המחשבות נרגעות והגוף מרפה אל תוך השינה.", audioUrl: "" }
     ],
     voiceTone: "בטון נמוך מאוד, לחישתי ואטי. כמו שיר ערש.",
     blsSpeed: 7000 
@@ -142,16 +147,14 @@ interface BilateralProcessingProps {
 export default function BilateralProcessing({ gender, onBack }: BilateralProcessingProps) {
   const [selectedCat, setSelectedCat] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentAff, setCurrentAff] = useState("");
+  const [currentAffText, setCurrentAffText] = useState("");
   const [showAff, setShowAff] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [blsSide, setBlsSide] = useState<'left' | 'right'>('right');
   const [isLoading, setIsLoading] = useState(false);
   
-  // שמירה על המסך דולק בזמן תרגול פעיל
   useWakeLock(isPlaying);
   
-  // Audio Controls State - Using 128Hz as the harmonic base
   const [droneVolume, setDroneVolume] = useState(0.6);
   const [droneFreq, setDroneFrequency] = useState(128);
   
@@ -175,7 +178,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       pannerRef.current = audioCtxRef.current!.createStereoPanner();
       filterNodeRef.current = audioCtxRef.current!.createBiquadFilter();
       
-      // Setup Filter for a smoother "meditation" sound, cutting harsh highs
       filterNodeRef.current.type = 'lowpass';
       filterNodeRef.current.frequency.setValueAtTime(800, audioCtxRef.current!.currentTime);
       filterNodeRef.current.Q.setValueAtTime(0.7, audioCtxRef.current!.currentTime);
@@ -212,14 +214,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     const ctx = audioCtxRef.current;
     if (!ctx || !musicGainNodeRef.current) return;
 
-    // Clear existing
     activeOscillators.current.forEach(o => { try { o.stop(); } catch(e) {} });
     activeOscillators.current = [];
 
-    // Using pure octaves (128Hz, 256Hz, 512Hz) to ensure a clean, non-mechanical sound
     const baseFreq = droneFreq; 
-    const harmonicRatios = [1, 2, 4, 0.5]; // 128, 256, 512, 64
-    const gains = [0.5, 0.3, 0.1, 0.1]; // Volume distribution
+    const harmonicRatios = [1, 2, 4, 0.5];
+    const gains = [0.5, 0.3, 0.1, 0.1];
     
     harmonicRatios.forEach((ratio, i) => {
       const osc = ctx.createOscillator();
@@ -228,7 +228,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       osc.type = 'sine'; 
       osc.frequency.setValueAtTime(baseFreq * ratio, ctx.currentTime);
       
-      // Start muted and fade in slowly for atmosphere
       g.gain.setValueAtTime(0, ctx.currentTime);
       g.gain.linearRampToValueAtTime(gains[i] * droneVolume, ctx.currentTime + 4);
       
@@ -238,14 +237,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     });
   };
 
-  // Update volume in real-time
   useEffect(() => {
     if (musicGainNodeRef.current && audioCtxRef.current) {
       musicGainNodeRef.current.gain.setTargetAtTime(droneVolume, audioCtxRef.current.currentTime, 0.2);
     }
   }, [droneVolume]);
 
-  // Update frequency in real-time
   useEffect(() => {
     if (activeOscillators.current.length > 0 && audioCtxRef.current) {
       const harmonicRatios = [1, 2, 4, 0.5];
@@ -255,24 +252,33 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     }
   }, [droneFreq]);
 
-  const speakAffirmation = async (text: string) => {
+  const speakAffirmation = async (aff: { text: string, audioUrl?: string }) => {
     if (!audioCtxRef.current || !selectedCat) return;
     
     setIsSpeaking(true);
     setIsLoading(true);
 
     try {
-      // Duck background music during speech
+      // הנמכת מוזיקת הרקע בזמן הדיבור
       if (musicGainNodeRef.current) {
         musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.15, audioCtxRef.current.currentTime + 1.5);
       }
 
-      const { audioUri } = await generateSpeech({ 
-        text: `${selectedCat.voiceTone}: ${text}`, 
-        gender 
-      });
+      let audioSrc = "";
+
+      if (aff.audioUrl) {
+        // שימוש בקובץ שהועלה
+        audioSrc = aff.audioUrl;
+      } else {
+        // שימוש ב-AI אם אין קובץ
+        const { audioUri } = await generateSpeech({ 
+          text: `${selectedCat.voiceTone}: ${aff.text}`, 
+          gender 
+        });
+        audioSrc = audioUri;
+      }
       
-      const audio = new Audio(audioUri);
+      const audio = new Audio(audioSrc);
       currentAudioRef.current = audio;
 
       const source = audioCtxRef.current.createMediaElementSource(audio);
@@ -288,7 +294,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       audio.play();
       setIsLoading(false);
     } catch (error) {
-      console.error("TTS Pipeline Error:", error);
+      console.error("Audio Pipeline Error:", error);
       setIsSpeaking(false);
       setIsLoading(false);
       if (musicGainNodeRef.current && audioCtxRef.current) {
@@ -300,11 +306,11 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const triggerStep = () => {
     if (!selectedCat || !isPlaying) return;
     
-    const randomAff = selectedCat.affirmations[Math.floor(Math.random() * selectedCat.affirmations.length)];
+    const randomAffObj = selectedCat.affirmations[Math.floor(Math.random() * selectedCat.affirmations.length)];
     
-    setCurrentAff(randomAff);
+    setCurrentAffText(randomAffObj.text);
     setShowAff(true);
-    speakAffirmation(randomAff);
+    speakAffirmation(randomAffObj);
     
     setTimeout(() => {
         setShowAff(false);
@@ -325,7 +331,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         setBlsSide(prev => {
           const newSide = prev === 'right' ? 'left' : 'right';
           if (pannerRef.current && audioCtxRef.current) {
-            // Pendulum easing through the pan parameter
             pannerRef.current.pan.linearRampToValueAtTime(
                 newSide === 'right' ? 0.85 : -0.85, 
                 audioCtxRef.current.currentTime + (tickDuration / 1000)
@@ -348,7 +353,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-right overflow-hidden select-none" dir="rtl">
       
-      {/* Background Layer */}
       <div className={cn(
         "fixed inset-0 transition-all duration-[5000ms] ease-in-out",
         selectedCat ? "opacity-100" : "opacity-0"
@@ -412,7 +416,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
               <X size={20} />
             </button>
             
-            {/* Audio Settings Popover */}
             <Popover>
               <PopoverTrigger asChild>
                 <button className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
@@ -465,7 +468,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             </div>
           </div>
 
-          {/* Bilateral Moving Dot - Pendulum Style */}
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
                className={cn(
@@ -488,12 +490,11 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             )}>
                <Quote className="text-white/5 mx-auto mb-8 w-16 h-16" />
                <h2 className="text-white text-3xl md:text-6xl font-black leading-tight tracking-tight px-4 drop-shadow-2xl">
-                 {currentAff}
+                 {currentAffText}
                </h2>
             </div>
           </div>
 
-          {/* Controls Bar */}
           <div className="fixed bottom-10 left-0 right-0 flex justify-center px-6 z-50">
             <div className="bg-black/60 backdrop-blur-3xl p-3 px-8 rounded-full border border-white/10 flex items-center gap-8 shadow-2xl">
                <div className="flex items-center gap-1">
