@@ -5,7 +5,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "פרופיל משתמש הכולל שם, מגדר, מועדפים וכרטיסיות שבוצעו.",
+      "description": "פרופיל משתמש הכולל שם, מגדר, מועדפים, כרטיסיות שבוצעו ותשתית התראות.",
       "properties": {
         "id": {
           "type": "string",
@@ -33,6 +33,14 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "רשימת מזהי כרטיסיות שבוצעו (catKey:index)."
+        },
+        "fcmToken": {
+          "type": "string",
+          "description": "מפתח זיהוי להתראות פוש."
+        },
+        "notificationsEnabled": {
+          "type": "boolean",
+          "description": "האם המשתמש אישר קבלת התראות."
         },
         "createdAt": {
           "type": "string",

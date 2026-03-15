@@ -3,19 +3,21 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail } from "lucide-react";
+import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail, Bell, BellOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase, useFirestore } from "@/firebase";
 import { signOut, deleteUser } from "firebase/auth";
-import { collection, query, orderBy, doc, getDocs, deleteDoc, where } from "firebase/firestore";
+import { collection, query, doc, getDocs, deleteDoc, where } from "firebase/firestore";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
+import { requestNotificationPermission } from "@/firebase/messaging";
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -35,11 +37,10 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const [isSaving, setIsSaving] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [isUpdatingNotifications, setIsUpdatingNotifications] = useState(false);
 
   const journalsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    // שאילתה בסיסית עם פילטר userId. 
-    // הסרנו את ה-orderBy כדי למנוע שגיאות הרשאה/אינדקסים מורכבים.
     return query(
       collection(firestore, "thoughtJournals"),
       where("userId", "==", user.uid)
@@ -48,7 +49,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
   const { data: rawJournals, isLoading: isLoadingJournals } = useCollection(journalsQuery);
 
-  // מיון מקומי של היומנים לפי תאריך יצירה (מהחדש לישן)
   const journals = useMemo(() => {
     if (!rawJournals) return null;
     return [...rawJournals].sort((a, b) => 
@@ -81,6 +81,34 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     }, 500);
   };
 
+  const handleToggleNotifications = async (enabled: boolean) => {
+    if (!profileRef) return;
+    setIsUpdatingNotifications(true);
+    
+    try {
+      if (enabled) {
+        const token = await requestNotificationPermission();
+        if (token) {
+          updateDocumentNonBlocking(profileRef, {
+            notificationsEnabled: true,
+            fcmToken: token
+          });
+        } else {
+          // המשתמש סירב או חלה שגיאה
+          console.warn("לא ניתן היה להפעיל התראות.");
+        }
+      } else {
+        updateDocumentNonBlocking(profileRef, {
+          notificationsEnabled: false
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsUpdatingNotifications(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -92,23 +120,17 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
   const handleDeleteAccount = async () => {
     if (!user || !firestore || !profileRef) return;
-    
     setIsDeletingAccount(true);
     setDeleteError("");
 
     try {
-      // 1. מחיקת כל היומנים באוסף הראשי ששייכים למשתמש
       const journalsSnap = await getDocs(query(
         collection(firestore, "thoughtJournals"),
         where("userId", "==", user.uid)
       ));
       const deletePromises = journalsSnap.docs.map(d => deleteDoc(d.ref));
       await Promise.all(deletePromises);
-
-      // 2. מחיקת מסמך הפרופיל
       await deleteDoc(profileRef);
-
-      // 3. מחיקת המשתמש מה-Auth
       await deleteUser(user);
     } catch (err: any) {
       console.error("Account deletion failed", err);
@@ -134,6 +156,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
   const completedCount = profileData?.completed?.length || 0;
   const favoritesCount = profileData?.favorites?.length || 0;
+  const notificationsEnabled = !!profileData?.notificationsEnabled;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -143,7 +166,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
           <DialogDescription>ניהול חשבון וצפייה בתובנות שמורות</DialogDescription>
         </DialogHeader>
         
-        {/* Header Navigation */}
         <div className="relative shrink-0 h-48 w-full bg-slate-950 rounded-t-[3rem] overflow-hidden p-8 flex flex-col justify-end">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.15),transparent)] z-10" />
           <DialogClose className="absolute left-6 top-6 z-30 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all outline-none border border-white/5">
@@ -177,7 +199,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
         <div className="flex-1 overflow-y-auto hide-scrollbar px-8 pb-12">
           {view === "profile" ? (
             <div className="animate-in fade-in duration-500 space-y-10 pt-10">
-              {/* Profile Image Section */}
               <div className="flex justify-center mb-10">
                 <div className="relative">
                   <div className="absolute inset-0 bg-indigo-500/5 blur-3xl opacity-30 rounded-full scale-110" />
@@ -193,7 +214,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 </div>
               </div>
 
-              {/* Form Fields */}
               <div className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name" className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-1">איך נקרא לך?</Label>
@@ -240,9 +260,31 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                     </div>
                   </RadioGroup>
                 </div>
+
+                {/* Notifications Section */}
+                <div className="pt-4 space-y-4">
+                  <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                        notificationsEnabled ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-400"
+                      )}>
+                        {notificationsEnabled ? <Bell size={20} /> : <BellOff size={20} />}
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="block font-black text-slate-900 text-sm uppercase tracking-tight">התראות פוש</span>
+                        <span className="block text-[10px] text-slate-500 font-bold">קבלת תזכורות וכלים אישיים</span>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={notificationsEnabled} 
+                      onCheckedChange={handleToggleNotifications}
+                      disabled={isUpdatingNotifications}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Stats Section */}
               <div className="grid grid-cols-2 gap-5">
                 <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">תרגילים שבוצעו</p>
@@ -254,7 +296,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="space-y-4 pt-4">
                 <Button 
                   className="w-full py-8 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-xl shadow-indigo-600/20 text-lg transition-all active:scale-95" 
