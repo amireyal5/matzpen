@@ -43,11 +43,11 @@ const CATEGORIES = [
     color: 'from-blue-600/90 via-indigo-900/95 to-black',
     accent: '#60A5FA',
     affirmations: [
-      { text: "אני בטוח כאן ועכשיו.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 הראשון
-      { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 השני
-      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 השלישי
-      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "" }, // הדבק כאן את הלינק ל-MP3 הרביעי
-      { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "" } // הדבק כאן את הלינק ל-MP3 החמישי
+      { text: "אני בטוח כאן ועכשיו.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" },
+      { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "" },
+      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "" },
+      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "" },
+      { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "" }
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
     blsSpeed: 5500 
