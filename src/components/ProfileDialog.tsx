@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -94,7 +93,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
             fcmToken: token
           });
         } else {
-          // המשתמש סירב או חלה שגיאה
           console.warn("לא ניתן היה להפעיל התראות.");
         }
       } else {

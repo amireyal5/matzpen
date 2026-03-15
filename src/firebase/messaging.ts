@@ -5,6 +5,7 @@ import { getApp } from "firebase/app";
 
 /**
  * פונקציה לבקשת הרשאה והפקת טוקן להתראות פוש.
+ * משתמשת אך ורק במפתח הציבורי (Public Key).
  * @returns ה-FCM Token אם ההרשאה ניתנה, אחרת null.
  */
 export async function requestNotificationPermission(): Promise<string | null> {
@@ -19,19 +20,19 @@ export async function requestNotificationPermission(): Promise<string | null> {
       const messaging = getMessaging(getApp());
       
       /**
-       * !!! חשוב מאוד !!!
-       * כאן עליך להדביק את ה-Key שייצרת ב-Firebase Console:
+       * !!! הגדרת מפתח VAPID !!!
+       * כאן עליך להדביק את ה-Public Key שייצרת ב-Firebase Console:
        * Project Settings -> Cloud Messaging -> Web Push certificates
        */
-      const VAPID_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
+      const VAPID_PUBLIC_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
       
-      if (VAPID_KEY === "YOUR_VAPID_PUBLIC_KEY_HERE") {
-        console.error("יש להגדיר מפתח VAPID תקין ב-src/firebase/messaging.ts כדי שהתראות יעבדו.");
+      if (VAPID_PUBLIC_KEY === "YOUR_VAPID_PUBLIC_KEY_HERE") {
+        console.error("יש להגדיר מפתח VAPID ציבורי ב-src/firebase/messaging.ts");
         return null;
       }
       
       const token = await getToken(messaging, { 
-        vapidKey: VAPID_KEY 
+        vapidKey: VAPID_PUBLIC_KEY 
       });
       
       return token;
@@ -50,11 +51,9 @@ export function onMessageListener() {
   
   try {
     const messaging = getMessaging(getApp());
-    return new Promise((resolve) => {
-      onMessage(messaging, (payload) => {
-        console.log("הודעה חדשה התקבלה בחזית:", payload);
-        resolve(payload);
-      });
+    onMessage(messaging, (payload) => {
+      console.log("הודעה התקבלה בזמן שהאפליקציה פתוחה:", payload);
+      // כאן ניתן להציג התראה מותאמת אישית בתוך ה-UI
     });
   } catch (e) {
     console.error("Messaging not initialized", e);
