@@ -38,7 +38,7 @@ const CATEGORIES = [
       "הגוף שלי חוזר לאיזון"
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
-    blsSpeed: 3000 
+    blsSpeed: 4500 // אטי יותר למקצב מטוטלת
   },
   {
     id: 'confidence',
@@ -54,7 +54,7 @@ const CATEGORIES = [
       "הערך שלי יציב וקיים"
     ],
     voiceTone: "בטון חם, יציב ומעודד. זרימה אטית.",
-    blsSpeed: 2500
+    blsSpeed: 4000
   },
   {
     id: 'anger',
@@ -70,7 +70,7 @@ const CATEGORIES = [
       "אני משחרר את המתח מהכתפיים"
     ],
     voiceTone: "בטון מקורקע, יציב אך אטי וזורם.",
-    blsSpeed: 2000
+    blsSpeed: 3500
   },
   {
     id: 'focus',
@@ -86,7 +86,7 @@ const CATEGORIES = [
       "אני שקט ובשליטה"
     ],
     voiceTone: "בטון ברור, קצבי ואטי.",
-    blsSpeed: 1800
+    blsSpeed: 3000
   },
   {
     id: 'compassion',
@@ -102,7 +102,7 @@ const CATEGORIES = [
       "אני סולח לעצמי על העבר"
     ],
     voiceTone: "בטון רך מאוד, אוהב ועוטף. זרימה אטית.",
-    blsSpeed: 3500
+    blsSpeed: 5000
   },
   {
     id: 'sleep',
@@ -118,7 +118,7 @@ const CATEGORIES = [
       "אני נרדם בביטחון"
     ],
     voiceTone: "בטון נמוך מאוד, לחישתי ואטי. כמו שיר ערש.",
-    blsSpeed: 4000
+    blsSpeed: 6000 // מקצב אטי מאוד לשינה
   }
 ];
 
@@ -260,20 +260,24 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       
       triggerStep();
       
+      // המקצב הוא חצי מהירות המחזור למעבר צד אחד
+      const tickDuration = selectedCat.blsSpeed / 2;
+
       blsIntervalRef.current = setInterval(() => {
         setBlsSide(prev => {
           const newSide = prev === 'right' ? 'left' : 'right';
           if (pannerRef.current && audioCtxRef.current) {
+            // מעבר אודיו רך ואטי (Linear Ramp על פני כל משך הצעד)
             pannerRef.current.pan.linearRampToValueAtTime(
                 newSide === 'right' ? 0.85 : -0.85, 
-                audioCtxRef.current.currentTime + (selectedCat.blsSpeed / 2000)
+                audioCtxRef.current.currentTime + (tickDuration / 1000)
             );
           }
           return newSide;
         });
-      }, selectedCat.blsSpeed / 2);
+      }, tickDuration);
 
-      affIntervalRef.current = setInterval(triggerStep, 30000); 
+      affIntervalRef.current = setInterval(triggerStep, 35000); 
       
     } else {
       stopAll();
@@ -361,22 +365,26 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             </div>
           </div>
 
-          {/* Bilateral Moving Dot */}
+          {/* Bilateral Moving Dot - Pendulum Style */}
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
-               className="w-4 h-4 rounded-full bg-white/40 blur-sm shadow-[0_0_20px_rgba(255,255,255,0.6)] transition-all duration-[1500ms] ease-in-out absolute"
+               className={cn(
+                 "w-6 h-6 rounded-full bg-white/30 blur-md shadow-[0_0_30px_rgba(255,255,255,0.4)] absolute transform-gpu"
+               )}
                style={{ 
+                 // מעבר חלק בשיטת Ease-In-Out המדמה מטוטלת
+                 transition: `left ${selectedCat.blsSpeed / 2}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 2000ms, transform 1000ms`,
                  left: blsSide === 'left' ? '10%' : '90%',
-                 opacity: showAff ? 0.8 : 0.1,
-                 scale: isSpeaking ? '3' : '1',
-                 boxShadow: isSpeaking ? `0 0 40px ${selectedCat.accent}` : 'none'
+                 opacity: showAff ? 0.6 : 0.1,
+                 scale: isSpeaking ? '2.5' : '1',
+                 boxShadow: isSpeaking ? `0 0 50px ${selectedCat.accent}` : 'none'
                }}
              />
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center px-8 pb-32">
             <div className={cn(
-              "max-w-4xl w-full text-center transition-all duration-[2500ms]",
+              "max-w-4xl w-full text-center transition-all duration-[3000ms]",
               showAff ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-95 blur-3xl"
             )}>
                <Quote className="text-white/5 mx-auto mb-8 w-16 h-16" />
@@ -411,7 +419,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
                <div className="flex items-center gap-2 text-white/20">
                  {isLoading ? <Loader2 size={14} className="animate-spin text-indigo-400" /> : <Zap size={14} className={isSpeaking ? 'text-indigo-400' : ''} />}
-                 <span className="text-[9px] font-black tracking-widest uppercase">Fluid Pacing</span>
+                 <span className="text-[9px] font-black tracking-widest uppercase">Pendulum Flow</span>
                </div>
             </div>
           </div>
