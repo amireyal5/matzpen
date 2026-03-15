@@ -127,7 +127,10 @@ export default function HomeScreen({
         <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4">
           <UserPlus className="text-indigo-500 shrink-0" size={24} />
           <p className="text-sm font-bold text-indigo-900 leading-relaxed">
-            בבקשה, פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישאר לבד עם התחושות האלה.
+            {displayGender === "f" 
+              ? "בבקשה, פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה."
+              : "בבקשה, פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה."
+            }
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit, Phone, AlertTriangle, UserPlus } from "lucide-react";
+import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit, Phone, AlertTriangle, UserPlus, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -265,7 +265,10 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
                   <UserPlus className="text-indigo-500 shrink-0" size={24} />
                   <p className="text-sm font-bold text-indigo-900 leading-relaxed">
-                    בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.
+                    {g(
+                      "בבקשה, פנה עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.",
+                      "בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישארי לבד."
+                    )}
                   </p>
                 </div>
               </div>
