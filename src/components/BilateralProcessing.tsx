@@ -27,12 +27,16 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 /**
  * הגדרת הקטגוריות והמשפטים.
- * לכל משפט ניתן להוסיף audioUrl - אם השדה קיים, המערכת תנגן את הקובץ המוקלט במקום להשתמש ב-AI.
  */
 const CATEGORIES = [
   {
@@ -45,8 +49,8 @@ const CATEGORIES = [
     affirmations: [
       { text: "אני בטוח כאן ועכשיו.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" },
       { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%99%D7%9E%D7%94%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%99%D7%90%20%D7%94%D7%A2%D7%95%D7%92%D7%9F%20%D7%A9%D7%9C%D7%99.mp3?alt=media&token=72105974-72f0-4d89-aece-40d23bacccab" },
-      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%10%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" },
-      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%97%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" },
+      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%A4%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" },
+      { text: "הגוף שלי חוזר לאיזון.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" },
       { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A9%D7%A7%D7%98%20%D7%A9%D7%91%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" }
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
@@ -193,6 +197,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current.onended = null;
+      currentAudioRef.current.onerror = null;
       currentAudioRef.current.src = "";
       currentAudioRef.current = null;
     }
@@ -259,18 +264,18 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     setIsLoading(true);
 
     try {
-      // הנמכת מוזיקת הרקע בזמן הדיבור
+      if (audioCtxRef.current.state === 'suspended') {
+        await audioCtxRef.current.resume();
+      }
+
       if (musicGainNodeRef.current) {
-        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.15, audioCtxRef.current.currentTime + 1.5);
+        musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume * 0.1, audioCtxRef.current.currentTime + 1.5);
       }
 
       let audioSrc = "";
-
       if (aff.audioUrl) {
-        // שימוש בקובץ שהועלה
         audioSrc = aff.audioUrl;
       } else {
-        // שימוש ב-AI אם אין קובץ
         const { audioUri } = await generateSpeech({ 
           text: `${selectedCat.voiceTone}: ${aff.text}`, 
           gender 
@@ -278,7 +283,11 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         audioSrc = audioUri;
       }
       
-      const audio = new Audio(audioSrc);
+      clearCurrentAudio();
+      
+      const audio = new Audio();
+      audio.crossOrigin = "anonymous";
+      audio.src = audioSrc;
       currentAudioRef.current = audio;
 
       const source = audioCtxRef.current.createMediaElementSource(audio);
@@ -287,11 +296,20 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       audio.onended = () => {
         setIsSpeaking(false);
         if (musicGainNodeRef.current && audioCtxRef.current) {
-          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 4);
+          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 3);
+        }
+      };
+
+      audio.onerror = (e) => {
+        console.error("Audio Load/Play Error:", e);
+        setIsSpeaking(false);
+        setIsLoading(false);
+        if (musicGainNodeRef.current && audioCtxRef.current) {
+          musicGainNodeRef.current.gain.linearRampToValueAtTime(droneVolume, audioCtxRef.current.currentTime + 1);
         }
       };
       
-      audio.play();
+      await audio.play();
       setIsLoading(false);
     } catch (error) {
       console.error("Audio Pipeline Error:", error);
