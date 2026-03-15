@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { generateSpeech } from "@/ai/flows/tts-flow";
@@ -36,6 +37,9 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  // מניעת כיבוי מסך בזמן מילוי היומן
+  useWakeLock(step !== 'finish');
 
   const g = (m: string, f: string) => gender === 'f' ? f : m;
 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -22,6 +21,7 @@ import {
   Activity
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Slider } from "@/components/ui/slider";
@@ -147,6 +147,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [blsSide, setBlsSide] = useState<'left' | 'right'>('right');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // שמירה על המסך דולק בזמן תרגול פעיל
+  useWakeLock(isPlaying);
   
   // Audio Controls State - Using 128Hz as the harmonic base
   const [droneVolume, setDroneVolume] = useState(0.6);

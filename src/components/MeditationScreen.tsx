@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Flower2, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 
 interface MeditationScreenProps {
@@ -12,6 +13,9 @@ interface MeditationScreenProps {
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 export default function MeditationScreen({ onBack }: MeditationScreenProps) {
+  // שמירה על מסך דולק בזמן שהות במסך המדיטציה
+  useWakeLock(true);
+
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
@@ -39,7 +43,7 @@ export default function MeditationScreen({ onBack }: MeditationScreenProps) {
         <div className="text-center space-y-6">
           <h2 className="text-4xl font-black tracking-tight leading-tight">מרחב המדיטציה נבנה כעת</h2>
           <p className="text-slate-400 font-medium leading-relaxed max-w-xs mx-auto text-lg">
-            אני מכין עבורכם סדרת מדיטציות מונחות בקולי, שיעזרו לכם למצוא שקט עמוק וחיבור פנימי בכל רגע שתזדקקו לו.
+            אני מכין עבורכם סדרת מדיטציות מונחות בקולי, שיעזרו לכם למציאת שקט עמוק וחיבור פנימי בכל רגע שתזדקקו לו.
           </p>
         </div>
 

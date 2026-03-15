@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,6 +5,7 @@ import { ArrowRight, Sparkles, Check, ChevronLeft, Volume2, RotateCcw, Loader2 }
 import { BANK, CATS } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { generateSpeech } from "@/ai/flows/tts-flow";
@@ -25,6 +25,9 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+
+  // מניעת כיבוי מסך בזמן תרגול פעיל
+  useWakeLock(!isFinished);
 
   const cat = CATS.find(c => c.key === catKey) || CATS[0];
   const practice = BANK[catKey]?.[practiceIdx] || BANK[catKey]?.[0];
