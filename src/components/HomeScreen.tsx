@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -124,193 +123,9 @@ export default function HomeScreen({
     setSearchQuery("");
   };
 
-  const CrisisSupport = () => (
-    <div className="mt-6 p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 shadow-xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
-      <div className="flex items-center gap-4 text-rose-600">
-        <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
-          <AlertTriangle size={28} />
-        </div>
-        <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
-      </div>
-      
-      <p className="text-slate-800 leading-relaxed font-bold text-lg whitespace-pre-line">
-        {recommendation?.explanation}
-      </p>
-
-      <div className="grid gap-4">
-        <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Phone size={20} />
-            </div>
-            <div className="text-right">
-              <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
-              <span className="block text-xs text-slate-500">חיוג חינם ומיידי: 1201</span>
-            </div>
-          </div>
-          <ChevronLeft size={20} className="text-rose-300" />
-        </a>
-
-        <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Phone size={20} />
-            </div>
-            <div className="text-right">
-              <span className="block font-black text-emerald-700">מד"א - מצבי חירום רפואיים</span>
-              <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
-            </div>
-          </div>
-          <ChevronLeft size={20} className="text-rose-300" />
-        </a>
-
-        <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
-          <UserPlus className="text-indigo-500 shrink-0" size={24} />
-          <p className="text-sm font-bold text-indigo-900 leading-relaxed">
-            {displayGender === "f" 
-              ? `${displayName}, בבקשה פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה.`
-              : `${displayName}, בבקשה פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה.`
-            }
-          </p>
-        </div>
-      </div>
-
-      <button 
-        onClick={handleResetChat}
-        className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors"
-      >
-        סגור וחזור לכלים הרגילים
-      </button>
-    </div>
-  );
-
   const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
   const placeholderText = displayGender === "f" ? "ספרי לי מה עובר עלייך..." : "ספר לי מה עובר עליך...";
-
-  const ChatInterface = () => (
-    <div className="mb-6 bg-white rounded-[2.5rem] border border-indigo-100 shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
-      <div className="flex items-center justify-between p-6 border-b border-slate-50 bg-slate-50/30 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-            <MessageCircle size={16} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">הדיאלוג החכם</span>
-            <span className="text-[9px] font-bold text-slate-400 uppercase">מלווה אותך צעד אחר צעד</span>
-          </div>
-        </div>
-        <button onClick={handleResetChat} className="text-[10px] font-black text-slate-300 hover:text-slate-500 flex items-center gap-1 transition-colors px-3 py-1.5 rounded-full hover:bg-slate-100">
-          <X size={12} /> איפוס שיחה
-        </button>
-      </div>
-      
-      <div 
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar scroll-smooth"
-      >
-        {messages.map((msg, i) => (
-          <div key={i} className={cn(
-            "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
-            msg.role === 'user' ? "flex-row-reverse" : "flex-row"
-          )}>
-            <div className={cn(
-              "w-9 h-9 rounded-full shrink-0 flex items-center justify-center overflow-hidden border-2 shadow-sm",
-              msg.role === 'user' ? "border-white bg-slate-100" : "border-indigo-100 bg-indigo-600"
-            )}>
-              {msg.role === 'user' ? (
-                user?.photoURL ? (
-                  <Image src={user.photoURL} alt={displayName} width={36} height={36} className="w-full h-full object-cover" />
-                ) : (
-                  <UserIcon size={16} className="text-slate-400" />
-                )
-              ) : (
-                <div className="p-1.5 w-full h-full flex items-center justify-center">
-                  <Logo variant="icon" className="w-full h-full" />
-                </div>
-              )}
-            </div>
-            <div className={cn(
-              "p-4 rounded-2xl text-sm leading-relaxed max-w-[85%] shadow-sm",
-              msg.role === 'user' 
-                ? "bg-slate-50 text-slate-700 rounded-tr-none" 
-                : "bg-indigo-50 text-indigo-900 rounded-tl-none font-bold"
-            )}>
-              {msg.content}
-            </div>
-          </div>
-        ))}
-        
-        {isSearching && (
-          <div className="flex gap-3 animate-pulse">
-            <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center p-1.5 border-2 border-indigo-100">
-              <Logo variant="icon" />
-            </div>
-            <div className="bg-indigo-50 h-12 w-32 rounded-2xl rounded-tl-none" />
-          </div>
-        )}
-
-        {!isSearching && recommendation && (
-          <div className="space-y-4 pt-2">
-            {recommendation.quickReplies && recommendation.quickReplies.length > 0 && (
-              <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
-                {recommendation.quickReplies.map((reply, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => sendQuery(reply)}
-                    className="px-4 py-2 bg-white border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 shadow-sm"
-                  >
-                    {reply}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {recommendation.options && recommendation.options.length > 0 && (
-              <div className="grid gap-3 pt-2 animate-in fade-in duration-1000">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
-                {recommendation.options.map((opt, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => {
-                      if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                      else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
-                      else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
-                      else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
-                      else onSelectCategory(opt.categoryKey);
-                    }}
-                    className="group w-full p-4 bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98] shadow-sm"
-                  >
-                    <div className="space-y-0.5">
-                      <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{opt.label}</span>
-                      <span className="block text-[11px] text-slate-500 font-medium">{opt.description}</span>
-                    </div>
-                    <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={16} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <div ref={chatEndRef} className="h-4 shrink-0" />
-      </div>
-
-      <div className="p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
-        <form onSubmit={handleSearch} className="relative">
-          <div className="relative glass-panel rounded-2xl p-1.5 flex items-center shadow-md overflow-hidden bg-white/90">
-            <input 
-              type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder={recommendation?.needsMoreInfo ? "הוסף/י עוד פרטים..." : "מה תרצה/י להוסיף?"} 
-              className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
-            />
-            <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
-              {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -376,9 +191,185 @@ export default function HomeScreen({
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
         
         {recommendation && recommendation.isCrisis ? (
-          <CrisisSupport />
+          <div className="mt-6 p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 shadow-xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
+            <div className="flex items-center gap-4 text-rose-600">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
+                <AlertTriangle size={28} />
+              </div>
+              <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
+            </div>
+            
+            <p className="text-slate-800 leading-relaxed font-bold text-lg whitespace-pre-line">
+              {recommendation.explanation}
+            </p>
+
+            <div className="grid gap-4">
+              <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Phone size={20} />
+                  </div>
+                  <div className="text-right">
+                    <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
+                    <span className="block text-xs text-slate-500">חיוג חינם ומיידי: 1201</span>
+                  </div>
+                </div>
+                <ChevronLeft size={20} className="text-rose-300" />
+              </a>
+
+              <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Phone size={20} />
+                  </div>
+                  <div className="text-right">
+                    <span className="block font-black text-emerald-700">מד"א - מצבי חירום רפואיים</span>
+                    <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
+                  </div>
+                </div>
+                <ChevronLeft size={20} className="text-rose-300" />
+              </a>
+
+              <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
+                <UserPlus className="text-indigo-500 shrink-0" size={24} />
+                <p className="text-sm font-bold text-indigo-900 leading-relaxed">
+                  {displayGender === "f" 
+                    ? `${displayName}, בבקשה פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה.`
+                    : `${displayName}, בבקשה פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה.`
+                  }
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleResetChat}
+              className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors"
+            >
+              סגור וחזור לכלים הרגילים
+            </button>
+          </div>
         ) : messages.length > 0 ? (
-          <ChatInterface />
+          <div className="mb-6 bg-white rounded-[2.5rem] border border-indigo-100 shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
+            <div className="flex items-center justify-between p-6 border-b border-slate-50 bg-slate-50/30 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                  <MessageCircle size={16} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">הדיאלוג החכם</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">מלווה אותך צעד אחר צעד</span>
+                </div>
+              </div>
+              <button onClick={handleResetChat} className="text-[10px] font-black text-slate-300 hover:text-slate-500 flex items-center gap-1 transition-colors px-3 py-1.5 rounded-full hover:bg-slate-100">
+                <X size={12} /> איפוס שיחה
+              </button>
+            </div>
+            
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar scroll-smooth"
+            >
+              {messages.map((msg, i) => (
+                <div key={i} className={cn(
+                  "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                  msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                )}>
+                  <div className={cn(
+                    "w-9 h-9 rounded-full shrink-0 flex items-center justify-center overflow-hidden border-2 shadow-sm",
+                    msg.role === 'user' ? "border-white bg-slate-100" : "border-indigo-100 bg-indigo-600"
+                  )}>
+                    {msg.role === 'user' ? (
+                      user?.photoURL ? (
+                        <Image src={user.photoURL} alt={displayName} width={36} height={36} className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon size={16} className="text-slate-400" />
+                      )
+                    ) : (
+                      <div className="p-1.5 w-full h-full flex items-center justify-center">
+                        <Logo variant="icon" className="w-full h-full" />
+                      </div>
+                    )}
+                  </div>
+                  <div className={cn(
+                    "p-4 rounded-2xl text-sm leading-relaxed max-w-[85%] shadow-sm",
+                    msg.role === 'user' 
+                      ? "bg-slate-50 text-slate-700 rounded-tr-none" 
+                      : "bg-indigo-50 text-indigo-900 rounded-tl-none font-bold"
+                  )}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              
+              {isSearching && (
+                <div className="flex gap-3 animate-pulse">
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center p-1.5 border-2 border-indigo-100">
+                    <Logo variant="icon" />
+                  </div>
+                  <div className="bg-indigo-50 h-12 w-32 rounded-2xl rounded-tl-none" />
+                </div>
+              )}
+
+              {!isSearching && recommendation && (
+                <div className="space-y-4 pt-2">
+                  {recommendation.quickReplies && recommendation.quickReplies.length > 0 && (
+                    <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                      {recommendation.quickReplies.map((reply, i) => (
+                        <button 
+                          key={i}
+                          onClick={() => sendQuery(reply)}
+                          className="px-4 py-2 bg-white border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 shadow-sm"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {recommendation.options && recommendation.options.length > 0 && (
+                    <div className="grid gap-3 pt-2 animate-in fade-in duration-1000">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
+                      {recommendation.options.map((opt, i) => (
+                        <button 
+                          key={i}
+                          onClick={() => {
+                            if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                            else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                            else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
+                            else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
+                            else onSelectCategory(opt.categoryKey);
+                          }}
+                          className="group w-full p-4 bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98] shadow-sm"
+                        >
+                          <div className="space-y-0.5">
+                            <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{opt.label}</span>
+                            <span className="block text-[11px] text-slate-500 font-medium">{opt.description}</span>
+                          </div>
+                          <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={16} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div ref={chatEndRef} className="h-4 shrink-0" />
+            </div>
+
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
+              <form onSubmit={handleSearch} className="relative">
+                <div className="relative glass-panel rounded-2xl p-1.5 flex items-center shadow-md overflow-hidden bg-white/90">
+                  <input 
+                    type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
+                    placeholder={recommendation?.needsMoreInfo ? "הוסף/י עוד פרטים..." : "מה תרצה/י להוסיף?"} 
+                    className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
+                  />
+                  <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
+                    {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         ) : (
           <form onSubmit={handleSearch} className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
