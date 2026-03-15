@@ -58,7 +58,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout }: LandingScreen
           <div className="dark-glass-panel rounded-[2.5rem] p-8 text-center border-indigo-500/10 mt-10">
             <div className="max-w-[320px] mx-auto">
               <p className="text-slate-300 text-sm leading-relaxed font-medium">
-                שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, זמין עבורכם בכל רגע שתזדקקו לו.
+                שלום, אני <button onClick={onGoToAbout} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors font-bold">עמיר אייל</button>. יצרתי עבורכם את ה"מצפן הרגשי" כמרחב בטוח לוויסות וצמיחה, אשר זמין עבורכם בכל רגע שתזדקקו לו בין המפגשים שלנו.
               </p>
             </div>
           </div>
