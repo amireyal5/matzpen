@@ -36,7 +36,7 @@ import {
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 /**
- * הגדרת הקטגוריות והמשפטים.
+ * הגדרת הקטגוריות והמשפטים עם הקישורים המקוריים של עמיר.
  */
 const CATEGORIES = [
   {
@@ -171,7 +171,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const blsIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Audio element persistence to avoid multiple connections
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const voiceSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
@@ -194,20 +193,14 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       pannerRef.current!.connect(masterGainRef.current!);
       masterGainRef.current!.connect(audioCtxRef.current!.destination);
 
-      // Initialize persistent voice audio
       voiceAudioRef.current = new Audio();
       voiceAudioRef.current.crossOrigin = "anonymous";
-      
-      voiceSourceRef.current = audioCtxRef.current!.createMediaElementSource(voiceAudioRef.current);
-      voiceSourceRef.current.connect(pannerRef.current!);
     }
   };
 
   const stopAll = () => {
     activeOscillators.current.forEach(osc => {
-      try { 
-        osc.stop(); 
-      } catch(e) {}
+      try { osc.stop(); } catch(e) {}
     });
     activeOscillators.current = [];
     
@@ -291,6 +284,17 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       const audio = voiceAudioRef.current;
       audio.src = audioSrc;
 
+      // ניסיון ראשון: חיבור למנוע האודיו הדינמי (צידוד)
+      try {
+        if (!voiceSourceRef.current) {
+          voiceSourceRef.current = audioCtxRef.current.createMediaElementSource(audio);
+          voiceSourceRef.current.connect(pannerRef.current!);
+        }
+      } catch (corsErr) {
+        // אם זה נכשל בגלל CORS, הסאונד ינגן ישירות מהאלמנט (ללא צידוד) אך יישמע!
+        console.warn("CORS/AudioContext Connection failed, playing directly.");
+      }
+
       audio.onended = () => {
         setIsSpeaking(false);
         if (musicGainNodeRef.current && audioCtxRef.current) {
@@ -299,12 +303,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       };
 
       audio.onerror = (e) => {
-        const err = (e.target as HTMLAudioElement).error;
-        console.warn("Audio Pipeline Warning (Load/CORS):", {
-          code: err?.code,
-          message: err?.message,
-          url: (e.target as HTMLAudioElement).src
-        });
+        console.warn("Audio load error, trying fallback if possible.");
         setIsSpeaking(false);
         setIsLoading(false);
         if (musicGainNodeRef.current && audioCtxRef.current) {
@@ -315,7 +314,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       await audio.play();
       setIsLoading(false);
     } catch (error) {
-      console.warn("Audio Playback Error:", error);
+      console.warn("General Playback Error:", error);
       setIsSpeaking(false);
       setIsLoading(false);
       if (musicGainNodeRef.current && audioCtxRef.current) {
@@ -326,16 +325,11 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
   const triggerStep = () => {
     if (!selectedCat || !isPlaying) return;
-    
     const randomAffObj = selectedCat.affirmations[Math.floor(Math.random() * selectedCat.affirmations.length)];
-    
     setCurrentAffText(randomAffObj.text);
     setShowAff(true);
     speakAffirmation(randomAffObj);
-    
-    setTimeout(() => {
-        setShowAff(false);
-    }, 18000); 
+    setTimeout(() => { setShowAff(false); }, 18000); 
   };
 
   useEffect(() => {
@@ -343,11 +337,9 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       initAudio();
       stopAll();
       playBackgroundDrone();
-      
       triggerStep();
       
       const tickDuration = selectedCat.blsSpeed / 2;
-
       blsIntervalRef.current = setInterval(() => {
         setBlsSide(prev => {
           const newSide = prev === 'right' ? 'left' : 'right';
@@ -362,22 +354,16 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       }, tickDuration);
 
       affIntervalRef.current = setInterval(triggerStep, 35000); 
-      
     } else {
       stopAll();
       setShowAff(false);
     }
-    
     return () => stopAll();
   }, [isPlaying, selectedCat]);
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-right overflow-hidden select-none" dir="rtl">
-      
-      <div className={cn(
-        "fixed inset-0 transition-all duration-[5000ms] ease-in-out",
-        selectedCat ? "opacity-100" : "opacity-0"
-      )}>
+      <div className={cn("fixed inset-0 transition-all duration-[5000ms] ease-in-out", selectedCat ? "opacity-100" : "opacity-0")}>
         <div className={cn("absolute inset-0 bg-gradient-to-br", selectedCat?.color)} />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-screen" />
       </div>
@@ -386,8 +372,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         <div className="min-h-screen flex flex-col">
           <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md relative z-20">
             <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
-              <ArrowRight size={18} />
-              חזרה
+              <ArrowRight size={18} /> חזרה
             </button>
             <div className="flex flex-col items-center text-center">
               <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">מרחב העיבוד</span>
@@ -401,17 +386,14 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
           <main className="max-w-xl mx-auto pt-16 pb-12 px-6 relative z-10 overflow-y-auto flex-1">
             <header className="mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
               <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">המצפן הטיפולי</h1>
-              <p className="text-white/40 text-sm font-medium italic">עיבוד רגשי בילטרלי הרמוני (128Hz-512Hz) לסנכרון שתי המיספרות המוח.</p>
+              <p className="text-white/40 text-sm font-medium italic">עיבוד רגשי בילטרלי הרמוני לסנכרון המוח. ההקלטות המקוריות בקולו של עמיר אייל זמינות ב'ויסות חרדה'.</p>
             </header>
 
             <div className="grid gap-4 mb-20">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => { 
-                    setSelectedCat(cat); 
-                    setIsPlaying(true); 
-                  }}
+                  onClick={() => { setSelectedCat(cat); setIsPlaying(true); }}
                   className="group bg-white/[0.03] backdrop-blur-3xl p-6 rounded-[2rem] border border-white/5 hover:border-white/20 transition-all duration-500 text-right flex items-center justify-between shadow-2xl active:scale-[0.98]"
                 >
                   <div className="flex items-center gap-6">
@@ -431,7 +413,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         </div>
       ) : (
         <div className="min-h-screen flex flex-col relative">
-          
           <div className="p-8 flex justify-between items-start z-50">
              <button onClick={() => { setSelectedCat(null); setIsPlaying(false); }} className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
               <X size={20} />
@@ -450,65 +431,34 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                       <span className="text-[10px] font-black uppercase tracking-widest">עוצמת צליל רקע</span>
                       <Volume2 size={14} />
                     </div>
-                    <Slider 
-                      value={[droneVolume * 100]} 
-                      max={100} 
-                      step={1} 
-                      onValueChange={(vals) => setDroneVolume(vals[0] / 100)}
-                      className="cursor-pointer"
-                    />
+                    <Slider value={[droneVolume * 100]} max={100} onValueChange={(vals) => setDroneVolume(vals[0] / 100)} className="cursor-pointer" />
                   </div>
-                  
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-white/60">
-                      <span className="text-[10px] font-black uppercase tracking-widest">תדר בסיס (Hz): {droneFreq}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">תדר בסיס: {droneFreq}Hz</span>
                       <Activity size={14} />
                     </div>
-                    <Slider 
-                      value={[droneFreq]} 
-                      min={64}
-                      max={512} 
-                      step={1} 
-                      onValueChange={(vals) => setDroneFrequency(vals[0])}
-                      className="cursor-pointer"
-                    />
+                    <Slider value={[droneFreq]} min={64} max={512} onValueChange={(vals) => setDroneFrequency(vals[0])} className="cursor-pointer" />
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
-
-            <div className="text-left absolute left-1/2 -translate-x-1/2 top-10 pointer-events-none">
-               <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] block mb-1">Active Processing</span>
-               <div className="flex items-center gap-2 justify-center">
-                 <div className={cn(
-                   "w-1.5 h-1.5 rounded-full transition-all duration-500",
-                   isSpeaking ? "bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]" : "bg-white/10"
-                 )} />
-                 <span className="text-white/40 text-[10px] font-bold">{selectedCat.title}</span>
-               </div>
-            </div>
           </div>
 
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
-               className={cn(
-                 "w-10 h-10 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
-               )}
+               className="w-10 h-10 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
                style={{ 
                  transition: `left ${selectedCat.blsSpeed / 2}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 2000ms, transform 1000ms`,
                  left: blsSide === 'left' ? '12%' : '88%',
                  opacity: showAff ? 0.7 : 0.15,
-                 scale: isSpeaking ? '2.5' : '1',
-                 boxShadow: isSpeaking ? `0 0 60px ${selectedCat.accent}` : 'none'
+                 scale: isSpeaking ? '2.5' : '1'
                }}
              />
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center px-8 pb-32">
-            <div className={cn(
-              "max-w-4xl w-full text-center transition-all duration-[3000ms]",
-              showAff ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-95 blur-3xl"
-            )}>
+            <div className={cn("max-w-4xl w-full text-center transition-all duration-[3000ms]", showAff ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-95 blur-3xl")}>
                <Quote className="text-white/5 mx-auto mb-8 w-16 h-16" />
                <h2 className="text-white text-3xl md:text-6xl font-black leading-tight tracking-tight px-4 drop-shadow-2xl">
                  {currentAffText}
@@ -522,29 +472,23 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                   {[...Array(4)].map((_, i) => (
                     <div 
                       key={i} 
-                      className={cn(
-                        "w-0.5 rounded-full transition-all duration-300",
-                        blsSide === (i < 2 ? 'left' : 'right') ? "bg-indigo-400 shadow-[0_0_8px_indigo]" : "bg-white/10"
-                      )}
+                      className={cn("w-0.5 rounded-full transition-all duration-300", blsSide === (i < 2 ? 'left' : 'right') ? "bg-indigo-400 shadow-[0_0_8px_indigo]" : "bg-white/10")}
                       style={{ height: isPlaying ? '14px' : '4px' }}
                     />
                   ))}
                </div>
-
                <button 
                 onClick={() => setIsPlaying(!isPlaying)}
                 className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
                >
                  {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="mr-1" />}
                </button>
-
                <div className="flex items-center gap-2 text-white/20">
                  {isLoading ? <Loader2 size={14} className="animate-spin text-indigo-400" /> : <Zap size={14} className={isSpeaking ? 'text-indigo-400' : ''} />}
                  <span className="text-[9px] font-black tracking-widest uppercase">Pure Harmonic Flow</span>
                </div>
             </div>
           </div>
-
         </div>
       )}
     </div>
