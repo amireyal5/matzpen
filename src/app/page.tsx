@@ -10,11 +10,12 @@ import SplashScreen from "@/components/SplashScreen";
 import GuidedSession from "@/components/GuidedSession";
 import ThoughtJournal from "@/components/ThoughtJournal";
 import MeditationScreen from "@/components/MeditationScreen";
+import BilateralProcessing from "@/components/BilateralProcessing";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "meditation";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "meditation" | "bilateral";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
@@ -49,7 +50,7 @@ function AppContent() {
           setScreen("home");
         }
       } else {
-        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "meditation") {
+        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "meditation" || screen === "bilateral") {
           setScreen("auth");
         }
       }
@@ -86,6 +87,10 @@ function AppContent() {
     }
     if (catKey === "MEDITATION") {
       setScreen("meditation");
+      return;
+    }
+    if (catKey === "BILATERAL") {
+      setScreen("bilateral");
       return;
     }
     setActiveCatKey(catKey);
@@ -126,6 +131,7 @@ function AppContent() {
           onStartGuided={handleStartGuided}
           onGoToJournal={() => setScreen("journal")}
           onGoToMeditation={() => setScreen("meditation")}
+          onGoToBilateral={() => setScreen("bilateral")}
           onBack={() => setScreen("landing")} 
         />
       )}
@@ -152,6 +158,12 @@ function AppContent() {
       )}
       {(screen === "meditation" && user) && (
         <MeditationScreen 
+          onBack={() => setScreen("home")}
+        />
+      )}
+      {(screen === "bilateral" && user) && (
+        <BilateralProcessing 
+          gender={gender}
           onBack={() => setScreen("home")}
         />
       )}

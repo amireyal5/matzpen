@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2 } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -21,12 +21,22 @@ interface HomeScreenProps {
   onStartGuided: (catKey: string, practiceIdx: number) => void;
   onGoToJournal: () => void;
   onGoToMeditation: () => void;
+  onGoToBilateral: () => void;
   onBack: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
-export default function HomeScreen({ name: initialName, gender: initialGender, onSelectCategory, onStartGuided, onGoToJournal, onGoToMeditation, onBack }: HomeScreenProps) {
+export default function HomeScreen({ 
+  name: initialName, 
+  gender: initialGender, 
+  onSelectCategory, 
+  onStartGuided, 
+  onGoToJournal, 
+  onGoToMeditation, 
+  onGoToBilateral,
+  onBack 
+}: HomeScreenProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -169,11 +179,11 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
                 className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
               >
                 <Sparkles size={16} />
-                {recommendation.categoryKey === "JOURNAL" ? "לפתוח יומן מחשבות" : recommendation.categoryKey === "MEDITATION" ? "להתחיל מדיטציה" : "בוא נתרגל יחד"}
+                {recommendation.categoryKey === "JOURNAL" ? "לפתוח יומן מחשבות" : recommendation.categoryKey === "MEDITATION" ? "להתחיל מדיטציה" : recommendation.categoryKey === "BILATERAL" ? "להתחיל עיבוד בילטרלי" : "בוא נתרגל יחד"}
               </button>
               <button 
                 onClick={() => {
-                  if (recommendation.categoryKey !== "JOURNAL" && recommendation.categoryKey !== "MEDITATION") {
+                  if (recommendation.categoryKey !== "JOURNAL" && recommendation.categoryKey !== "MEDITATION" && recommendation.categoryKey !== "BILATERAL") {
                     onSelectCategory(recommendation.categoryKey);
                   } else {
                     setRecommendation(null);
@@ -190,35 +200,47 @@ export default function HomeScreen({ name: initialName, gender: initialGender, o
 
       <div className="max-w-xl mx-auto px-6 mt-12 space-y-12 pb-20">
         
-        {/* Quick Tools Section */}
+        {/* Strategic Tools Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 px-2">
             <Sparkles size={14} className="text-indigo-600" />
             <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">כלים אסטרטגיים</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <button 
               onClick={onGoToJournal}
-              className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-3 active:scale-95 group"
+              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
-                <BookText size={24} />
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                <BookText size={20} />
               </div>
-              <div className="space-y-1">
-                <span className="block text-sm font-black text-slate-900">יומן מחשבות</span>
-                <span className="block text-[10px] text-slate-400 font-bold">פריקה ועיבוד CBT</span>
+              <div className="space-y-0.5">
+                <span className="block text-[11px] font-black text-slate-900">יומן מחשבות</span>
+                <span className="block text-[8px] text-slate-400 font-bold">CBT</span>
+              </div>
+            </button>
+            <button 
+              onClick={onGoToBilateral}
+              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                <Zap size={20} className="fill-current" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="block text-[11px] font-black text-slate-900">עיבוד בילטרלי</span>
+                <span className="block text-[8px] text-slate-400 font-bold">EMDR Style</span>
               </div>
             </button>
             <button 
               onClick={onGoToMeditation}
-              className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-3 active:scale-95 group"
+              className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <Flower2 size={24} />
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                <Flower2 size={20} />
               </div>
-              <div className="space-y-1">
-                <span className="block text-sm font-black text-slate-900">מדיטציה</span>
-                <span className="block text-[10px] text-slate-400 font-bold">שקט וחיבור פנימי</span>
+              <div className="space-y-0.5">
+                <span className="block text-[11px] font-black text-slate-900">מדיטציה</span>
+                <span className="block text-[8px] text-slate-400 font-bold">שקט פנימי</span>
               </div>
             </button>
           </div>
