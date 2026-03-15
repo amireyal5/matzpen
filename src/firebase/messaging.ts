@@ -1,7 +1,6 @@
-
 'use client';
 
-import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { getApp } from "firebase/app";
 
 /**
@@ -19,9 +18,17 @@ export async function requestNotificationPermission(): Promise<string | null> {
     if (permission === 'granted') {
       const messaging = getMessaging(getApp());
       
-      // יש להחליף את המפתח הזה ב-VAPID Key שנוצר ב-Firebase Console
-      // Settings -> Cloud Messaging -> Web Push certificates
-      const VAPID_KEY = "BD_YOUR_VAPID_PUBLIC_KEY_HERE"; 
+      /**
+       * !!! חשוב מאוד !!!
+       * כאן עליך להדביק את ה-Key שייצרת ב-Firebase Console:
+       * Project Settings -> Cloud Messaging -> Web Push certificates
+       */
+      const VAPID_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
+      
+      if (VAPID_KEY === "YOUR_VAPID_PUBLIC_KEY_HERE") {
+        console.error("יש להגדיר מפתח VAPID תקין ב-src/firebase/messaging.ts כדי שהתראות יעבדו.");
+        return null;
+      }
       
       const token = await getToken(messaging, { 
         vapidKey: VAPID_KEY 
@@ -41,11 +48,15 @@ export async function requestNotificationPermission(): Promise<string | null> {
 export function onMessageListener() {
   if (typeof window === 'undefined') return;
   
-  const messaging = getMessaging(getApp());
-  return new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      console.log("הודעה חדשה התקבלה:", payload);
-      resolve(payload);
+  try {
+    const messaging = getMessaging(getApp());
+    return new Promise((resolve) => {
+      onMessage(messaging, (payload) => {
+        console.log("הודעה חדשה התקבלה בחזית:", payload);
+        resolve(payload);
+      });
     });
-  });
+  } catch (e) {
+    console.error("Messaging not initialized", e);
+  }
 }
