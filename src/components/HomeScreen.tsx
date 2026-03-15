@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -171,29 +171,47 @@ export default function HomeScreen({
         </form>
 
         {recommendation && (
-          <div className="mt-6 p-8 bg-white rounded-[2rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500">
-            <p className="text-base text-slate-700 leading-relaxed mb-6 font-medium border-r-4 border-indigo-500 pr-5">{recommendation.explanation}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button 
-                onClick={() => onStartGuided(recommendation.categoryKey, recommendation.practiceIndex)}
-                className="w-full py-5 bg-indigo-600 rounded-2xl text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
-              >
-                <Sparkles size={16} />
-                {recommendation.categoryKey === "JOURNAL" ? "לפתוח יומן מחשבות" : recommendation.categoryKey === "MEDITATION" ? "להתחיל מדיטציה" : recommendation.categoryKey === "BILATERAL" ? "להתחיל עיבוד בילטרלי" : "בוא נתרגל יחד"}
-              </button>
-              <button 
-                onClick={() => {
-                  if (recommendation.categoryKey !== "JOURNAL" && recommendation.categoryKey !== "MEDITATION" && recommendation.categoryKey !== "BILATERAL") {
-                    onSelectCategory(recommendation.categoryKey);
-                  } else {
-                    setRecommendation(null);
-                  }
-                }}
-                className="w-full py-5 bg-slate-100 rounded-2xl text-slate-900 font-black text-sm hover:bg-slate-200 transition-all active:scale-95"
-              >
-                צפייה בכלים נוספים
-              </button>
+          <div className="mt-6 p-8 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 space-y-8" dir="rtl">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <Sparkles size={16} />
+                </div>
+                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">הכוונה מותאמת</span>
+              </div>
+              <p className="text-lg text-slate-800 leading-relaxed font-bold border-r-4 border-indigo-500 pr-5">
+                {recommendation.explanation}
+              </p>
             </div>
+
+            <div className="grid gap-3">
+              {recommendation.options.map((opt, i) => (
+                <button 
+                  key={i}
+                  onClick={() => {
+                    if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                    else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                    else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
+                    else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
+                    else onSelectCategory(opt.categoryKey);
+                  }}
+                  className="group w-full p-5 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98]"
+                >
+                  <div className="space-y-1">
+                    <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{opt.label}</span>
+                    <span className="block text-xs text-slate-500 font-medium">{opt.description}</span>
+                  </div>
+                  <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={18} />
+                </button>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setRecommendation(null)}
+              className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+            >
+              סגור הכוונה וחזור לספריית הכלים
+            </button>
           </div>
         )}
       </div>
