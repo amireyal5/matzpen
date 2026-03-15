@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -28,6 +28,8 @@ interface HomeScreenProps {
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
+type Message = { role: 'user' | 'model', content: string };
+
 export default function HomeScreen({ 
   name: initialName, 
   gender: initialGender, 
@@ -42,8 +44,10 @@ export default function HomeScreen({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -63,6 +67,12 @@ export default function HomeScreen({
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isSearching]);
+
   const favorites = profileData?.favorites || [];
   const completedCards = profileData?.completed || [];
   const displayName = profileData?.name || initialName;
@@ -70,18 +80,36 @@ export default function HomeScreen({
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    const query = searchQuery.trim();
+    if (!query) return;
     
+    const newUserMessage: Message = { role: 'user', content: query };
+    const updatedMessages = [...messages, newUserMessage];
+    
+    setMessages(updatedMessages);
+    setSearchQuery("");
     setIsSearching(true);
-    setRecommendation(null);
+    
     try {
-      const res = await getRecommendation({ feeling: searchQuery, gender: displayGender });
+      const res = await getRecommendation({ 
+        feeling: query, 
+        gender: displayGender,
+        history: messages 
+      });
+      
       setRecommendation(res);
+      setMessages([...updatedMessages, { role: 'model', content: res.explanation }]);
     } catch (err) {
       console.error(err);
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleResetChat = () => {
+    setRecommendation(null);
+    setMessages([]);
+    setSearchQuery("");
   };
 
   const CrisisSupport = () => (
@@ -136,7 +164,7 @@ export default function HomeScreen({
       </div>
 
       <button 
-        onClick={() => setRecommendation(null)}
+        onClick={handleResetChat}
         className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors"
       >
         סגור וחזור לכלים הרגילים
@@ -206,76 +234,108 @@ export default function HomeScreen({
       </header>
 
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
-        <form onSubmit={handleSearch} className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
-          <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden">
-            <div className={cn(
-              "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
-              isMinimized ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
-            )}>
-              <div className="relative w-10 h-10">
-                <div className="w-full h-full rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden relative">
-                  <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+        
+        {/* Dialogue View */}
+        {messages.length > 0 && !recommendation?.isCrisis && (
+          <div className="mb-6 p-6 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 space-y-4 max-h-[400px] overflow-y-auto hide-scrollbar" dir="rtl">
+            <div className="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm pb-4 z-10 border-b border-slate-50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <MessageCircle size={16} />
                 </div>
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
+                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">דיאלוג מונחה</span>
               </div>
+              <button onClick={handleResetChat} className="text-[10px] font-black text-slate-300 hover:text-slate-500 flex items-center gap-1">
+                <X size={12} /> איפוס שיחה
+              </button>
+            </div>
+            
+            <div className="space-y-6 pt-4">
+              {messages.map((msg, i) => (
+                <div key={i} className={cn(
+                  "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                  msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                )}>
+                  <div className={cn(
+                    "w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold",
+                    msg.role === 'user' ? "bg-slate-100 text-slate-500" : "bg-indigo-600 text-white"
+                  )}>
+                    {msg.role === 'user' ? <UserIcon size={14} /> : <Logo variant="icon" className="p-1" />}
+                  </div>
+                  <div className={cn(
+                    "p-4 rounded-2xl text-sm leading-relaxed max-w-[85%]",
+                    msg.role === 'user' ? "bg-slate-50 text-slate-700 rounded-tr-none" : "bg-indigo-50 text-indigo-900 rounded-tl-none font-bold"
+                  )}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isSearching && (
+                <div className="flex gap-3 animate-pulse">
+                  <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                    <Logo variant="icon" className="p-1" />
+                  </div>
+                  <div className="bg-indigo-50 h-10 w-24 rounded-2xl rounded-tl-none" />
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
 
-            <input 
-              type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder={placeholderText} className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
-            />
-            <button type="submit" disabled={isSearching} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50">
-              {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
-            </button>
+            {recommendation && recommendation.options && recommendation.options.length > 0 && (
+              <div className="grid gap-3 pt-6 border-t border-slate-50 animate-in fade-in duration-1000">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">כלים מוצעים עבורך:</span>
+                {recommendation.options.map((opt, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => {
+                      if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                      else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                      else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
+                      else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
+                      else onSelectCategory(opt.categoryKey);
+                    }}
+                    className="group w-full p-5 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98]"
+                  >
+                    <div className="space-y-1">
+                      <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{opt.label}</span>
+                      <span className="block text-xs text-slate-500 font-medium">{opt.description}</span>
+                    </div>
+                    <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={18} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </form>
+        )}
 
         {recommendation && recommendation.isCrisis ? (
           <CrisisSupport />
-        ) : recommendation && (
-          <div className="mt-6 p-8 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 space-y-8" dir="rtl">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                  <Sparkles size={16} />
-                </div>
-                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">הכוונה מותאמת</span>
-              </div>
-              <p className="text-lg text-slate-800 leading-relaxed font-bold border-r-4 border-indigo-500 pr-5">
-                {recommendation.explanation}
-              </p>
-            </div>
-
-            <div className="grid gap-3">
-              {recommendation.options.map((opt, i) => (
-                <button 
-                  key={i}
-                  onClick={() => {
-                    if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                    else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
-                    else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
-                    else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
-                    else onSelectCategory(opt.categoryKey);
-                  }}
-                  className="group w-full p-5 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98]"
-                >
-                  <div className="space-y-1">
-                    <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{opt.label}</span>
-                    <span className="block text-xs text-slate-500 font-medium">{opt.description}</span>
+        ) : (
+          <form onSubmit={handleSearch} className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
+            <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden">
+              <div className={cn(
+                "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
+                (isMinimized && messages.length === 0) ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
+              )}>
+                <div className="relative w-10 h-10">
+                  <div className="w-full h-full rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden relative">
+                    <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
                   </div>
-                  <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={18} />
-                </button>
-              ))}
-            </div>
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
+                </div>
+              </div>
 
-            <button 
-              onClick={() => setRecommendation(null)}
-              className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
-            >
-              סגור הכוונה וחזור לספריית הכלים
-            </button>
-          </div>
+              <input 
+                type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
+                placeholder={messages.length > 0 ? "השיבי/השב למצפן..." : placeholderText} 
+                className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
+              />
+              <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50">
+                {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
+              </button>
+            </div>
+          </form>
         )}
       </div>
 

@@ -1,15 +1,21 @@
 'use server';
 /**
- * @fileOverview מנוע המלצות חכם ואבחוני למצפן הרגשי עם מנגנון הגנה למצבי סיכון.
+ * @fileOverview מנוע המלצות דיאלוגי המאפשר תשאול מעמיק ושיח רציף.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { CATS } from '@/lib/data';
 
+const MessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.string(),
+});
+
 const RecommendationInputSchema = z.object({
   feeling: z.string().describe('תיאור ההרגשה של המשתמש כרגע.'),
   gender: z.enum(['m', 'f']).describe('מגדר המשתמש (m/f) לצורך פנייה נכונה.'),
+  history: z.array(MessageSchema).optional().describe('היסטוריית השיחה הנוכחית.'),
 });
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 
@@ -21,10 +27,10 @@ const RecommendationOptionSchema = z.object({
 });
 
 const RecommendationOutputSchema = z.object({
-  explanation: z.string().describe('התייחסות אמפתית ותיקוף.'),
-  options: z.array(RecommendationOptionSchema).describe('רשימת נתיבי עבודה.'),
+  explanation: z.string().describe('התייחסות אמפתית, שאלת הבהרה או הסבר.'),
+  options: z.array(RecommendationOptionSchema).optional().describe('רשימת נתיבי עבודה (יוצגו רק כשיש מספיק מידע).'),
   isCrisis: z.boolean().describe('האם זוהה סיכון עצמי או אובדנות.'),
-  crisisMessage: z.string().optional().describe('מסר הבהרה והפניה לחירום במידת הצורך.'),
+  needsMoreInfo: z.boolean().describe('האם נדרש תשאול נוסף לפני מתן כלים.'),
 });
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>;
 
@@ -54,30 +60,29 @@ const prompt = ai.definePrompt({
   input: { schema: RecommendationInputSchema },
   output: { schema: RecommendationOutputSchema },
   prompt: `אתה עוזר טיפולי מומחה (CBT ו-SE) באפליקציית "המצפן הרגשי" של עמיר אייל.
-המשתמש משתף: "{{{feeling}}}".
 מגדר המשתמש: {{gender}}.
 
+**היסטוריית השיחה**:
+{{#each history}}
+{{role}}: {{{content}}}
+{{/each}}
+המשתמש כעת אומר: "{{{feeling}}}"
+
 **משימה קריטית - בטיחות (Safety First)**:
-עליך לזהות כל רמז למצוקה קיצונית, ייאוש עמוק או אובדן רצון לחיות. 
-אמירות כמו "נמאס לי", "אני לא יכול יותר", "איבדתי את החשק", "אין לי כוח לחיים האלה" - מחייבות התייחסות כאל מצב סיכון!
+עליך לזהות כל רמז למצוקה קיצונית או אובדנות. אם יש ספק - זה מצב סיכון.
+במקרה של סיכון: הגדר isCrisis כ-true, שאל שאלת הבהרה מפורשת על פגיעה עצמית, ואל תציע תרגילים רגילים.
 
-אם המשתמש מביע כוונות לפגיעה עצמית, מחשבות אובדניות או ייאוש קיצוני (גם אם ברמז או באמירה עמומה):
-1. הגדר את isCrisis כ-true.
-2. ב-explanation, כתוב מסר אמפתי אך חד-משמעי: "אני שומע את המצוקה הכבדה במילים שלך. חשוב לי לומר שבמצבים של ייאוש כזה, המצפן הדיגיטלי אינו כלי מספיק וחשוב מאוד לא להישאר עם זה לבד."
-3. עליך לשאול שאלת הבהרה מפורשת בתוך ה-explanation: "האם יש לך מחשבה לפגוע בעצמך כרגע או תוכנית כזו? בבקשה אל תישאר עם זה לבד, יש אנשים שרוצים ויכולים לעזור ברגע זה ממש."
-4. אל תציע תרגילים רגילים (מדיטציה/יומן) כפתרון ראשי. האופציות צריכות להיות הפניה לעזרה מקצועית.
-
-אם אין סיכון חיים:
-1. קיים דיאלוג מעמיק: אמפתיה, תיקוף ושאלה מכווינה לגבי דרך העבודה המועדפת (מחשבות, גוף, ערכים).
-2. הצע 3-4 אופציות רלוונטיות מהקטגוריות הקיימות.
+**משימה עיקרית - דיאלוג ותשאול**:
+1. אל תהיה נחרץ מדי בתגובה הראשונה אם המידע דל (למשל: "אני מדוכא", "רע לי").
+2. אם התמונה לא ברורה, הגדר needsMoreInfo כ-true, והשתמש ב-explanation כדי לשאול שאלת הבהרה אמפתית (למשל: "אני שומע שקשה לך, האם זה קשור למשהו ספציפי שקרה או תחושה כללית?").
+3. רק כשיש לך תמונה ברורה מספיק, הצע 2-3 אופציות רלוונטיות מהקטגוריות (options).
+4. פנה למשתמש בשפה המותאמת למגדרו ({{gender}}).
 
 הקטגוריות הקיימות:
 {{#each categories}}
 - {{key}}: {{label}} ({{tagLine}})
 {{/each}}
-כלים נוספים: JOURNAL, MEDITATION, BILATERAL.
-
-פנה למשתמש בשפה המותאמת למגדר שלו ({{gender}}).`,
+כלים נוספים: JOURNAL, MEDITATION, BILATERAL.`,
 });
 
 const recommendationFlow = ai.defineFlow(
