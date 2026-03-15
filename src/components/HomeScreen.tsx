@@ -94,10 +94,13 @@ export default function HomeScreen({
     setIsSearching(true);
     
     try {
+      // וידוא שהשם המדויק נשלח ל-Flow
+      const currentName = profileData?.name || displayName;
+      
       const res = await getRecommendation({ 
         feeling: query, 
         gender: displayGender,
-        name: displayName,
+        name: currentName,
         history: messages 
       });
       
@@ -144,7 +147,7 @@ export default function HomeScreen({
               
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative">
+                  <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative" aria-label="פרופיל והגדרות">
                     {user?.photoURL ? (
                       <Image src={user.photoURL} alt="פרופיל אישי" width={40} height={40} className="w-full h-full object-cover rounded-full" />
                     ) : (
@@ -363,7 +366,7 @@ export default function HomeScreen({
                     placeholder={recommendation?.needsMoreInfo ? "הוסף/י עוד פרטים..." : "מה תרצה/י להוסיף?"} 
                     className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
                   />
-                  <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
+                  <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all" aria-label="שלח">
                     {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
                   </button>
                 </div>
@@ -397,7 +400,7 @@ export default function HomeScreen({
                     type="submit" 
                     disabled={isSearching || !searchQuery.trim()} 
                     className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all"
-                    aria-label="שלח שאלה לדיאלוג החכם"
+                    aria-label="שלח לדיאלוג החכם"
                   >
                     {isSearching ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
                   </button>
@@ -422,6 +425,7 @@ export default function HomeScreen({
                 <button 
                   onClick={onGoToJournal}
                   className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                  aria-label="יומן מחשבות CBT"
                 >
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
                     <BookText size={20} />
@@ -440,6 +444,7 @@ export default function HomeScreen({
                 <button 
                   onClick={onGoToBilateral}
                   className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                  aria-label="עיבוד בילטרלי"
                 >
                   <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
                     <Zap size={20} className="fill-current" />
@@ -458,6 +463,7 @@ export default function HomeScreen({
                 <button 
                   onClick={onGoToMeditation}
                   className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
+                  aria-label="מרחב המדיטציה"
                 >
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
                     <Flower2 size={20} />
