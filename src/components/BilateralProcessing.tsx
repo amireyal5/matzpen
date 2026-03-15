@@ -54,7 +54,7 @@ const CATEGORIES = [
       },
       { 
         text: "אני מאפשר למחשבות לחלוף.", 
-        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9 title:D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%9C%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%9C%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" 
       },
       { 
         text: "הגוף שלי חוזר לאיזון.", 
@@ -204,9 +204,15 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       {!selectedCat ? (
         <div className="min-h-screen flex flex-col">
           <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md relative z-20">
-            <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
-              <ArrowRight size={18} /> חזרה
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors" aria-label="חזרה למסך הבית">
+                  <ArrowRight size={18} /> חזרה
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>חזרה למסך הבית</TooltipContent>
+            </Tooltip>
+            
             <div className="flex flex-col items-center text-center">
               <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">מרחב העיבוד</span>
               <span className="text-sm font-bold text-white">Bilateral Processing</span>
@@ -228,6 +234,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                   key={cat.id}
                   onClick={() => { setSelectedCat(cat); setIsPlaying(true); }}
                   className="group bg-white/[0.03] backdrop-blur-3xl p-6 rounded-[2rem] border border-white/5 hover:border-white/20 transition-all duration-500 text-right flex items-center justify-between shadow-2xl active:scale-[0.98]"
+                  aria-label={`התחל תרגול ${cat.title}`}
                 >
                   <div className="flex items-center gap-6">
                     <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white group-hover:bg-white/10 transition-all">
@@ -247,16 +254,26 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       ) : (
         <div className="min-h-screen flex flex-col relative">
           <div className="p-8 flex justify-between items-start z-50">
-             <button onClick={() => { setSelectedCat(null); setIsPlaying(false); }} className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
-              <X size={20} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={() => { setSelectedCat(null); setIsPlaying(false); }} className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all" aria-label="סיום תרגול וחזרה">
+                  <X size={20} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>סיום תרגול</TooltipContent>
+            </Tooltip>
             
             <Popover>
-              <PopoverTrigger asChild>
-                <button className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all">
-                  <Settings2 size={20} />
-                </button>
-              </PopoverTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <button className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/30 hover:text-white transition-all" aria-label="הגדרות סאונד">
+                      <Settings2 size={20} />
+                    </button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent>הגדרות סאונד</TooltipContent>
+              </Tooltip>
               <PopoverContent className="w-64 bg-slate-900/90 backdrop-blur-xl border-white/10 rounded-[2rem] p-6 shadow-2xl" side="bottom" align="end">
                 <div className="space-y-6">
                   <div className="space-y-3">
@@ -304,12 +321,18 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                     />
                   ))}
                </div>
-               <button 
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
-               >
-                 {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="mr-1" />}
-               </button>
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <button 
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                    aria-label={isPlaying ? "עצור תרגול" : "המשך תרגול"}
+                   >
+                     {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="mr-1" />}
+                   </button>
+                 </TooltipTrigger>
+                 <TooltipContent>{isPlaying ? "עצור" : "נגן"}</TooltipContent>
+               </Tooltip>
                <div className="flex items-center gap-2 text-white/20">
                  {isLoading ? <Loader2 size={14} className="animate-spin text-indigo-400" /> : <Zap size={14} className={isSpeaking ? 'text-indigo-400' : ''} />}
                  <span className="text-[9px] font-black tracking-widest uppercase">Pure Voice Focus</span>
