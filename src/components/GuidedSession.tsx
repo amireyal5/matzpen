@@ -50,8 +50,8 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
   const progress = ((stepIdx + 1) / steps.length) * 100;
 
   useEffect(() => {
-    // Auto-play audio when step changes
-    handlePlayAudio(currentStep.text);
+    // מנטרלים הקראה אוטומטית במעבר שלב
+    // handlePlayAudio(currentStep.text);
     return () => {
       if (currentAudio) {
         currentAudio.pause();

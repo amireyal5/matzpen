@@ -67,9 +67,10 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   useEffect(() => {
-    if (step !== "finish" && step !== "analyzing") {
-      handlePlayAudio(stepsConfig[step as keyof typeof stepsConfig].prompt);
-    }
+    // מנטרלים הקראה אוטומטית של ההנחיה
+    // if (step !== "finish" && step !== "analyzing") {
+    //   handlePlayAudio(stepsConfig[step as keyof typeof stepsConfig].prompt);
+    // }
     
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -91,7 +92,6 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             setData(prev => {
               const currentStepKey = step as keyof typeof data;
               const currentText = prev[currentStepKey];
-              // מניעת כפילויות של מילים בגרסת הנייד
               if (currentText.includes(finalTranscript.trim())) return prev;
               return { 
                 ...prev, 
@@ -156,11 +156,9 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   };
 
   const handleNext = async () => {
-    // עצירה יזומה ומיידית של המיקרופון בלחיצה על המשך
     if (isRecording) {
       setIsRecording(false);
       recognitionRef.current?.stop();
-      // המתנה קלה לעיבוד המילים האחרונות
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -185,7 +183,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         }
 
         setStep("finish");
-        handlePlayAudio(result.summary);
+        // מנטרלים הקראה אוטומטית של הסיכום
+        // handlePlayAudio(result.summary);
       } catch (err) {
         console.error("Analysis failed", err);
         setStep("finish");
@@ -264,9 +263,19 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pr-2">
-                  <BookText size={16} className="text-emerald-400" />
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+                <div className="flex items-center justify-between pr-2">
+                  <div className="flex items-center gap-2">
+                    <BookText size={16} className="text-emerald-400" />
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+                  </div>
+                  <button 
+                    onClick={() => handlePlayAudio(analysis.summary)}
+                    disabled={isLoadingAudio}
+                    className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
+                  >
+                    {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
+                    השמע סיכום
+                  </button>
                 </div>
                 <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
                   {analysis.summary}
