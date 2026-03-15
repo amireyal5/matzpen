@@ -93,7 +93,7 @@ export default function HomeScreen({
         <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
       </div>
       
-      <p className="text-slate-800 leading-relaxed font-bold text-lg">
+      <p className="text-slate-800 leading-relaxed font-bold text-lg whitespace-pre-line">
         {recommendation?.explanation}
       </p>
 
@@ -103,7 +103,7 @@ export default function HomeScreen({
             <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <Phone size={20} />
             </div>
-            <div>
+            <div className="text-right">
               <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
               <span className="block text-xs text-slate-500">חיוג חינם ומיידי: 1201</span>
             </div>
@@ -116,7 +116,7 @@ export default function HomeScreen({
             <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
               <Phone size={20} />
             </div>
-            <div>
+            <div className="text-right">
               <span className="block font-black text-emerald-700">מד"א - מצבי חירום רפואיים</span>
               <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
             </div>
@@ -124,7 +124,7 @@ export default function HomeScreen({
           <ChevronLeft size={20} className="text-rose-300" />
         </a>
 
-        <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4">
+        <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
           <UserPlus className="text-indigo-500 shrink-0" size={24} />
           <p className="text-sm font-bold text-indigo-900 leading-relaxed">
             {displayGender === "f" 
@@ -223,7 +223,7 @@ export default function HomeScreen({
 
             <input 
               type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-              placeholder={placeholderText} className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm"
+              placeholder={placeholderText} className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
             />
             <button type="submit" disabled={isSearching} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50">
               {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
@@ -285,7 +285,7 @@ export default function HomeScreen({
         <div className="space-y-4">
           <div className="flex items-center gap-2 px-2">
             <Sparkles size={14} className="text-indigo-600" />
-            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">כלים אסטרטגיים</h3>
+            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כלים אסטרטגיים</h3>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <button 
@@ -331,9 +331,9 @@ export default function HomeScreen({
           <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
             <div className="flex items-center gap-2 px-2">
               <Anchor size={14} className="text-rose-500" />
-              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">העוגנים שלי</h3>
+              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">העוגנים שלי</h3>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x flex-row-reverse" dir="rtl">
               {favorites.map((fav: string, i: number) => {
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
@@ -352,9 +352,9 @@ export default function HomeScreen({
         <div className="space-y-6">
           <div className="flex items-center gap-2 px-2">
             <Compass size={14} className="text-indigo-600" />
-            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">ספריית הכלים</h3>
+            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">ספריית הכלים</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6" dir="rtl">
             {CATS.map((c) => (
               <CategoryCard 
                 key={c.key} 
