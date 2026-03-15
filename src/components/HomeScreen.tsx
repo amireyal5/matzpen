@@ -71,7 +71,7 @@ export default function HomeScreen({
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isSearching]);
+  }, [messages, isSearching, recommendation]);
 
   const favorites = profileData?.favorites || [];
   const completedCards = profileData?.completed || [];
@@ -94,6 +94,7 @@ export default function HomeScreen({
       const res = await getRecommendation({ 
         feeling: query, 
         gender: displayGender,
+        name: displayName,
         history: messages 
       });
       
@@ -156,8 +157,8 @@ export default function HomeScreen({
           <UserPlus className="text-indigo-500 shrink-0" size={24} />
           <p className="text-sm font-bold text-indigo-900 leading-relaxed">
             {displayGender === "f" 
-              ? "בבקשה, פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה."
-              : "בבקשה, פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה."
+              ? `${displayName}, בבקשה פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה.`
+              : `${displayName}, בבקשה פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה.`
             }
           </p>
         </div>
@@ -235,76 +236,87 @@ export default function HomeScreen({
 
       <div className="max-w-xl mx-auto px-6 -mt-12 relative z-20">
         
-        {/* Dialogue View */}
+        {/* Dialogue View - Redesigned for stability and personal touch */}
         {messages.length > 0 && !recommendation?.isCrisis && (
-          <div className="mb-6 p-6 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 space-y-4 max-h-[400px] overflow-y-auto hide-scrollbar" dir="rtl">
-            <div className="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm pb-4 z-10 border-b border-slate-50">
+          <div className="mb-6 p-6 bg-white rounded-[2.5rem] border border-indigo-100 diffused-shadow animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col space-y-4" dir="rtl">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-50">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
                   <MessageCircle size={16} />
                 </div>
-                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">דיאלוג מונחה</span>
+                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">דיאלוג עם המצפן</span>
               </div>
-              <button onClick={handleResetChat} className="text-[10px] font-black text-slate-300 hover:text-slate-500 flex items-center gap-1">
+              <button onClick={handleResetChat} className="text-[10px] font-black text-slate-300 hover:text-slate-500 flex items-center gap-1 transition-colors">
                 <X size={12} /> איפוס שיחה
               </button>
             </div>
             
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-4 max-h-[350px] overflow-y-auto hide-scrollbar scroll-smooth">
               {messages.map((msg, i) => (
                 <div key={i} className={cn(
                   "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
                   msg.role === 'user' ? "flex-row-reverse" : "flex-row"
                 )}>
                   <div className={cn(
-                    "w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold",
-                    msg.role === 'user' ? "bg-slate-100 text-slate-500" : "bg-indigo-600 text-white"
+                    "w-9 h-9 rounded-full shrink-0 flex items-center justify-center overflow-hidden border-2",
+                    msg.role === 'user' ? "border-slate-100" : "border-indigo-100 bg-indigo-600"
                   )}>
-                    {msg.role === 'user' ? <UserIcon size={14} /> : <Logo variant="icon" className="p-1" />}
+                    {msg.role === 'user' ? (
+                      user?.photoURL ? (
+                        <Image src={user.photoURL} alt="את/ה" width={36} height={36} className="w-full h-full object-cover" />
+                      ) : (
+                        <UserIcon size={16} className="text-slate-400" />
+                      )
+                    ) : (
+                      <Logo variant="icon" className="p-1.5" />
+                    )}
                   </div>
                   <div className={cn(
-                    "p-4 rounded-2xl text-sm leading-relaxed max-w-[85%]",
-                    msg.role === 'user' ? "bg-slate-50 text-slate-700 rounded-tr-none" : "bg-indigo-50 text-indigo-900 rounded-tl-none font-bold"
+                    "p-4 rounded-2xl text-sm leading-relaxed max-w-[80%]",
+                    msg.role === 'user' 
+                      ? "bg-slate-50 text-slate-700 rounded-tr-none" 
+                      : "bg-indigo-50 text-indigo-900 rounded-tl-none font-bold"
                   )}>
                     {msg.content}
                   </div>
                 </div>
               ))}
+              
               {isSearching && (
                 <div className="flex gap-3 animate-pulse">
-                  <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                    <Logo variant="icon" className="p-1" />
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center p-1.5 border-2 border-indigo-100">
+                    <Logo variant="icon" />
                   </div>
-                  <div className="bg-indigo-50 h-10 w-24 rounded-2xl rounded-tl-none" />
+                  <div className="bg-indigo-50 h-12 w-32 rounded-2xl rounded-tl-none" />
+                </div>
+              )}
+
+              {recommendation && recommendation.options && recommendation.options.length > 0 && !isSearching && (
+                <div className="grid gap-3 pt-6 animate-in fade-in duration-1000">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, מצאתי כמה כלים שיכולים לעזור:</span>
+                  {recommendation.options.map((opt, i) => (
+                    <button 
+                      key={i}
+                      onClick={() => {
+                        if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                        else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                        else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
+                        else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
+                        else onSelectCategory(opt.categoryKey);
+                      }}
+                      className="group w-full p-5 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98]"
+                    >
+                      <div className="space-y-1">
+                        <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{opt.label}</span>
+                        <span className="block text-xs text-slate-500 font-medium">{opt.description}</span>
+                      </div>
+                      <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={18} />
+                    </button>
+                  ))}
                 </div>
               )}
               <div ref={chatEndRef} />
             </div>
-
-            {recommendation && recommendation.options && recommendation.options.length > 0 && (
-              <div className="grid gap-3 pt-6 border-t border-slate-50 animate-in fade-in duration-1000">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">כלים מוצעים עבורך:</span>
-                {recommendation.options.map((opt, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => {
-                      if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                      else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
-                      else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
-                      else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
-                      else onSelectCategory(opt.categoryKey);
-                    }}
-                    className="group w-full p-5 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98]"
-                  >
-                    <div className="space-y-1">
-                      <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{opt.label}</span>
-                      <span className="block text-xs text-slate-500 font-medium">{opt.description}</span>
-                    </div>
-                    <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={18} />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
@@ -313,7 +325,7 @@ export default function HomeScreen({
         ) : (
           <form onSubmit={handleSearch} className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[2rem] blur opacity-25"></div>
-            <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden">
+            <div className="relative glass-panel rounded-[2rem] p-2 flex items-center diffused-shadow overflow-hidden min-h-[72px]">
               <div className={cn(
                 "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
                 (isMinimized && messages.length === 0) ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
@@ -328,10 +340,10 @@ export default function HomeScreen({
 
               <input 
                 type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-                placeholder={messages.length > 0 ? "השיבי/השב למצפן..." : placeholderText} 
+                placeholder={messages.length > 0 ? `${displayName}, מה תרצה/י להוסיף?` : placeholderText} 
                 className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
               />
-              <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50">
+              <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
                 {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
               </button>
             </div>
