@@ -19,15 +19,9 @@ export async function requestNotificationPermission(): Promise<string | null> {
       const messaging = getMessaging(getApp());
       
       /**
-       * !!! כאן עליך להדביק את ה-Public Key (VAPID) שייצרת ב-Firebase Console !!!
-       * נתיב ב-Console: Project Settings -> Cloud Messaging -> Web Push certificates
+       * המפתח הציבורי (VAPID) שסופק על ידי המשתמש.
        */
-      const VAPID_PUBLIC_KEY = "YOUR_VAPID_PUBLIC_KEY_HERE"; 
-      
-      if (VAPID_PUBLIC_KEY === "YOUR_VAPID_PUBLIC_KEY_HERE") {
-        console.error("יש להגדיר מפתח VAPID ציבורי ב-src/firebase/messaging.ts כדי שההתראות יעבדו.");
-        return null;
-      }
+      const VAPID_PUBLIC_KEY = "BLH5e9Xb4kRHIyQagGiNt3Ujdf-y_KKqR3hHaD3Y0oawxHMBcBV71A141-Y03qZxfA5iGl6lsQZJ0s7xNRpDHQs"; 
       
       const token = await getToken(messaging, { 
         vapidKey: VAPID_PUBLIC_KEY 
@@ -51,7 +45,7 @@ export function onMessageListener() {
     const messaging = getMessaging(getApp());
     onMessage(messaging, (payload) => {
       console.log("הודעה התקבלה בזמן שהאפליקציה פתוחה:", payload);
-      // כאן ניתן להפעיל Toast או התראה בתוך ה-UI
+      // כאן ניתן להפעיל Toast או התראה בתוך ה-UI בעתיד
     });
   } catch (e) {
     // Messaging עשוי לא להיות נתמך בדפדפן הספציפי
