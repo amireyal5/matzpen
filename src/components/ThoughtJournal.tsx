@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -169,8 +170,10 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         setAnalysis(result);
         
         if (user && firestore) {
-          const journalsRef = collection(firestore, "userProfiles", user.uid, "journals");
+          // שמירה באוסף ראשי נפרד עם מזהה משתמש
+          const journalsRef = collection(firestore, "thoughtJournals");
           addDocumentNonBlocking(journalsRef, {
+            userId: user.uid,
             ...data,
             analysis: result,
             createdAt: new Date().toISOString()

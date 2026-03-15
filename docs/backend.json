@@ -44,9 +44,10 @@
     "ThoughtJournalEntry": {
       "title": "ThoughtJournalEntry",
       "type": "object",
-      "description": "תיעוד של תרגול יומן מחשבות במודל אפר\"ת כולל ניתוח AI.",
+      "description": "תיעוד של תרגול יומן מחשבות במודל אפר\"ת כולל ניתוח AI, מקושר למשתמש.",
       "properties": {
         "id": { "type": "string" },
+        "userId": { "type": "string", "description": "מזהה המשתמש שכתב את היומן." },
         "event": { "type": "string" },
         "interpretation": { "type": "string" },
         "feeling": { "type": "string" },
@@ -56,12 +57,13 @@
           "properties": {
             "distortions": { "type": "array", "items": { "type": "string" } },
             "healthyPerspective": { "type": "string" },
-            "summary": { "type": "string" }
+            "summary": { "type": "string" },
+            "isCrisis": { "type": "boolean" }
           }
         },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["event", "interpretation", "feeling", "reaction", "createdAt"]
+      "required": ["userId", "event", "interpretation", "feeling", "reaction", "createdAt"]
     }
   },
   "auth": {
@@ -79,11 +81,11 @@
       "description": "אחסון פרופילי משתמשים. גישה מותרת רק לבעל הפרופיל."
     },
     "thoughtJournals": {
-      "path": "/userProfiles/{userId}/journals/{journalId}",
+      "path": "/thoughtJournals/{journalId}",
       "schema": {
         "$ref": "#/backend/entities/ThoughtJournalEntry"
       },
-      "description": "היסטוריית יומני מחשבות של המשתמש."
+      "description": "אחסון יומני מחשבות באוסף נפרד עם קישור ל-userId."
     }
   }
 }

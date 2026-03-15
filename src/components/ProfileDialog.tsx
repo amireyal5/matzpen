@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
 import { signOut, deleteUser } from "firebase/auth";
-import { collection, query, orderBy, doc, getDocs, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, doc, getDocs, deleteDoc, where } from "firebase/firestore";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 
@@ -37,8 +37,10 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
   const journalsQuery = useMemoFirebase(() => {
     if (!user || !profileRef) return null;
+    // שאילתה לאוסף הראשי המסונן לפי userId
     return query(
-      collection(doc(profileRef.firestore, "userProfiles", user.uid), "journals"),
+      collection(profileRef.firestore, "thoughtJournals"),
+      where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
   }, [user, profileRef]);
@@ -86,8 +88,11 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     setDeleteError("");
 
     try {
-      // 1. מחיקת כל היומנים בתת-אוסף
-      const journalsSnap = await getDocs(collection(profileRef, "journals"));
+      // 1. מחיקת כל היומנים באוסף הראשי ששייכים למשתמש
+      const journalsSnap = await getDocs(query(
+        collection(profileRef.firestore, "thoughtJournals"),
+        where("userId", "==", user.uid)
+      ));
       const deletePromises = journalsSnap.docs.map(d => deleteDoc(d.ref));
       await Promise.all(deletePromises);
 
@@ -96,8 +101,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
       // 3. מחיקת המשתמש מה-Auth
       await deleteUser(user);
-      
-      // המערכת תזהה את ניתוק המשתמש ותעביר אותו לדף הנחיתה אוטומטית דרך AppContent
     } catch (err: any) {
       console.error("Account deletion failed", err);
       if (err.code === 'auth/requires-recent-login') {
@@ -110,8 +113,8 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   };
 
   const handleDeleteJournal = async (id: string) => {
-    if (!user || !profileRef) return;
-    const journalRef = doc(profileRef.firestore, "userProfiles", user.uid, "journals", id);
+    if (!profileRef) return;
+    const journalRef = doc(profileRef.firestore, "thoughtJournals", id);
     try {
       await deleteDoc(journalRef);
       if (selectedJournal?.id === id) setSelectedJournal(null);

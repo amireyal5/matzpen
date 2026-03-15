@@ -9,13 +9,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // מוודא שהמשתמש ניגש אך ורק למידע המשויך ל-UID שלו
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
+    function isDocOwner() {
+      return isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     function isAdmin() {
@@ -25,19 +24,21 @@ service cloud.firestore {
     // --- חוקי גישה לאוספים ---
 
     match /userProfiles/{userId} {
-      // רק בעל החשבון יכול לצפות בפרופיל שלו וביומנים שלו
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-
-      // הגנה על תת-אוספים (כמו יומן המחשבות) - גישה בלעדית לבעל החשבון
-      match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId);
-      }
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId);
     }
 
-    // קטגוריות ותכנים כלליים - קריאה לכולם, כתיבה רק למנהל
+    match /thoughtJournals/{journalId} {
+      // קריאה ומחיקה רק לבעל היומן
+      allow get, list, delete: if isDocOwner();
+      // יצירה רק אם ה-userId בנתונים תואם למשתמש המחובר
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // עדכון רק לבעל היומן ובתנאי שלא משנים את הבעלות
+      allow update: if isDocOwner() && request.resource.data.userId == request.auth.uid;
+    }
+
     match /categories/{categoryId} {
       allow get, list: if isSignedIn();
       allow create, update, delete: if isAdmin();
