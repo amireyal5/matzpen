@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2 } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -83,9 +82,7 @@ export default function HomeScreen({
   const displayName = profileData?.name || initialName || "משתמש";
   const displayGender = (profileData?.gender || initialGender) as "m" | "f";
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.trim();
+  const sendQuery = async (query: string) => {
     if (!query) return;
     
     const newUserMessage: Message = { role: 'user', content: query };
@@ -110,6 +107,13 @@ export default function HomeScreen({
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
+    await sendQuery(query);
   };
 
   const handleResetChat = () => {
@@ -247,28 +251,48 @@ export default function HomeScreen({
           </div>
         )}
 
-        {recommendation && recommendation.options && recommendation.options.length > 0 && !isSearching && (
-          <div className="grid gap-3 pt-4 animate-in fade-in duration-1000">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
-            {recommendation.options.map((opt, i) => (
-              <button 
-                key={i}
-                onClick={() => {
-                  if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                  else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
-                  else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
-                  else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
-                  else onSelectCategory(opt.categoryKey);
-                }}
-                className="group w-full p-4 bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98] shadow-sm"
-              >
-                <div className="space-y-0.5">
-                  <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{opt.label}</span>
-                  <span className="block text-[11px] text-slate-500 font-medium">{opt.description}</span>
-                </div>
-                <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={16} />
-              </button>
-            ))}
+        {!isSearching && recommendation && (
+          <div className="space-y-4 pt-2">
+            {/* Quick Replies - Interactive suggestions for continuation */}
+            {recommendation.quickReplies && recommendation.quickReplies.length > 0 && (
+              <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                {recommendation.quickReplies.map((reply, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => sendQuery(reply)}
+                    className="px-4 py-2 bg-white border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 shadow-sm"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Strategic Options - Direct links to tools */}
+            {recommendation.options && recommendation.options.length > 0 && (
+              <div className="grid gap-3 pt-2 animate-in fade-in duration-1000">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
+                {recommendation.options.map((opt, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => {
+                      if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                      else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                      else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
+                      else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
+                      else onSelectCategory(opt.categoryKey);
+                    }}
+                    className="group w-full p-4 bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98] shadow-sm"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="block font-black text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">{opt.label}</span>
+                      <span className="block text-[11px] text-slate-500 font-medium">{opt.description}</span>
+                    </div>
+                    <ChevronLeft className="text-slate-300 group-hover:text-indigo-400 transition-colors" size={16} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
         <div ref={chatEndRef} className="h-4 shrink-0" />
@@ -284,7 +308,7 @@ export default function HomeScreen({
               className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
             />
             <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
-              {isSearching ? <Sparkles className="animate-spin" size={20} /> : <Sparkles size={20} />}
+              {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
             </button>
           </div>
         </form>
@@ -377,7 +401,7 @@ export default function HomeScreen({
                 className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-medium text-slate-900 placeholder:text-slate-400 text-sm text-right" dir="rtl"
               />
               <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all">
-                {isSearching ? <Sparkles className="animate-spin" size={24} /> : <Sparkles size={24} />}
+                {isSearching ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
               </button>
             </div>
           </form>
