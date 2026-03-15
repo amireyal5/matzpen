@@ -49,7 +49,7 @@ const CATEGORIES = [
     affirmations: [
       { text: "אני בטוח כאן ועכשיו.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" },
       { text: "הנשימה שלי היא העוגן שלי.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%99%D7%9E%D7%94%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%99%D7%90%20%D7%94%D7%A2%D7%95%D7%92%D7%9F%20%D7%A9%D7%9C%D7%99.mp3?alt=media&token=72105974-72f0-4d89-aece-40d23bacccab" },
-      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%A4%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" },
+      { text: "אני מאפשר למחשבות לחלוף.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%91%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%A4%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" },
       { text: "הגוף שלי חוזר לאיזון.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" },
       { text: "השקט שבי חזק מכל סערה בחוץ.", audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A9%D7%A7%D7%98%20%D7%A9%D7%91%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" }
     ],
@@ -170,7 +170,10 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const activeOscillators = useRef<OscillatorNode[]>([]);
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const blsIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Audio element persistence to avoid multiple connections
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const initAudio = () => {
     if (!audioCtxRef.current) {
@@ -190,16 +193,13 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       filterNodeRef.current.connect(pannerRef.current!);
       pannerRef.current!.connect(masterGainRef.current!);
       masterGainRef.current!.connect(audioCtxRef.current!.destination);
-    }
-  };
 
-  const clearCurrentAudio = () => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.onended = null;
-      currentAudioRef.current.onerror = null;
-      currentAudioRef.current.src = "";
-      currentAudioRef.current = null;
+      // Initialize persistent voice audio
+      voiceAudioRef.current = new Audio();
+      voiceAudioRef.current.crossOrigin = "anonymous";
+      
+      voiceSourceRef.current = audioCtxRef.current!.createMediaElementSource(voiceAudioRef.current);
+      voiceSourceRef.current.connect(pannerRef.current!);
     }
   };
 
@@ -210,7 +210,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       } catch(e) {}
     });
     activeOscillators.current = [];
-    clearCurrentAudio();
+    
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+      voiceAudioRef.current.src = "";
+    }
+    
     if (affIntervalRef.current) clearInterval(affIntervalRef.current);
     if (blsIntervalRef.current) clearInterval(blsIntervalRef.current);
   };
@@ -258,7 +263,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   }, [droneFreq]);
 
   const speakAffirmation = async (aff: { text: string, audioUrl?: string }) => {
-    if (!audioCtxRef.current || !selectedCat) return;
+    if (!audioCtxRef.current || !selectedCat || !voiceAudioRef.current) return;
     
     setIsSpeaking(true);
     setIsLoading(true);
@@ -283,15 +288,8 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         audioSrc = audioUri;
       }
       
-      clearCurrentAudio();
-      
-      const audio = new Audio();
-      audio.crossOrigin = "anonymous";
+      const audio = voiceAudioRef.current;
       audio.src = audioSrc;
-      currentAudioRef.current = audio;
-
-      const source = audioCtxRef.current.createMediaElementSource(audio);
-      source.connect(pannerRef.current!); 
 
       audio.onended = () => {
         setIsSpeaking(false);
@@ -301,7 +299,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       };
 
       audio.onerror = (e) => {
-        console.error("Audio Load/Play Error:", e);
+        const err = (e.target as HTMLAudioElement).error;
+        console.warn("Audio Pipeline Warning (Load/CORS):", {
+          code: err?.code,
+          message: err?.message,
+          url: (e.target as HTMLAudioElement).src
+        });
         setIsSpeaking(false);
         setIsLoading(false);
         if (musicGainNodeRef.current && audioCtxRef.current) {
@@ -312,7 +315,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       await audio.play();
       setIsLoading(false);
     } catch (error) {
-      console.error("Audio Pipeline Error:", error);
+      console.warn("Audio Playback Error:", error);
       setIsSpeaking(false);
       setIsLoading(false);
       if (musicGainNodeRef.current && audioCtxRef.current) {
