@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
@@ -38,15 +38,23 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
 
   const journalsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    // שאילתה לאוסף הראשי המסונן לפי userId בצורה מפורשת עבור חוקי האבטחה
+    // שאילתה בסיסית עם פילטר userId. 
+    // הסרנו את ה-orderBy כדי למנוע שגיאות הרשאה/אינדקסים מורכבים.
     return query(
       collection(firestore, "thoughtJournals"),
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
+      where("userId", "==", user.uid)
     );
   }, [user, firestore]);
 
-  const { data: journals, isLoading: isLoadingJournals } = useCollection(journalsQuery);
+  const { data: rawJournals, isLoading: isLoadingJournals } = useCollection(journalsQuery);
+
+  // מיון מקומי של היומנים לפי תאריך יצירה (מהחדש לישן)
+  const journals = useMemo(() => {
+    if (!rawJournals) return null;
+    return [...rawJournals].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [rawJournals]);
 
   useEffect(() => {
     if (isOpen && profileData) {

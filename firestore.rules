@@ -13,10 +13,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isDocOwner() {
-      return isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
@@ -31,14 +27,14 @@ service cloud.firestore {
     }
 
     match /thoughtJournals/{journalId} {
-      // קריאה ומחיקה רק לבעל היומן
-      // שימוש בבדיקה ישירה בתוך הכלל כדי להבטיח תאימות מלאה לשאילתות (Query Security)
+      // קריאה ומחיקה: מותר רק אם המשתמש הוא הבעלים של המסמך
+      // ב-list (שאילתה), Firestore יוודא שהשאילתה כוללת פילטר על userId
       allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      // יצירה רק אם ה-userId בנתונים תואם למשתמש המחובר
+      // יצירה: מותר רק אם ה-userId בנתונים תואם למשתמש המחובר
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
-      // עדכון רק לבעל היומן ובתנאי שלא משנים את הבעלות
+      // עדכון: מותר רק לבעל היומן ובתנאי שלא משנים את הבעלות
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
     }
 
