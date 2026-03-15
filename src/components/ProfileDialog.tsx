@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase } from "@/firebase";
+import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase, useFirestore } from "@/firebase";
 import { signOut, deleteUser } from "firebase/auth";
 import { collection, query, orderBy, doc, getDocs, deleteDoc, where } from "firebase/firestore";
 import { format } from "date-fns";
@@ -27,6 +27,7 @@ interface ProfileDialogProps {
 export default function ProfileDialog({ isOpen, onOpenChange, profileData, profileRef }: ProfileDialogProps) {
   const { user } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const [view, setView] = useState<"profile" | "journals">("profile");
   const [selectedJournal, setSelectedJournal] = useState<any | null>(null);
   const [editName, setEditName] = useState("");
@@ -36,14 +37,14 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const [deleteError, setDeleteError] = useState("");
 
   const journalsQuery = useMemoFirebase(() => {
-    if (!user || !profileRef) return null;
-    // שאילתה לאוסף הראשי המסונן לפי userId
+    if (!user || !firestore) return null;
+    // שאילתה לאוסף הראשי המסונן לפי userId בצורה מפורשת עבור חוקי האבטחה
     return query(
-      collection(profileRef.firestore, "thoughtJournals"),
+      collection(firestore, "thoughtJournals"),
       where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
-  }, [user, profileRef]);
+  }, [user, firestore]);
 
   const { data: journals, isLoading: isLoadingJournals } = useCollection(journalsQuery);
 
@@ -82,7 +83,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   };
 
   const handleDeleteAccount = async () => {
-    if (!user || !profileRef) return;
+    if (!user || !firestore || !profileRef) return;
     
     setIsDeletingAccount(true);
     setDeleteError("");
@@ -90,7 +91,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     try {
       // 1. מחיקת כל היומנים באוסף הראשי ששייכים למשתמש
       const journalsSnap = await getDocs(query(
-        collection(profileRef.firestore, "thoughtJournals"),
+        collection(firestore, "thoughtJournals"),
         where("userId", "==", user.uid)
       ));
       const deletePromises = journalsSnap.docs.map(d => deleteDoc(d.ref));
@@ -113,8 +114,8 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   };
 
   const handleDeleteJournal = async (id: string) => {
-    if (!profileRef) return;
-    const journalRef = doc(profileRef.firestore, "thoughtJournals", id);
+    if (!firestore) return;
+    const journalRef = doc(firestore, "thoughtJournals", id);
     try {
       await deleteDoc(journalRef);
       if (selectedJournal?.id === id) setSelectedJournal(null);

@@ -32,11 +32,14 @@ service cloud.firestore {
 
     match /thoughtJournals/{journalId} {
       // קריאה ומחיקה רק לבעל היומן
-      allow get, list, delete: if isDocOwner();
+      // שימוש בבדיקה ישירה בתוך הכלל כדי להבטיח תאימות מלאה לשאילתות (Query Security)
+      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
       // יצירה רק אם ה-userId בנתונים תואם למשתמש המחובר
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
       // עדכון רק לבעל היומן ובתנאי שלא משנים את הבעלות
-      allow update: if isDocOwner() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
     }
 
     match /categories/{categoryId} {
