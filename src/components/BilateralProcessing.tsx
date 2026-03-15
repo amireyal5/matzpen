@@ -6,20 +6,15 @@ import {
   Play, 
   Pause, 
   Wind, 
-  Moon, 
   ShieldCheck, 
   Quote,
   X,
-  Flame,
-  Brain,
-  Heart,
   ChevronRight,
   Zap,
   ArrowRight,
   Loader2,
   Settings2,
-  Volume2,
-  Activity
+  Volume2
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -62,7 +57,7 @@ const CATEGORIES = [
       },
       { 
         text: "השקט שבי חזק מכל סערה בחוץ.", 
-        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%A7%D7%98%20%D7%A9%D7%91%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" 
+        audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%A7%D7%98%20%D7%A9%D7%9B%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" 
       }
     ],
     voiceTone: "בטון רגוע, רך וטיפולי. זרימה אטית ורציפה.",
@@ -102,8 +97,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   
   useWakeLock(isPlaying);
   
-  const [droneVolume, setDroneVolume] = useState(0); // עוצמת רקע מופסקת כברירת מחדל
-  const [droneFreq, setDroneFrequency] = useState(128);
+  const [droneVolume, setDroneVolume] = useState(0); 
   
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -136,7 +130,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
         audioSrc = audioUri;
       }
       
-      // יצירת אלמנט אודיו חדש בכל פעם לניגון נקי
       if (voiceAudioRef.current) {
         voiceAudioRef.current.pause();
       }
@@ -170,7 +163,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
     setCurrentAffText(randomAffObj.text);
     setShowAff(true);
     speakAffirmation(randomAffObj);
-    // המשפט נעלם אחרי 12 שניות לקראת הבא
     setTimeout(() => { setShowAff(false); }, 12000); 
   };
 
@@ -179,13 +171,11 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
       stopAll();
       triggerStep();
       
-      // תזמון הצידוד הויזואלי (הנקודה המהבהבת)
       const tickDuration = selectedCat.blsSpeed / 2;
       blsIntervalRef.current = setInterval(() => {
         setBlsSide(prev => prev === 'right' ? 'left' : 'right');
       }, tickDuration);
 
-      // תזמון קבוע למשפטים (כל 25 שניות)
       affIntervalRef.current = setInterval(triggerStep, 25000); 
     } else {
       stopAll();
@@ -196,7 +186,13 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-right overflow-hidden select-none" dir="rtl">
-      <div className={cn("fixed inset-0 transition-all duration-[5000ms] ease-in-out", selectedCat ? "opacity-100" : "opacity-0")}>
+      <div 
+        className={cn("fixed inset-0 transition-all ease-in-out")}
+        style={{ 
+          opacity: selectedCat ? 1 : 0,
+          transitionDuration: '5000ms'
+        }}
+      >
         <div className={cn("absolute inset-0 bg-gradient-to-br", selectedCat?.color)} />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-screen" />
       </div>
@@ -288,7 +284,6 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             </Popover>
           </div>
 
-          {/* ויזואליזציה של נקודת הצידוד הבילטרלית */}
           <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
              <div 
                className="w-10 h-10 rounded-full bg-white/40 blur-md shadow-[0_0_40px_rgba(255,255,255,0.5)] absolute transform-gpu"
@@ -302,7 +297,15 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center px-8 pb-32">
-            <div className={cn("max-w-4xl w-full text-center transition-all duration-[3000ms]", showAff ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-95 blur-3xl")}>
+            <div 
+              className={cn("max-w-4xl w-full text-center transition-all")}
+              style={{
+                opacity: showAff ? 1 : 0,
+                transform: showAff ? 'scale(1)' : 'scale(0.95)',
+                filter: showAff ? 'blur(0)' : 'blur(24px)',
+                transitionDuration: '3000ms'
+              }}
+            >
                <Quote className="text-white/5 mx-auto mb-8 w-16 h-16" />
                <h2 className="text-white text-3xl md:text-6xl font-black leading-tight tracking-tight px-4 drop-shadow-2xl">
                  {currentAffText}
