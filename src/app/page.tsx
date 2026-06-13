@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LandingScreen from "@/components/LandingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
@@ -22,6 +22,16 @@ import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 
 type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery";
 
+interface HistoryState {
+  screen: Screen;
+  index: number;
+  catKey?: string;
+  practiceIdx?: number;
+  breathingParams?: {
+    initialBreathingId?: string;
+  };
+}
+
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -34,6 +44,83 @@ function AppContent() {
   }>({});
 
   const ambientMixer = useAmbientMixer();
+  const { stopAll } = ambientMixer;
+
+  const currentIndex = useRef(0);
+
+  const navigateTo = (
+    newScreen: Screen,
+    params?: {
+      catKey?: string;
+      practiceIdx?: number;
+      breathingParams?: { initialBreathingId?: string };
+    },
+    replace = false
+  ) => {
+    if (params?.catKey !== undefined) setActiveCatKey(params.catKey);
+    if (params?.practiceIdx !== undefined) setActivePracticeIdx(params.practiceIdx);
+    if (params?.breathingParams !== undefined) setBreathingParams(params.breathingParams);
+    setScreen(newScreen);
+
+    if (typeof window === "undefined") return;
+
+    const nextIndex = replace ? currentIndex.current : currentIndex.current + 1;
+    const state: HistoryState = {
+      screen: newScreen,
+      index: nextIndex,
+      catKey: params?.catKey !== undefined ? params.catKey : (newScreen === "deck" || newScreen === "guided" ? activeCatKey : undefined),
+      practiceIdx: params?.practiceIdx !== undefined ? params.practiceIdx : (newScreen === "guided" ? activePracticeIdx : undefined),
+      breathingParams: params?.breathingParams !== undefined ? params.breathingParams : (newScreen === "breathing" ? breathingParams : undefined),
+    };
+
+    if (replace) {
+      window.history.replaceState(state, "");
+    } else {
+      window.history.pushState(state, "");
+      currentIndex.current = nextIndex;
+    }
+  };
+
+  const handleBack = (fallbackScreen: Screen, fallbackParams?: any) => {
+    if (currentIndex.current > 0) {
+      window.history.back();
+    } else {
+      navigateTo(fallbackScreen, fallbackParams, true);
+    }
+  };
+
+  // Sync back button / popstate events
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state as HistoryState | null;
+      if (state && state.screen) {
+        currentIndex.current = state.index;
+        if (state.catKey !== undefined) setActiveCatKey(state.catKey);
+        if (state.practiceIdx !== undefined) setActivePracticeIdx(state.practiceIdx);
+        if (state.breathingParams !== undefined) setBreathingParams(state.breathingParams);
+        setScreen(state.screen);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Cleanup effect for sounds screen
+  useEffect(() => {
+    if (isHydrated && screen !== "sounds") {
+      stopAll();
+    }
+  }, [screen, isHydrated, stopAll]);
+
+  // Cleanup effect for breathing parameters
+  useEffect(() => {
+    if (isHydrated && screen !== "breathing") {
+      setBreathingParams({});
+    }
+  }, [screen, isHydrated]);
 
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -50,20 +137,43 @@ function AppContent() {
       }
 
       const storedScreen = localStorage.getItem("matzpen_screen") as Screen | null;
+      let initialScreen = storedScreen;
+      let initialCatKey = undefined;
+      let initialPracticeIdx = undefined;
+      let initialBreathingParams = undefined;
+
       if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery"].includes(storedScreen)) {
         const storedCatKey = localStorage.getItem("matzpen_catKey");
         const storedPracticeIdx = localStorage.getItem("matzpen_practiceIdx");
         const storedBreathingParams = localStorage.getItem("matzpen_breathingParams");
 
-        if (storedCatKey) setActiveCatKey(storedCatKey);
-        if (storedPracticeIdx) setActivePracticeIdx(Number(storedPracticeIdx));
+        if (storedCatKey) {
+          setActiveCatKey(storedCatKey);
+          initialCatKey = storedCatKey;
+        }
+        if (storedPracticeIdx) {
+          setActivePracticeIdx(Number(storedPracticeIdx));
+          initialPracticeIdx = Number(storedPracticeIdx);
+        }
         if (storedBreathingParams) {
           try {
-            setBreathingParams(JSON.parse(storedBreathingParams));
+            const parsed = JSON.parse(storedBreathingParams);
+            setBreathingParams(parsed);
+            initialBreathingParams = parsed;
           } catch (e) {}
         }
         setScreen(storedScreen);
+      } else {
+        initialScreen = "landing";
       }
+
+      window.history.replaceState({
+        screen: initialScreen || "landing",
+        index: 0,
+        catKey: initialCatKey,
+        practiceIdx: initialPracticeIdx,
+        breathingParams: initialBreathingParams
+      }, "");
     }
     setIsHydrated(true);
   }, []);
@@ -108,11 +218,11 @@ function AppContent() {
       
       if (isVerified) {
         if (screen === "landing" || screen === "auth") {
-          setScreen("home");
+          navigateTo("home", undefined, true);
         }
       } else {
         if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "sounds" || screen === "breathing" || screen === "bilateral" || screen === "imagery") {
-          setScreen("auth");
+          navigateTo("auth", undefined, true);
         }
       }
     }
@@ -120,39 +230,36 @@ function AppContent() {
 
   useEffect(() => {
     if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about") {
-      setScreen("landing");
+      navigateTo("landing", undefined, true);
     }
   }, [user, isUserLoading, isHydrated, screen]);
 
   const handleGoToAuth = () => {
-    setScreen("auth");
+    navigateTo("auth");
   };
 
   const handleAuthSuccess = () => {
-    setScreen("home");
+    navigateTo("home", undefined, true);
   };
 
   const handleSelectCategory = (key: string) => {
-    setActiveCatKey(key);
-    setScreen("deck");
+    navigateTo("deck", { catKey: key });
   };
 
   const handleStartGuided = (catKey: string, practiceIdx: number) => {
     if (catKey === "JOURNAL") {
-      setScreen("journal");
+      navigateTo("journal");
       return;
     }
     if (catKey === "MEDITATION") {
-      setScreen("sounds");
+      navigateTo("sounds");
       return;
     }
     if (catKey === "BILATERAL") {
-      setScreen("bilateral");
+      navigateTo("bilateral");
       return;
     }
-    setActiveCatKey(catKey);
-    setActivePracticeIdx(practiceIdx);
-    setScreen("guided");
+    navigateTo("guided", { catKey, practiceIdx });
   };
 
   if (showSplash || !isHydrated || isUserLoading) {
@@ -167,16 +274,16 @@ function AppContent() {
       <main className={`min-h-screen transition-colors duration-500 ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-white"}`}>
         {screen === "landing" && (
           <LandingScreen
-            onComplete={() => setScreen("auth")}
+            onComplete={() => navigateTo("auth")}
             onGoToAuth={handleGoToAuth}
-            onGoToAbout={() => setScreen("about")}
+            onGoToAbout={() => navigateTo("about")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
         {screen === "about" && (
           <AboutScreen
-            onBack={() => setScreen("landing")}
+            onBack={() => handleBack("landing")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -184,7 +291,7 @@ function AppContent() {
         {screen === "auth" && (
           <AuthScreen
             onSuccess={handleAuthSuccess}
-            onBack={() => setScreen("landing")}
+            onBack={() => handleBack("landing")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -195,20 +302,19 @@ function AppContent() {
             gender={gender}
             onSelectCategory={handleSelectCategory} 
             onStartGuided={handleStartGuided}
-            onGoToJournal={() => setScreen("journal")}
+            onGoToJournal={() => navigateTo("journal")}
             onGoToSounds={(soundId) => {
               // מנגן את הצליל באופן מיידי בתוך אינטראקציית המשתמש (לחיצה),
               // כך שדפדפנים לא יחסמו את הניגון האוטומטי כ-autoplay
               if (soundId) ambientMixer.play(soundId);
-              setScreen("sounds");
+              navigateTo("sounds");
             }}
             onGoToBreathing={(breathingId) => {
-              setBreathingParams({ initialBreathingId: breathingId });
-              setScreen("breathing");
+              navigateTo("breathing", { breathingParams: { initialBreathingId: breathingId } });
             }}
-            onGoToBilateral={() => setScreen("bilateral")}
-            onGoToImagery={() => setScreen("imagery")}
-            onBack={() => setScreen("landing")} 
+            onGoToBilateral={() => navigateTo("bilateral")}
+            onGoToImagery={() => navigateTo("imagery")}
+            onBack={() => handleBack("landing")} 
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -217,7 +323,7 @@ function AppContent() {
           <DeckScreen
             catKey={activeCatKey}
             gender={gender}
-            onBack={() => setScreen("home")}
+            onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -227,7 +333,7 @@ function AppContent() {
             catKey={activeCatKey}
             practiceIdx={activePracticeIdx}
             gender={gender}
-            onBack={() => setScreen("home")}
+            onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -235,7 +341,7 @@ function AppContent() {
         {(screen === "journal" && user) && (
           <ThoughtJournal
             gender={gender}
-            onBack={() => setScreen("home")}
+            onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -243,8 +349,7 @@ function AppContent() {
         {(screen === "sounds" && user) && (
           <SoundsScreen
             onBack={() => {
-              ambientMixer.stopAll();
-              setScreen("home");
+              handleBack("home");
             }}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
@@ -254,8 +359,7 @@ function AppContent() {
         {(screen === "breathing" && user) && (
           <BreathingScreen
             onBack={() => {
-              setBreathingParams({});
-              setScreen("home");
+              handleBack("home");
             }}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
@@ -265,14 +369,14 @@ function AppContent() {
         {(screen === "bilateral" && user) && (
           <BilateralProcessing
             gender={gender}
-            onBack={() => setScreen("home")}
+            onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
         {(screen === "imagery" && user) && (
           <GuidedImageryScreen
-            onBack={() => setScreen("home")}
+            onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
