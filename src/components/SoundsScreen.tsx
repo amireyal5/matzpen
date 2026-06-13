@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Flower2, Play, Sparkles, Disc3, Bell, Heart, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -12,6 +12,7 @@ import Image from "next/image";
 interface SoundsScreenProps {
   onBack: () => void;
   initialSoundId?: SoundId;
+  theme?: "light" | "dark";
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -158,9 +159,11 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
     startTimer,
   } = useAmbientMixer();
 
-  // טעינה ראשונית של סאונד מדף הבית
+  // טעינה ראשונית של סאונד מדף הבית (מוגן מפני לולאה אינסופית)
+  const hasAutoPlayedRef = useRef(false);
   useEffect(() => {
-    if (initialSoundId) {
+    if (initialSoundId && !hasAutoPlayedRef.current) {
+      hasAutoPlayedRef.current = true;
       play(initialSoundId);
     }
   }, [initialSoundId, play]);

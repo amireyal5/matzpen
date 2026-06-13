@@ -14,6 +14,7 @@ import { BREATHING_EXERCISES, BreathingExercise } from "@/lib/breathing-exercise
 interface BreathingScreenProps {
   onBack: () => void;
   initialBreathingId?: string;
+  theme?: "light" | "dark";
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -315,18 +316,18 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
   const getScaleAndTransition = () => {
     if (!activeExercise) return { scale: 1, duration: 0 };
     const step = activeExercise.pattern[currentStepIndex];
-    let scale = 1;
+    const duration = step.duration;
+
     if (step.type === "inhale") {
-      scale = 1.8;
-    } else if (step.type === "hold") {
-      scale = 1.85;
+      return { scale: 1.8, duration };
+    } else if (step.type === "exhale") {
+      return { scale: 1.0, duration };
     } else {
-      scale = 1.0;
+      // hold – שמירה על סקייל השלב הקודם (מלא אחרי שאיפה, ריק אחרי נשיפה)
+      const prevIdx = (currentStepIndex - 1 + activeExercise.pattern.length) % activeExercise.pattern.length;
+      const prevStep = activeExercise.pattern[prevIdx];
+      return { scale: prevStep.type === "inhale" ? 1.8 : 1.0, duration };
     }
-    return {
-      scale,
-      duration: step.duration
-    };
   };
 
   useEffect(() => {
@@ -549,7 +550,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                         width: "10rem",
                         height: "10rem",
                         transform: `scale(${getScaleAndTransition().scale})`,
-                        transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                        transition: `transform ${getScaleAndTransition().duration}s ease-in-out`,
                       }}
                     >
                       <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-3xl" />
@@ -564,7 +565,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                       className="relative w-40 h-40 flex items-center justify-center"
                       style={{
                         transform: `scale(${getScaleAndTransition().scale})`,
-                        transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                        transition: `transform ${getScaleAndTransition().duration}s ease-in-out`,
                       }}
                     >
                       <div className="absolute w-48 h-48 rounded-full bg-rose-500/10 blur-3xl" />
@@ -577,7 +578,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                             className="absolute w-14 h-24 rounded-full bg-gradient-to-t from-rose-500/30 to-pink-400/20 border border-pink-300/30 origin-bottom mix-blend-screen backdrop-blur-[2px]"
                             style={{
                               transform: `rotate(${openRotation}deg) translateY(-8px) scale(${getScaleAndTransition().scale > 1.2 ? 1.05 : 0.95})`,
-                              transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                              transition: `transform ${getScaleAndTransition().duration}s ease-in-out`,
                               bottom: "50%",
                             }}
                           />
@@ -589,14 +590,14 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
 
                   {activeExercise.style === "mandala" && (
                     <div
-                      className="relative w-40 h-40 flex items-center justify-center animate-[spin_40s_linear_infinite]"
+                      className="relative w-40 h-40 flex items-center justify-center"
                       style={{
                         transform: `scale(${getScaleAndTransition().scale})`,
-                        transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                        transition: `transform ${getScaleAndTransition().duration}s ease-in-out`,
                       }}
                     >
                       <div className="absolute w-48 h-48 rounded-full bg-violet-600/10 blur-3xl" />
-                      <svg className="w-full h-full text-teal-400/80 stroke-[0.75] fill-none" viewBox="0 0 200 200">
+                      <svg className="w-full h-full text-teal-400/80 stroke-[0.75] fill-none animate-[spin_40s_linear_infinite]" viewBox="0 0 200 200">
                         <circle cx="100" cy="100" r="90" className="stroke-teal-500/30" />
                         <circle cx="100" cy="100" r="60" className="stroke-violet-500/40" />
                         <circle cx="100" cy="100" r="30" className="stroke-fuchsia-500/50" />
@@ -620,7 +621,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                           height: "5rem",
                           transform: `scale(${activeExercise.pattern[currentStepIndex].type === "exhale" ? 0.6 : 1.6})`,
                           opacity: activeExercise.pattern[currentStepIndex].type === "exhale" ? 0.3 : 0.8,
-                          transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1), opacity ${getScaleAndTransition().duration}s ease-in-out`,
+                          transition: `transform ${getScaleAndTransition().duration}s ease-in-out, opacity ${getScaleAndTransition().duration}s ease-in-out`,
                         }}
                       />
                       {Array.from({ length: 16 }).map((_, i) => {
@@ -636,7 +637,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                             style={{
                               transform: `translate(${x}px, ${y}px) scale(${isExhale ? 0.7 : 1.25})`,
                               opacity: isExhale ? 0.25 : 0.85,
-                              transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1), opacity ${getScaleAndTransition().duration}s ease-in-out`,
+                              transition: `transform ${getScaleAndTransition().duration}s ease-in-out, opacity ${getScaleAndTransition().duration}s ease-in-out`,
                             }}
                           />
                         );
@@ -651,7 +652,7 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
                         width: "10rem",
                         height: "10rem",
                         transform: `scale(${getScaleAndTransition().scale})`,
-                        transition: `transform ${getScaleAndTransition().duration}s cubic-bezier(0.4, 0, 0.2, 1)`,
+                        transition: `transform ${getScaleAndTransition().duration}s ease-in-out`,
                       }}
                     >
                       <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />

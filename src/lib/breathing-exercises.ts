@@ -64,8 +64,8 @@ export const BREATHING_EXERCISES: BreathingExercise[] = [
   },
   {
     id: "box-mandala",
-    title: "נשימת קופסה (מנדלה גיאומטרית)",
-    description: "טכניקה צבאית ומדיטטיבית עתיקה לחידוד הפוקוס, איזון רגשי ואיפוס רמות הלחץ.",
+    title: "נשימת קופסה (Navy SEALs)",
+    description: "שיטת ה-Navy SEALs לריכוז תחת לחץ קיצוני. יוצרת איזון מושלם בין חמצן לפחמן דו-חמצני, מחדדת פוקוס ומאפסת את מערכת העצבים.",
     rhythmText: "שאף 4 ש׳ • החזק 4 ש׳ • נשוף 4 ש׳ • החזק 4 ש׳",
     style: "mandala",
     pattern: [
