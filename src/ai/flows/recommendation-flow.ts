@@ -1,10 +1,12 @@
 'use server';
 /**
- * @fileOverview מנוע המלצות דיאלוגי חכם, אמפתי ומקומי לחלוטין (ללא קריאות ל-AI חיצוני).
- * המנוע מנתח את קלט המשתמש באמצעות התאמת מילות מפתח ממוקדת בעברית,
- * מזהה מצבי חירום (Crisis), מזהה קטגוריות מצוקה או רגיעה, ומחזיר המלצות כלים מותאמות מגדרית.
+ * @fileOverview מנוע המלצות דיאלוגי היברידי.
+ * שלב 1 (רשת ביטחון קשיחה): סינון מילות מפתח לזיהוי מצבי חירום - תמיד מחזיר תשובת חירום קבועה, ללא תלות ב-AI.
+ * שלב 2: עבור כל פנייה אחרת, פנייה ל-Gemini להבנת ניואנס וקונטקסט והתאמת המלצה אישית מתוך ארגז הכלים של האפליקציה.
+ * שלב 3 (גיבוי): אם קריאת ה-AI נכשלת, חזרה למנגנון מבוסס מילות-מפתח מקומי.
  */
 
+import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { CATS } from '@/lib/data';
 
@@ -42,34 +44,51 @@ const RecommendationOutputSchema = z.object({
 });
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>;
 
-export async function getRecommendation(input: RecommendationInput): Promise<RecommendationOutput> {
+async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const errorMsg = error?.message || '';
+      if (error?.status === 429 || errorMsg.includes('429')) {
+        const delay = Math.pow(2, i) * 1500;
+        if (i === retries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('שגיאה בלתי צפויה ב-fetchWithRetry');
+}
+
+// רשימת מילות מפתח לזיהוי מקרי חירום - רשת ביטחון קשיחה ולא תלויה ב-AI
+const crisisKeywords = [
+  "למות", "להתאבד", "לשים קץ", "לפגוע בעצמי", "לחתוך", "אין לי למה לחיות",
+  "לא רוצה לחיות", "רוצה להעלם", "סוף לחיים", "לסיים את החיים"
+];
+
+function getCrisisResponse(isF: boolean, displayName: string): RecommendationOutput {
+  return {
+    explanation: isF
+      ? `שומעת את הכאב העמוק שלך, ${displayName}. בבקשה, אל תשארי עם זה לבד. יש אנשים שמחכים ורוצים לעזור לך ברגע זה.`
+      : `שומע את הכאב העמוק שלך, ${displayName}. בבקשה, אל תישאר עם זה לבד. יש אנשים שמחכים ורוצים לעזור לך ברגע זה.`,
+    isCrisis: true,
+    needsMoreInfo: false,
+    quickReplies: ["עזרה דחופה", "מספרי חירום", "איך לפנות?"],
+    options: []
+  };
+}
+
+// מנגנון גיבוי מבוסס מילות מפתח - משמש כאשר קריאת ה-AI נכשלת
+function ruleBasedRecommendation(input: RecommendationInput): RecommendationOutput {
   const { feeling = "", gender = "m", name = "" } = input;
   const normalizedInput = feeling.trim().toLowerCase();
   const isF = gender === 'f';
   const displayName = name ? name : (isF ? "חברה" : "חבר");
 
-  // 1. זיהוי מקרי חירום (Crisis)
-  const crisisKeywords = [
-    "למות", "להתאבד", "לשים קץ", "לפגוע בעצמי", "לחתוך", "אין לי למה לחיות",
-    "לא רוצה לחיות", "רוצה להעלם", "סוף לחיים", "לסיים את החיים"
-  ];
-  const hasCrisis = crisisKeywords.some(keyword => normalizedInput.includes(keyword));
-
-  if (hasCrisis) {
-    return {
-      explanation: isF 
-        ? `שומעת את הכאב העמוק שלך, ${displayName}. בבקשה, אל תשארי עם זה לבד. יש אנשים שמחכים ורוצים לעזור לך ברגע זה.`
-        : `שומע את הכאב העמוק שלך, ${displayName}. בבקשה, אל תישאר עם זה לבד. יש אנשים שמחכים ורוצים לעזור לך ברגע זה.`,
-      isCrisis: true,
-      needsMoreInfo: false,
-      quickReplies: ["עזרה דחופה", "מספרי חירום", "איך לפנות?"],
-      options: []
-    };
-  }
-
-  // 2. קבוצות מילות מפתח
   const sosKeywords = [
-    "חרדה", "פאניקה", "התקף", "לחוץ", "לחץ", "לחוצה", "מפחד", "מפחדת", "פחד", 
+    "חרדה", "פאניקה", "התקף", "לחוץ", "לחץ", "לחוצה", "מפחד", "מפחדת", "פחד",
     "הצפה", "מוצף", "מוצפת", "דופק", "לחץ בחזה", "נשימה", "מחנק", "הצילו", "מבוהל", "משתגע", "הסטריה"
   ];
 
@@ -82,7 +101,7 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
   ];
 
   const loopKeywords = [
-    "מחשבות", "חושב", "חושבת", "לופ", "דאגה", "דאגות", "כעס", "כועס", "כועסת", "עצוב", "עצובה", 
+    "מחשבות", "חושב", "חושבת", "לופ", "דאגה", "דאגות", "כעס", "כועס", "כועסת", "עצוב", "עצובה",
     "עצב", "ייאוש", "מתוסכל", "מתוסכלת", "חושב יותר מדי", "עצבים"
   ];
 
@@ -90,16 +109,12 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     "מוזיקה", "צלילים", "מדיטציה", "רוגע", "שקט", "לנשום", "נשימה", "מרגיע", "סאונד", "ריכוז", "קערה"
   ];
 
-  // בדיקת התאמה לפי קטגוריות
   const matchesSos = sosKeywords.some(kw => normalizedInput.includes(kw));
   const matchesSleep = sleepKeywords.some(kw => normalizedInput.includes(kw));
   const matchesSomatic = somaticKeywords.some(kw => normalizedInput.includes(kw));
   const matchesLoop = loopKeywords.some(kw => normalizedInput.includes(kw));
   const matchesCalm = calmKeywords.some(kw => normalizedInput.includes(kw));
 
-  // 3. החזרת המלצות לפי התאמות
-
-  // קטגוריית SOS וחרדה עמוקה
   if (matchesSos) {
     return {
       explanation: isF
@@ -128,7 +143,6 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     };
   }
 
-  // קטגוריית בעיות שינה ועייפות
   if (matchesSleep) {
     return {
       explanation: isF
@@ -157,7 +171,6 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     };
   }
 
-  // קטגוריית מתח גופני (Somatic)
   if (matchesSomatic) {
     return {
       explanation: isF
@@ -176,7 +189,7 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
           label: "חיבוק פרפר (EMDR)",
           description: "טכניקת גירוי דו-צדדי פיזית ועצמית לניהול הצפה בגוף",
           categoryKey: "BODY",
-          practiceIndex: 2 // Butterfly hug index
+          practiceIndex: 2
         },
         {
           label: "צלילי מרחב מרגיעים",
@@ -187,7 +200,6 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     };
   }
 
-  // קטגוריית לופ מחשבתי ודאגות (CBT)
   if (matchesLoop) {
     return {
       explanation: isF
@@ -217,7 +229,6 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     };
   }
 
-  // קטגוריית רוגע ומוזיקה
   if (matchesCalm) {
     return {
       explanation: isF
@@ -241,7 +252,6 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
     };
   }
 
-  // ברירת מחדל
   return {
     explanation: isF
       ? `שלום ${displayName}, איך אוכל לסייע לך ברגע זה? את יכולה לשתף אותי במה שעובר עלייך או לבחור ישירות באחד מהכלים המומלצים החמים:`
@@ -267,4 +277,102 @@ export async function getRecommendation(input: RecommendationInput): Promise<Rec
       }
     ]
   };
+}
+
+// תפריט הכלים העומדים לרשות ה-AI להמלצה - קטגוריות התוכן + מסכים מיוחדים באפליקציה
+const TOOL_MENU = [
+  ...CATS.map(c => `- ${c.key}: ${c.label} - ${c.tagLine}`),
+  '- JOURNAL: יומן מחשבות CBT (אפר"ת) - פירוק לופ מחשבתי וניסוח פרשנות מאוזנת',
+  '- BREATHING: תרגילי נשימה מונחים עם סנכרון ויזואלי',
+  '- SOUNDS: צלילי רקע, מדיטציה ונופי קול מרגיעים',
+  '- BILATERAL: עיבוד בילטרלי (EMDR) להפחתת מצוקה רגשית חריפה',
+].join('\n');
+
+const PromptInputSchema = z.object({
+  feeling: z.string(),
+  displayName: z.string(),
+  genderLabel: z.string(),
+  toolMenu: z.string(),
+  history: z.array(MessageSchema).optional(),
+});
+
+const prompt = ai.definePrompt({
+  name: 'recommendationPrompt',
+  input: { schema: PromptInputSchema },
+  output: { schema: RecommendationOutputSchema },
+  prompt: `את/ה "המצפן הרגשי" - מנחה דיגיטלי אמפתי, חם ומבוסס CBT/ACT/EMDR בתוך אפליקציית בריאות נפשית בעברית.
+המשתמש נקרא/ת {{displayName}} ופונה אליו/ה ב{{genderLabel}}.
+
+{{#if history}}
+היסטוריית השיחה עד כה:
+{{#each history}}
+{{role}}: {{content}}
+{{/each}}
+{{/if}}
+
+ההודעה הנוכחית מהמשתמש: "{{feeling}}"
+
+**בטיחות מעל הכל (Safety First)**:
+עליך לגלות ערנות מקסימלית לכל רמז של ייאוש קיצוני, חוסר טעם לחיים, אובדנות או רצון לפגוע בעצמו - כולל ביטויים עמומים כמו "אין לי כוח יותר", "נמאס לי מהכל", "הלוואי ולא הייתי פה".
+אם זיהית סיכון כזה:
+1. הגדר isCrisis כ-true.
+2. כתוב ב-explanation התייחסות אמפתית, מכילה, שמציינת שהכלי הדיגיטלי אינו מענה מספק כרגע ושחשוב לפנות לעזרה אנושית מיידית, ושאת/ה לא לבד.
+3. השאר options ריק ([]).
+4. ב-quickReplies החזר: ["עזרה דחופה", "מספרי חירום", "איך לפנות?"].
+
+אם אין סיכון:
+1. הגדר isCrisis כ-false.
+2. כתוב explanation אמפתית, קצרה (1-3 משפטים), שמשקפת הקשבה אמיתית למה שהמשתמש שיתף - לא תשובה גנרית.
+3. בחר עד 3 אפשרויות מתוך ארגז הכלים הבא בלבד, המתאימות ביותר למצב שתואר. categoryKey חייב להיות אחד מהמפתחות המדויקים מהרשימה:
+{{toolMenu}}
+4. הוסף quickReplies - עד 4 הצעות תשובה קצרות (2-4 מילים) שממשיכות את הדיאלוג בטבעיות.
+5. אם המשתמש כתב משפט עמום מאוד שלא ניתן להבין ממנו דבר (למשל "שלום" בלבד), אפשר להגדיר needsMoreInfo כ-true ולשאול שאלה מכוונת אחת ב-explanation, ולהחזיר options ריק.
+`,
+});
+
+const recommendationFlow = ai.defineFlow(
+  {
+    name: 'recommendationFlow',
+    inputSchema: PromptInputSchema,
+    outputSchema: RecommendationOutputSchema,
+  },
+  async (input) => {
+    const { output } = await prompt(input);
+    return output!;
+  }
+);
+
+export async function getRecommendation(input: RecommendationInput): Promise<RecommendationOutput> {
+  const { feeling = "", gender = "m", name = "" } = input;
+  const normalizedInput = feeling.trim().toLowerCase();
+  const isF = gender === 'f';
+  const displayName = name ? name : (isF ? "חברה" : "חבר");
+
+  // רשת ביטחון קשיחה: ביטויי חירום מפורשים מטופלים מיידית, ללא תלות ב-AI
+  const hasCrisis = crisisKeywords.some(keyword => normalizedInput.includes(keyword));
+  if (hasCrisis) {
+    return getCrisisResponse(isF, displayName);
+  }
+
+  try {
+    const result = await fetchWithRetry(() => recommendationFlow({
+      feeling,
+      displayName,
+      genderLabel: isF ? "לשון נקבה" : "לשון זכר",
+      toolMenu: TOOL_MENU,
+      history: input.history,
+    }));
+
+    if (result.isCrisis) {
+      return {
+        ...getCrisisResponse(isF, displayName),
+        explanation: result.explanation || getCrisisResponse(isF, displayName).explanation,
+      };
+    }
+
+    return result;
+  } catch (error) {
+    console.error('שגיאה במנוע ההמלצות החכם, חוזר למנגנון מבוסס-כללים:', error);
+    return ruleBasedRecommendation(input);
+  }
 }

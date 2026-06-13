@@ -12,6 +12,8 @@ import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
 import NotificationCenter from "@/components/NotificationCenter";
+import MoodCheckIn from "@/components/MoodCheckIn";
+import OnboardingDialog from "@/components/OnboardingDialog";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -383,7 +385,9 @@ export default function HomeScreen({
     return doc(firestore, "userProfiles", user.uid);
   }, [user, firestore]);
 
-  const { data: profileData } = useDoc(profileRef);
+  const { data: profileData, isLoading: isProfileLoading } = useDoc(profileRef);
+
+  const showOnboarding = !isProfileLoading && !!profileData && !profileData.onboardingCompleted;
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -568,6 +572,18 @@ export default function HomeScreen({
             </div>
           </div>
         </header>
+
+        {/* Daily Mood Check-in */}
+        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
+          <MoodCheckIn
+            profileData={profileData}
+            profileRef={profileRef}
+            gender={displayGender}
+            isLight={isLight}
+            onSelectCategory={onSelectCategory}
+            onGoToBreathing={onGoToBreathing}
+          />
+        </div>
 
         {/* Intelligent Dialogue Section */}
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
@@ -995,11 +1011,20 @@ export default function HomeScreen({
         </div>
       </div>
 
-      <ProfileDialog 
-        isOpen={isProfileOpen} 
-        onOpenChange={setIsProfileOpen} 
-        profileData={profileData} 
+      <ProfileDialog
+        isOpen={isProfileOpen}
+        onOpenChange={setIsProfileOpen}
+        profileData={profileData}
         profileRef={profileRef}
+      />
+
+      <OnboardingDialog
+        isOpen={showOnboarding}
+        profileRef={profileRef}
+        gender={displayGender}
+        onComplete={(focusAreaKey) => {
+          if (focusAreaKey) onSelectCategory(focusAreaKey);
+        }}
       />
     </div>
   );

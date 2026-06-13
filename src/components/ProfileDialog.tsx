@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail, Bell, BellOff } from "lucide-react";
+import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail, Bell, BellOff, Flame, LineChart as LineChartIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { collection, query, doc, getDocs, deleteDoc, where } from "firebase/fire
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { requestNotificationPermission } from "@/firebase/messaging";
+import { MOOD_OPTIONS, computeStreak, getMoodTrend } from "@/lib/mood";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -29,7 +31,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
-  const [view, setView] = useState<"profile" | "journals">("profile");
+  const [view, setView] = useState<"profile" | "journals" | "insights">("profile");
   const [selectedJournal, setSelectedJournal] = useState<any | null>(null);
   const [editName, setEditName] = useState("");
   const [editGender, setEditGender] = useState<"m" | "f">("m");
@@ -156,6 +158,26 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const favoritesCount = profileData?.favorites?.length || 0;
   const notificationsEnabled = !!profileData?.notificationsEnabled;
 
+  const moodStreak = useMemo(() => computeStreak(profileData?.moodLogs), [profileData]);
+  const moodTrend = useMemo(() => getMoodTrend(profileData?.moodLogs, 14), [profileData]);
+  const loggedDaysCount = useMemo(() => moodTrend.filter(d => d.value !== null).length, [moodTrend]);
+
+  const topDistortions = useMemo(() => {
+    if (!journals) return [];
+    const counts: Record<string, number> = {};
+    journals.forEach((j: any) => {
+      j.analysis?.distortions?.forEach((d: string) => {
+        counts[d] = (counts[d] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [journals]);
+
+  const moodEmojiByValue = (value: number) => MOOD_OPTIONS.find(o => o.value === value)?.emoji || "";
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl w-full max-h-[90vh] rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate translate-z-0 flex flex-col" dir="rtl">
@@ -170,26 +192,36 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
             <X size={20} />
           </DialogClose>
 
-          <div className="relative z-20 flex gap-4">
-            <button 
+          <div className="relative z-20 flex gap-2">
+            <button
               onClick={() => setView("profile")}
               className={cn(
-                "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
+                "flex items-center gap-2 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
                 view === "profile" ? "bg-white text-slate-950 shadow-xl" : "text-white/50 hover:text-white"
               )}
             >
               <UserIcon size={14} />
               פרופיל
             </button>
-            <button 
+            <button
+              onClick={() => setView("insights")}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
+                view === "insights" ? "bg-white text-slate-950 shadow-xl" : "text-white/50 hover:text-white"
+              )}
+            >
+              <LineChartIcon size={14} />
+              תובנות
+            </button>
+            <button
               onClick={() => setView("journals")}
               className={cn(
-                "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
+                "flex items-center gap-2 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
                 view === "journals" ? "bg-white text-slate-950 shadow-xl" : "text-white/50 hover:text-white"
               )}
             >
               <History size={14} />
-              היסטוריית יומנים
+              יומנים
             </button>
           </div>
         </div>
@@ -350,6 +382,94 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
+              </div>
+            </div>
+          ) : view === "insights" ? (
+            <div className="animate-in fade-in duration-500 space-y-8 pt-10">
+              <div className="grid grid-cols-2 gap-5">
+                <div className="bg-amber-50/80 p-5 rounded-3xl border border-amber-100 text-center space-y-1 shadow-sm">
+                  <div className="flex items-center justify-center gap-1.5 text-amber-500">
+                    <Flame size={16} className="fill-current" />
+                    <p className="text-2xl font-black text-amber-600">{moodStreak}</p>
+                  </div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ימי תיעוד רצופים</p>
+                </div>
+                <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
+                  <p className="text-2xl font-black text-slate-900">{loggedDaysCount}/14</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ימים מתועדים בשבועיים</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-black text-slate-900 px-1">מגמת מצב הרוח - שבועיים אחרונים</h3>
+                {loggedDaysCount > 0 ? (
+                  <div className="bg-slate-50/80 rounded-3xl border border-slate-100 p-4 h-48" dir="ltr">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={moodTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} reversed />
+                        <YAxis
+                          domain={[1, 5]}
+                          ticks={[1, 2, 3, 4, 5]}
+                          tickFormatter={moodEmojiByValue}
+                          tick={{ fontSize: 12 }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={28}
+                        />
+                        <RechartsTooltip
+                          formatter={(value: any) => [MOOD_OPTIONS.find(o => o.value === value)?.label || "", "מצב רוח"]}
+                          labelFormatter={(label) => label}
+                          contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 700, direction: "rtl" }}
+                        />
+                        <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} fill="url(#moodGradient)" connectNulls dot={{ r: 3, fill: "#6366f1", strokeWidth: 0 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-10 px-4 bg-slate-50/80 rounded-3xl border border-slate-100 space-y-1">
+                    <p className="font-bold text-slate-900 text-sm">עדיין לא תיעדת מצב רוח</p>
+                    <p className="text-xs text-slate-400">תיעוד יומי קצר במסך הבית יבנה כאן את התמונה שלך.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-black text-slate-900 px-1">דפוסי חשיבה נפוצים</h3>
+                {topDistortions.length > 0 ? (
+                  <div className="bg-slate-50/80 rounded-3xl border border-slate-100 p-4 h-52" dir="ltr">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topDistortions} layout="vertical" margin={{ top: 5, right: 16, left: 0, bottom: 5 }}>
+                        <XAxis type="number" hide allowDecimals={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          width={140}
+                          orientation="right"
+                          tick={{ fontSize: 11, fontWeight: 700, fill: "#475569" }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <RechartsTooltip
+                          formatter={(value: any) => [value, "פעמים"]}
+                          contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 700, direction: "rtl" }}
+                        />
+                        <Bar dataKey="count" fill="#f59e0b" radius={[8, 8, 8, 8]} barSize={16} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-10 px-4 bg-slate-50/80 rounded-3xl border border-slate-100 space-y-1">
+                    <p className="font-bold text-slate-900 text-sm">עדיין אין מספיק נתונים</p>
+                    <p className="text-xs text-slate-400">תרגולים ביומן המחשבות יחשפו כאן את הדפוסים החוזרים שלך.</p>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

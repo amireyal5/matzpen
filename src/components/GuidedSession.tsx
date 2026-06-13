@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowRight, Check, ChevronLeft, Sun, Moon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowRight, Check, ChevronLeft, Sun, Moon, Volume2, Pause, Loader2 } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useWakeLock } from "@/hooks/use-wake-lock";
+import { generateSpeech } from "@/ai/flows/tts-flow";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
@@ -52,6 +53,60 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
 
   const currentStep = steps[stepIdx];
   const progress = ((stepIdx + 1) / steps.length) * 100;
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+  // עצירת ההקראה בעת מעבר בין שלבים
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+    setIsLoadingAudio(false);
+  }, [stepIdx]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayAudio = async () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      return;
+    }
+
+    setIsLoadingAudio(true);
+    try {
+      const { audioUri } = await generateSpeech({ text: currentStep.text, gender });
+      const audio = new Audio(audioUri);
+      audio.onplay = () => setIsPlaying(true);
+      audio.onpause = () => setIsPlaying(false);
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setIsLoadingAudio(false);
+        audioRef.current = null;
+      };
+      audioRef.current = audio;
+      await audio.play();
+    } catch (error) {
+      console.error("שגיאה בהפעלת ההקראה:", error);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  };
 
   const handleNext = () => {
     if (stepIdx < steps.length - 1) {
@@ -150,6 +205,23 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
             <h3 className={cn("text-2xl md:text-3xl lg:text-4xl font-bold leading-tight", isLight ? "text-slate-900" : "text-slate-100")}>
               {currentStep.text}
             </h3>
+            <button
+              onClick={handlePlayAudio}
+              disabled={isLoadingAudio}
+              className={cn(
+                "mx-auto flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-black transition-all active:scale-95 disabled:opacity-60",
+                isLight ? "border-slate-200 text-slate-500 hover:bg-slate-100" : "border-white/10 text-slate-400 hover:bg-white/5"
+              )}
+            >
+              {isLoadingAudio ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : isPlaying ? (
+                <Pause size={16} />
+              ) : (
+                <Volume2 size={16} />
+              )}
+              {isLoadingAudio ? "טוען הקראה..." : isPlaying ? "מקריא..." : "הקראה"}
+            </button>
           </div>
         </div>
       </main>
