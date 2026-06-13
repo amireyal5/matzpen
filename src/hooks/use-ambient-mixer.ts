@@ -32,6 +32,11 @@ export function useAmbientMixer() {
   const fadeTimersRef = useRef<Partial<Record<SoundId, NodeJS.Timeout>>>({});
   const [trackStates, setTrackStates] = useState<TrackStatesMap>(INITIAL_STATES);
   
+  const trackStatesRef = useRef(trackStates);
+  useEffect(() => {
+    trackStatesRef.current = trackStates;
+  }, [trackStates]);
+  
   // הגדרות טיימר כיבוי
   const [timeLeft, setTimeLeft] = useState<number | null>(null); // שניות שנותרו
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -198,7 +203,8 @@ export function useAmbientMixer() {
     const sound = AMBIENT_SOUNDS.find((s) => s.id === id);
     if (!sound) return;
 
-    const targetVolume = trackStates[id].volume / 100;
+    const currentTrackState = trackStatesRef.current[id];
+    const targetVolume = currentTrackState.volume / 100;
     let audio = activeAudiosRef.current[id];
 
     if (!audio) {
@@ -208,7 +214,7 @@ export function useAmbientMixer() {
     }
 
     // הגדרת לופ לפי בחירת המשתמש ברצועה זו
-    const trackLoop = trackStates[id].isLoopEnabled;
+    const trackLoop = currentTrackState.isLoopEnabled;
     audio.loop = trackLoop;
     audio.onended = () => {
       if (!trackLoop) {
@@ -239,7 +245,7 @@ export function useAmbientMixer() {
       ...prev,
       [id]: { ...prev[id], playState: "playing" },
     }));
-  }, [trackStates, stop, clearFade]);
+  }, [stop, clearFade]);
 
   // שינוי עוצמה
   const setVolume = useCallback((id: SoundId, value: number) => {
