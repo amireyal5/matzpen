@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Check, ChevronLeft, Sun, Moon, Volume2, Pause, Loader2 } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, Sun, Moon, Volume2, Pause, Loader2, X, VolumeX, Sparkles } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +14,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
+import { SoundId } from "@/lib/ambient-sound-engine";
+import AmbientVideoBackground from "@/components/AmbientVideoBackground";
+import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
 
 interface GuidedSessionProps {
   catKey: string;
@@ -23,8 +27,6 @@ interface GuidedSessionProps {
   theme?: "light" | "dark";
   toggleTheme?: () => void;
 }
-
-const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 export default function GuidedSession({ catKey, practiceIdx, gender, onBack, theme = "light", toggleTheme }: GuidedSessionProps) {
   const isLight = theme === "light";
@@ -58,24 +60,77 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
-  // עצירת ההקראה בעת מעבר בין שלבים
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    setIsPlaying(false);
-    setIsLoadingAudio(false);
-  }, [stepIdx]);
+  // ניהול מוזיקת רקע
+  const { play, stop } = useAmbientMixer();
+  const [isBgMusicPlaying, setIsBgMusicPlaying] = useState(true);
+
+  const bgSoundMap: Record<string, SoundId> = {
+    SOS: "ambient-calm",
+    SLEEP: "dreamscape",
+    BODY: "mind-relaxation",
+    RESILIENCE: "hz-frequency-258",
+    ACCEPTANCE: "calm-peaceful",
+  };
+  const bgSoundId: SoundId = bgSoundMap[catKey] || "autumn-sky";
 
   useEffect(() => {
+    if (isBgMusicPlaying && !isFinished) {
+      play(bgSoundId);
+    } else {
+      stop(bgSoundId);
+    }
+    return () => {
+      stop(bgSoundId);
+    };
+  }, [isBgMusicPlaying, bgSoundId, isFinished, play, stop]);
+
+  // הקראה אוטומטית בעת מעבר בין שלבים
+  const activeStepRef = useRef<number>(0);
+  
+  useEffect(() => {
+    activeStepRef.current = stepIdx;
+    const currentStepId = stepIdx;
+
+    const autoPlay = async () => {
+      // המתנה קלה כדי לאפשר למעבר האנימציה להסתיים
+      await new Promise(r => setTimeout(r, 600));
+      if (activeStepRef.current !== currentStepId || isFinished) return;
+
+      setIsLoadingAudio(true);
+      try {
+        const { audioUri } = await generateSpeech({ text: steps[currentStepId].text, gender });
+        if (activeStepRef.current !== currentStepId || isFinished) return;
+
+        const audio = new Audio(audioUri);
+        audio.onplay = () => setIsPlaying(true);
+        audio.onpause = () => setIsPlaying(false);
+        audio.onended = () => setIsPlaying(false);
+        audio.onerror = () => {
+          setIsPlaying(false);
+          setIsLoadingAudio(false);
+          audioRef.current = null;
+        };
+        audioRef.current = audio;
+        await audio.play();
+      } catch (error) {
+        console.warn("Speech auto-play skipped:", error);
+      } finally {
+        setIsLoadingAudio(false);
+      }
+    };
+
+    autoPlay();
+
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      setIsPlaying(false);
+      setIsLoadingAudio(false);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, isFinished]);
 
   const handlePlayAudio = async () => {
     if (audioRef.current) {
@@ -122,23 +177,43 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
     }
   };
 
+  const toggleBgMusic = () => {
+    setIsBgMusicPlaying(prev => !prev);
+  };
+
+  const videoSrc = catKey === "SOS" ? AMBIENT_VIDEOS[0] : 
+                   catKey === "SLEEP" ? AMBIENT_VIDEOS[2] : 
+                   AMBIENT_VIDEOS[1];
+
   if (isFinished) {
     return (
-      <div className={cn("min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700 transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100" : "bg-slate-950")}>
-        <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150" />
-          <div className="relative w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden shadow-2xl">
-            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700 relative isolate bg-slate-950">
+        <AmbientVideoBackground
+          src={videoSrc}
+          className="z-0"
+          overlayClassName={isLight ? "bg-white/80" : "bg-slate-950/80"}
+        />
+        
+        <div className="relative z-10">
+          <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse-soft" />
+          <div className={cn(
+            "w-24 h-24 rounded-[2rem] border-4 flex items-center justify-center p-5 relative overflow-hidden shadow-2xl animate-in zoom-in duration-500",
+            isLight ? "bg-indigo-50 border-white text-indigo-600 shadow-indigo-100" : "bg-indigo-950/40 border-white/10 text-indigo-400"
+          )}>
+            <Check size={48} className="animate-bounce text-emerald-500" />
           </div>
-          <div className={cn("absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-2 rounded-full", isLight ? "border-white" : "border-slate-950")} />
         </div>
-        <div className="space-y-4 max-w-sm">
-          <h2 className={cn("text-3xl font-black", isLight ? "text-slate-900" : "text-white")}>כל הכבוד על התרגול!</h2>
-          <p className={cn("font-medium", isLight ? "text-slate-500" : "text-slate-400")}>הקדשת זמן לעצמך ולוויסות הפנימי שלך. זהו צעד משמעותי לבניית חוסן.</p>
+        
+        <div className="space-y-4 max-w-sm relative z-10">
+          <h2 className={cn("text-3xl font-headline font-black", isLight ? "text-slate-900" : "text-white")}>כל הכבוד על התרגול!</h2>
+          <p className={cn("font-bold text-sm leading-relaxed", isLight ? "text-slate-600" : "text-slate-350")}>
+            הקדשת זמן יקר לעצמך ולוויסות הפנימי שלך. זהו צעד משמעותי לבניית חוסן ושלווה.
+          </p>
         </div>
+        
         <Button
           onClick={onBack}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 px-12 rounded-[2rem] text-xl shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 px-12 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all relative z-10"
         >
           חזרה למסך הבית
         </Button>
@@ -147,92 +222,183 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
   }
 
   return (
-    <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
-      {/* Header */}
-      <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
+    <div className="min-h-screen flex flex-col relative isolate bg-slate-950 overflow-hidden select-none">
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes pulse-ring {
+          0% { transform: scale(0.95); opacity: 0.2; }
+          50% { transform: scale(1.15); opacity: 0.5; }
+          100% { transform: scale(0.95); opacity: 0.2; }
+        }
+        .animate-pulse-ring { animation: pulse-ring 4s infinite ease-in-out; }
+        @keyframes eq-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 16px; }
+        }
+        .eq-bar-1 { animation: eq-bar 0.8s ease-in-out infinite; }
+        .eq-bar-2 { animation: eq-bar 0.5s ease-in-out -0.3s infinite; }
+        .eq-bar-3 { animation: eq-bar 0.7s ease-in-out -0.15s infinite; }
+      `}} />
+
+      {/* רקע וידאו נופי מרגיע */}
+      <AmbientVideoBackground
+        src={videoSrc}
+        className="z-0"
+        overlayClassName={isLight ? "bg-white/75" : "bg-slate-950/75"}
+      />
+
+      {/* כותרת עליונה */}
+      <header className={cn("relative z-10 p-6 flex items-center justify-between border-b backdrop-blur-md transition-colors duration-500", isLight ? "border-slate-200/60 bg-white/60" : "border-white/5 bg-slate-900/50")}>
         <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
-          <ArrowRight size={18} />
+          <X size={18} />
           יציאה
         </button>
         <div className="flex flex-col items-center">
           <span className={cn("text-[10px] font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>{cat.label}</span>
-          <span className="text-sm font-bold">{g(practice.t)}</span>
+          <span className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-white")}>{g(practice.t)}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {toggleTheme && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={toggleTheme}
                   className={cn(
-                    "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95",
-                    isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                    "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                    isLight ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm" : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
                   )}
-                  aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                  aria-label={isLight ? "מצב כהה" : "מצב בהיר"}
                 >
                   {isLight ? <Moon size={18} /> : <Sun size={18} />}
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+              <TooltipContent>{isLight ? "מצב כהה" : "מצב בהיר"}</TooltipContent>
             </Tooltip>
           )}
-          <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
-            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
-            <div className={cn("absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border rounded-full", isLight ? "border-white" : "border-slate-950")} />
-          </div>
+
+          {/* שליטה במוזיקת רקע */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleBgMusic}
+                className={cn(
+                  "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                  isBgMusicPlaying
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                    : isLight
+                      ? "bg-slate-100 border-slate-200 text-slate-400"
+                      : "bg-white/5 border-white/10 text-slate-500"
+                )}
+                aria-label="מוזיקת רקע"
+              >
+                {isBgMusicPlaying ? <Volume2 size={18} /> : <VolumeX size={18} />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>מוזיקת רקע</TooltipContent>
+          </Tooltip>
         </div>
       </header>
 
-      {/* Progress Bar */}
-      <div className="px-6 lg:px-12 pt-4">
+      {/* מד התקדמות */}
+      <div className="px-6 lg:px-12 pt-4 relative z-10">
         <Progress value={progress} className={cn("h-1 [&>div]:bg-indigo-500 transition-all duration-500", isLight ? "bg-slate-200" : "bg-white/5")} />
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-8 max-w-lg lg:max-w-2xl mx-auto w-full">
-        <div className="space-y-12 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
-
-          <div className="flex justify-center">
-             <div className={cn("w-20 h-20 rounded-3xl flex items-center justify-center border", isLight ? "bg-white border-slate-100 shadow-sm" : "bg-white/5 border-white/5")} style={{ backgroundColor: `${cat.hue}15` }}>
-               <cat.icon size={40} style={{ color: cat.hue }} />
-             </div>
+      {/* תוכן ראשי מעוצב ככרטיסיית זכוכית מעופפת */}
+      <main className="flex-1 flex flex-col items-center justify-center p-6 max-w-lg lg:max-w-2xl mx-auto w-full relative z-10">
+        <div className={cn(
+          "w-full rounded-[2.5rem] p-8 border backdrop-blur-xl shadow-2xl flex flex-col justify-between items-center text-center space-y-8 transition-colors duration-500",
+          isLight 
+            ? "bg-white/80 border-slate-200/60 shadow-indigo-100/30" 
+            : "bg-slate-900/60 border-white/10"
+        )}>
+          
+          {/* הילת מיקוד מרכזית מונפשת */}
+          <div className="relative">
+            <div className={cn(
+              "absolute inset-0 rounded-full blur-3xl scale-150 animate-pulse-ring",
+              catKey === "SOS" ? "bg-amber-500/20" :
+              catKey === "BODY" ? "bg-emerald-500/20" :
+              catKey === "SLEEP" ? "bg-indigo-500/20" :
+              catKey === "RESILIENCE" ? "bg-blue-500/20" :
+              "bg-purple-500/20"
+            )} />
+            
+            <div className={cn(
+              "w-20 h-20 rounded-3xl flex items-center justify-center border shadow-xl relative overflow-hidden transition-all duration-1000",
+              isLight ? "bg-white border-slate-100" : "bg-slate-900/80 border-white/5"
+            )}>
+              <cat.icon size={36} style={{ color: cat.hue }} className={cn("relative z-10", isPlaying ? "scale-110" : "scale-100")} />
+            </div>
           </div>
 
-          <div className="text-center space-y-6">
-            <div className={cn("inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-[10px] font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>
-              {currentStep.type === "intro" ? "תובנה" : currentStep.type === "outro" ? "סיכום" : `שלב ${stepIdx}`}
+          {/* כיתוב והנחיה */}
+          <div className="space-y-4 w-full">
+            <div className={cn(
+              "inline-block px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+              isLight 
+                ? "bg-indigo-50 border-indigo-100 text-indigo-600" 
+                : "bg-indigo-950/30 border-indigo-500/20 text-indigo-400"
+            )}>
+              {currentStep.type === "intro" ? "תובנה והכנה" : currentStep.type === "outro" ? "סיכום ומחשבה" : `שלב ${stepIdx}`}
             </div>
-            <h3 className={cn("text-2xl md:text-3xl lg:text-4xl font-bold leading-tight", isLight ? "text-slate-900" : "text-slate-100")}>
+            
+            <h3 className={cn(
+              "text-xl md:text-2xl font-black leading-relaxed font-headline min-h-[5.5rem] flex items-center justify-center px-4 transition-all duration-500",
+              isLight ? "text-slate-900" : "text-white"
+            )}>
               {currentStep.text}
             </h3>
+          </div>
+
+          {/* הדמיית גלי הקראה ובקרת שמע */}
+          <div className="space-y-4 w-full">
+            <div className="flex justify-center items-center gap-1.5 h-6">
+              {isPlaying ? (
+                <>
+                  <span className="w-1 bg-indigo-500 rounded-full eq-bar-1" style={{ height: "60%" }} />
+                  <span className="w-1 bg-indigo-500 rounded-full eq-bar-2" style={{ height: "100%" }} />
+                  <span className="w-1 bg-indigo-500 rounded-full eq-bar-3" style={{ height: "70%" }} />
+                  <span className="w-1 bg-indigo-500 rounded-full eq-bar-2" style={{ height: "90%" }} />
+                  <span className="w-1 bg-indigo-500 rounded-full eq-bar-1" style={{ height: "50%" }} />
+                </>
+              ) : (
+                <div className={cn("h-[1px] w-24 rounded-full", isLight ? "bg-slate-200" : "bg-white/10")} />
+              )}
+            </div>
+
             <button
               onClick={handlePlayAudio}
               disabled={isLoadingAudio}
               className={cn(
-                "mx-auto flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-black transition-all active:scale-95 disabled:opacity-60",
-                isLight ? "border-slate-200 text-slate-500 hover:bg-slate-100" : "border-white/10 text-slate-400 hover:bg-white/5"
+                "mx-auto flex items-center gap-2.5 px-6 py-2.5 rounded-full border text-xs font-black transition-all active:scale-95 disabled:opacity-60 shadow-md",
+                isLight ? "border-slate-200 text-slate-655 hover:bg-slate-100" : "border-white/10 text-slate-350 hover:bg-white/5"
               )}
             >
               {isLoadingAudio ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : isPlaying ? (
-                <Pause size={16} />
+                <Pause size={16} className="text-indigo-400" />
               ) : (
                 <Volume2 size={16} />
               )}
-              {isLoadingAudio ? "טוען הקראה..." : isPlaying ? "מקריא..." : "הקראה"}
+              {isLoadingAudio ? "טוען הקראה..." : isPlaying ? "השהה הקראה" : "הקראת מנחה"}
             </button>
           </div>
         </div>
       </main>
 
-      {/* Footer Controls */}
-      <footer className="p-8 grid grid-cols-2 gap-4 max-w-lg lg:max-w-2xl mx-auto w-full">
+      {/* בקרת ניווט תחתונה */}
+      <footer className="p-8 grid grid-cols-2 gap-4 max-w-lg lg:max-w-2xl mx-auto w-full relative z-10">
         <Button
           variant="outline"
           onClick={handlePrev}
           disabled={stepIdx === 0}
-          className={cn("h-16 rounded-[1.5rem] font-bold disabled:opacity-30 bg-transparent", isLight ? "border-slate-200 text-slate-500 hover:bg-slate-100" : "border-white/10 text-slate-400 hover:bg-white/5")}
+          className={cn(
+            "h-16 rounded-[1.5rem] font-bold disabled:opacity-30 border transition-all active:scale-95",
+            isLight 
+              ? "bg-white/80 border-slate-200 text-slate-500 hover:bg-slate-100 shadow-sm" 
+              : "bg-slate-900/40 border-white/5 text-slate-400 hover:bg-white/5"
+          )}
         >
           <ChevronLeft size={20} className="ml-2" />
           הקודם
