@@ -93,8 +93,6 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
     const currentStepId = stepIdx;
 
     const autoPlay = async () => {
-      // המתנה קלה כדי לאפשר למעבר האנימציה להסתיים
-      await new Promise(r => setTimeout(r, 600));
       if (!active || activeStepRef.current !== currentStepId || isFinished) return;
 
       setIsLoadingAudio(true);
