@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Brain } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Brain, LifeBuoy } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -24,7 +24,8 @@ interface HomeScreenProps {
   onSelectCategory: (key: string) => void;
   onStartGuided: (catKey: string, practiceIdx: number) => void;
   onGoToJournal: () => void;
-  onGoToMeditation: (tab?: "sounds" | "breathing", soundId?: any, breathingId?: string) => void;
+  onGoToSounds: (soundId?: any) => void;
+  onGoToBreathing: (breathingId?: string) => void;
   onGoToBilateral: () => void;
   onBack: () => void;
 }
@@ -60,7 +61,7 @@ const TOPIC_SECTIONS: {
     id: "sos",
     title: "עזרה מיידית וקרקוע (SOS)",
     description: "כלים מהירים להפחתת חרדה והצפה רגשית ברגעים קשים",
-    icon: AlertTriangle,
+    icon: LifeBuoy,
     hue: "#DC2626",
     items: [
       {
@@ -79,7 +80,7 @@ const TOPIC_SECTIONS: {
         id: "sos-breathing-ptsd",
         type: "breathing",
         breathingId: "ptsd-grounding",
-        label: "ויסות הצפה (PTSD)",
+        label: "ויסות הצפה (קרקוע מרגיע)",
         description: "נשימה מרגיעה ללא עצירות להרגעת מערכת העצבים",
         tag: "תרגיל נשימה",
         image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600",
@@ -281,19 +282,20 @@ const TOPIC_SECTIONS: {
 interface UnifiedHomeCardProps {
   item: HomeItem;
   onStartGuided: (catKey: string, practiceIdx: number) => void;
-  onGoToMeditation: (tab?: "sounds" | "breathing", soundId?: any, breathingId?: string) => void;
+  onGoToSounds: (soundId?: any) => void;
+  onGoToBreathing: (breathingId?: string) => void;
 }
 
-function UnifiedHomeCard({ item, onStartGuided, onGoToMeditation }: UnifiedHomeCardProps) {
+function UnifiedHomeCard({ item, onStartGuided, onGoToSounds, onGoToBreathing }: UnifiedHomeCardProps) {
   const [imageError, setImageError] = useState(false);
   
   const handlePlay = () => {
     if (item.type === "practice") {
       onStartGuided(item.catKey!, item.index!);
     } else if (item.type === "breathing") {
-      onGoToMeditation("breathing", undefined, item.breathingId);
+      onGoToBreathing(item.breathingId);
     } else if (item.type === "sound") {
-      onGoToMeditation("sounds", item.soundId);
+      onGoToSounds(item.soundId);
     }
   };
 
@@ -351,7 +353,8 @@ export default function HomeScreen({
   onSelectCategory, 
   onStartGuided, 
   onGoToJournal, 
-  onGoToMeditation, 
+  onGoToSounds, 
+  onGoToBreathing, 
   onGoToBilateral,
   onBack 
 }: HomeScreenProps) {
@@ -457,6 +460,13 @@ export default function HomeScreen({
           50% { transform: scale(1.15); opacity: 0.45; }
           100% { transform: scale(0.95); opacity: 0.15; }
         }
+        @keyframes eq-bar {
+          0%, 100% { height: 4px; }
+          50% { height: 16px; }
+        }
+        .eq-bar-1 { animation: eq-bar 0.8s ease-in-out infinite; }
+        .eq-bar-2 { animation: eq-bar 0.5s ease-in-out -0.3s infinite; }
+        .eq-bar-3 { animation: eq-bar 0.7s ease-in-out -0.15s infinite; }
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -538,7 +548,7 @@ export default function HomeScreen({
             <div className="mt-6 p-8 bg-rose-955/40 backdrop-blur-xl rounded-[2.5rem] border-2 border-rose-500/30 shadow-2xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
               <div className="flex items-center gap-4 text-rose-455">
                 <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                  <AlertTriangle size={28} />
+                  <LifeBuoy size={28} />
                 </div>
                 <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
               </div>
@@ -678,7 +688,8 @@ export default function HomeScreen({
                             key={i}
                             onClick={() => {
                               if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                              else if (opt.categoryKey === "MEDITATION") onGoToMeditation();
+                              else if (opt.categoryKey === "SOUNDS" || opt.categoryKey === "MEDITATION") onGoToSounds();
+                              else if (opt.categoryKey === "BREATHING") onGoToBreathing();
                               else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
                               else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
                               else onSelectCategory(opt.categoryKey);
@@ -804,28 +815,48 @@ export default function HomeScreen({
                 </div>
               </button>
 
-              {/* Meditation & Breathing */}
+              {/* Breathing Exercises */}
               <button 
-                onClick={() => onGoToMeditation()}
-                className="col-span-2 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex items-center justify-between text-right min-h-[100px] hover:border-emerald-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
-                aria-label="מרחב המדיטציה והנשימה"
+                onClick={() => onGoToBreathing()}
+                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-emerald-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                aria-label="תרגולי נשימה מווסתים"
               >
-                {/* Visual breathing ring in background */}
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-emerald-500/10 pointer-events-none flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/5 border border-emerald-500/20" style={{ animation: 'bento-breath 4s infinite ease-in-out' }} />
+                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors pointer-events-none" />
+                <div className="absolute left-4 top-4 w-12 h-12 rounded-full border border-emerald-500/10 pointer-events-none flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-emerald-500/5 border border-emerald-500/20" style={{ animation: 'bento-breath 4s infinite ease-in-out' }} />
                 </div>
                 
-                <div className="flex items-center gap-4 z-10">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                    <Flower2 size={24} />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-black text-white leading-tight">מדיטציה ונשימה</span>
-                    <span className="block text-[10px] text-emerald-400 font-black tracking-widest uppercase">שקט פנימי ומיינדפולנס</span>
-                    <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-0.5 opacity-80">תרגול נשימות מונחה עם קולות פעמון עדינים</span>
-                  </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Wind size={20} />
                 </div>
-                <ChevronLeft className="text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-[-4px] transition-all z-10 pl-2" size={18} />
+                <div className="space-y-1 mt-4 z-10">
+                  <span className="block text-sm font-black text-white leading-tight">תרגולי נשימה</span>
+                  <span className="block text-[10px] text-emerald-400 font-black tracking-widest uppercase">ויסות והרגעה</span>
+                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">קצב ויזואלי מונחה עם פעמון עדין</span>
+                </div>
+              </button>
+
+              {/* Ambient Sounds */}
+              <button 
+                onClick={() => onGoToSounds()}
+                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-indigo-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                aria-label="צלילי מרחב לשלווה"
+              >
+                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
+                <div className="absolute left-4 top-4 flex items-end gap-0.5 h-6 w-8 pointer-events-none opacity-25">
+                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-1" style={{ height: "40%" }} />
+                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-2" style={{ height: "80%" }} />
+                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-3" style={{ height: "50%" }} />
+                </div>
+
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                  <Music size={20} />
+                </div>
+                <div className="space-y-1 mt-4 z-10">
+                  <span className="block text-sm font-black text-white leading-tight">צלילי מרחב</span>
+                  <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">מוזיקה מרגיעה</span>
+                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נעימות סביבתיות וקערות טיבטיות</span>
+                </div>
               </button>
 
             </div>
@@ -846,7 +877,8 @@ export default function HomeScreen({
                     key={item.id}
                     item={item}
                     onStartGuided={onStartGuided}
-                    onGoToMeditation={onGoToMeditation}
+                    onGoToSounds={onGoToSounds}
+                    onGoToBreathing={onGoToBreathing}
                   />
                 ))}
               </div>

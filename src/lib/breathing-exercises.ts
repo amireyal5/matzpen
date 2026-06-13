@@ -20,7 +20,7 @@ export interface BreathingExercise {
 export const BREATHING_EXERCISES: BreathingExercise[] = [
   {
     id: "ptsd-grounding",
-    title: "ויסות הצפה (קרקוע מותאם ל-PTSD)",
+    title: "ויסות הצפה (קרקוע מרגיע)",
     description: "תרגיל נשימה מווסת ללא עצירות נשימה, להרגעת מערכת העצבים והפחתת עוררות יתר. משלב אוטומטית מוזיקת שלווה סביבתית ברקע.",
     rhythmText: "שאף 4 ש׳ • נשוף 6 ש׳",
     style: "grounding-glow",

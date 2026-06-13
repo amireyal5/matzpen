@@ -10,14 +10,15 @@ import AboutScreen from "@/components/AboutScreen";
 import SplashScreen from "@/components/SplashScreen";
 import GuidedSession from "@/components/GuidedSession";
 import ThoughtJournal from "@/components/ThoughtJournal";
-import MeditationScreen from "@/components/MeditationScreen";
+import SoundsScreen from "@/components/SoundsScreen";
+import BreathingScreen from "@/components/BreathingScreen";
 import BilateralProcessing from "@/components/BilateralProcessing";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { onMessageListener } from "@/firebase/messaging";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "meditation" | "bilateral";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
@@ -25,9 +26,10 @@ function AppContent() {
   const [activeCatKey, setActiveCatKey] = useState("SOS");
   const [activePracticeIdx, setActivePracticeIdx] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [meditationParams, setMeditationParams] = useState<{
-    initialTab?: "sounds" | "breathing";
+  const [soundsParams, setSoundsParams] = useState<{
     initialSoundId?: any;
+  }>({});
+  const [breathingParams, setBreathingParams] = useState<{
     initialBreathingId?: string;
   }>({});
   
@@ -60,7 +62,7 @@ function AppContent() {
           setScreen("home");
         }
       } else {
-        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "meditation" || screen === "bilateral") {
+        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "sounds" || screen === "breathing" || screen === "bilateral") {
           setScreen("auth");
         }
       }
@@ -96,7 +98,7 @@ function AppContent() {
       return;
     }
     if (catKey === "MEDITATION") {
-      setScreen("meditation");
+      setScreen("sounds");
       return;
     }
     if (catKey === "BILATERAL") {
@@ -140,9 +142,13 @@ function AppContent() {
           onSelectCategory={handleSelectCategory} 
           onStartGuided={handleStartGuided}
           onGoToJournal={() => setScreen("journal")}
-          onGoToMeditation={(tab, soundId, breathingId) => {
-            setMeditationParams({ initialTab: tab, initialSoundId: soundId, initialBreathingId: breathingId });
-            setScreen("meditation");
+          onGoToSounds={(soundId) => {
+            setSoundsParams({ initialSoundId: soundId });
+            setScreen("sounds");
+          }}
+          onGoToBreathing={(breathingId) => {
+            setBreathingParams({ initialBreathingId: breathingId });
+            setScreen("breathing");
           }}
           onGoToBilateral={() => setScreen("bilateral")}
           onBack={() => setScreen("landing")} 
@@ -169,13 +175,22 @@ function AppContent() {
           onBack={() => setScreen("home")}
         />
       )}
-      {(screen === "meditation" && user) && (
-        <MeditationScreen 
+      {(screen === "sounds" && user) && (
+        <SoundsScreen 
           onBack={() => {
-            setMeditationParams({});
+            setSoundsParams({});
             setScreen("home");
           }}
-          {...meditationParams}
+          {...soundsParams}
+        />
+      )}
+      {(screen === "breathing" && user) && (
+        <BreathingScreen 
+          onBack={() => {
+            setBreathingParams({});
+            setScreen("home");
+          }}
+          {...breathingParams}
         />
       )}
       {(screen === "bilateral" && user) && (
