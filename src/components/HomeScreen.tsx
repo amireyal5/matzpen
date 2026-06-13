@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Brain, LifeBuoy } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -28,6 +28,8 @@ interface HomeScreenProps {
   onGoToBreathing: (breathingId?: string) => void;
   onGoToBilateral: () => void;
   onBack: () => void;
+  theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -305,7 +307,7 @@ function UnifiedHomeCard({ item, onStartGuided, onGoToSounds, onGoToBreathing }:
   return (
     <button
       onClick={handlePlay}
-      className="snap-start shrink-0 w-[72vw] xs:w-[75vw] sm:w-[260px] h-36 rounded-[2rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl transition-all duration-500 shadow-lg relative p-5 flex flex-col justify-between text-right group hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] active:scale-95"
+      className="snap-start shrink-0 w-[72vw] xs:w-[75vw] sm:w-[260px] lg:w-full h-36 rounded-[2rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl transition-all duration-500 shadow-lg relative p-5 flex flex-col justify-between text-right group hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] active:scale-95"
     >
       <div className="absolute inset-0 z-0">
         {item.type !== "practice" && !imageError ? (
@@ -356,8 +358,11 @@ export default function HomeScreen({
   onGoToSounds, 
   onGoToBreathing, 
   onGoToBilateral,
-  onBack 
+  onBack,
+  theme = "light",
+  toggleTheme
 }: HomeScreenProps) {
+  const isLight = theme === "light";
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -444,10 +449,10 @@ export default function HomeScreen({
 
   const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
-  const placeholderText = displayGender === "f" ? "ספרי לי מה עובר עלייך..." : "ספר לי מה עובר עליך...";
+  const placeholderText = displayGender === "f" ? "מה מעסיקה אותך היום?" : "מה מעסיק אותך היום?";
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-white relative overflow-hidden select-none">
+    <div className={cn("min-h-screen relative overflow-hidden select-none transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-[#0B0F19] text-white")}>
       {/* Background style overrides for animations */}
       <style>{`
         @keyframes bento-bls {
@@ -477,32 +482,52 @@ export default function HomeScreen({
       `}</style>
 
       {/* Ambient background glows */}
-      <div className="absolute top-[-10%] left-[-20%] w-[70%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-10%] w-[60%] h-[50%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[30%] right-[-15%] w-[50%] h-[40%] rounded-full bg-purple-500/5 blur-[100px] pointer-events-none" />
+      <div className={cn("absolute top-[-10%] left-[-20%] w-[70%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-700", isLight ? "bg-indigo-200/40" : "bg-indigo-500/10")} />
+      <div className={cn("absolute bottom-[10%] right-[-10%] w-[60%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-700", isLight ? "bg-emerald-200/30" : "bg-emerald-500/10")} />
+      <div className={cn("absolute top-[30%] right-[-15%] w-[50%] h-[40%] rounded-full blur-[100px] pointer-events-none transition-colors duration-700", isLight ? "bg-purple-200/20" : "bg-purple-500/5")} />
 
       {/* Content wrapper */}
       <div className="relative z-10">
         <header className="bg-transparent pt-8 pb-6 px-6">
-          <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
+          <div className="max-w-xl lg:max-w-4xl mx-auto flex flex-col items-center text-center gap-6">
             <div className="w-full flex justify-between items-center mb-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 shadow-lg overflow-hidden p-1.5">
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border shadow-lg overflow-hidden p-1.5 transition-colors", isLight ? "bg-white border-slate-200" : "bg-white/5 border-white/10")}>
                   <Logo variant="icon" />
                 </div>
-                <p className="text-[10px] text-indigo-400 font-black uppercase tracking-widest">המצפן הרגשי</p>
+                <p className={cn("text-[10px] font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>המצפן הרגשי</p>
               </div>
               
               <div className="flex items-center gap-2">
-                <NotificationCenter />
+                <NotificationCenter isLight={isLight} />
+
+                {toggleTheme && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={toggleTheme}
+                        className={cn(
+                          "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                          isLight 
+                            ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm" 
+                            : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                        )}
+                        aria-label={isLight ? "מצב כהה" : "מצב בהיר"}
+                      >
+                        {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isLight ? "מצב כהה" : "מצב בהיר"}</TooltipContent>
+                  </Tooltip>
+                )}
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button onClick={() => setIsProfileOpen(true)} className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-indigo-500 transition-all overflow-hidden relative" aria-label="פרופיל והגדרות">
+                    <button onClick={() => setIsProfileOpen(true)} className={cn("w-10 h-10 rounded-full border-2 hover:border-indigo-500 transition-all overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")} aria-label="פרופיל והגדרות">
                       {user?.photoURL ? (
                         <Image src={user.photoURL} alt="פרופיל אישי" width={40} height={40} className="w-full h-full object-cover rounded-full" />
                       ) : (
-                        <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
+                        <div className={cn("w-full h-full flex items-center justify-center", isLight ? "bg-slate-100 text-slate-500" : "bg-slate-800 text-slate-400")}>
                           <UserIcon size={16} />
                         </div>
                       )}
@@ -536,14 +561,14 @@ export default function HomeScreen({
             </div>
 
             <div className="space-y-1.5">
-              <h2 className="text-3xl font-headline font-black text-white tracking-tight leading-tight">{welcomeText}</h2>
-              <p className="text-xs font-bold text-slate-400">{subActionText}</p>
+              <h2 className={cn("text-3xl font-headline font-black tracking-tight leading-tight", isLight ? "text-slate-900" : "text-white")}>{welcomeText}</h2>
+              <p className={cn("text-xs font-bold", isLight ? "text-slate-500" : "text-slate-400")}>{subActionText}</p>
             </div>
           </div>
         </header>
 
         {/* Intelligent Dialogue Section */}
-        <div className="max-w-xl mx-auto px-6 relative z-20">
+        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
           {recommendation && recommendation.isCrisis ? (
             <div className="mt-6 p-8 bg-rose-955/40 backdrop-blur-xl rounded-[2.5rem] border-2 border-rose-500/30 shadow-2xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
               <div className="flex items-center gap-4 text-rose-455">
@@ -727,8 +752,8 @@ export default function HomeScreen({
             </div>
           ) : (
             <form onSubmit={handleSearch} className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[2.2rem] blur-md opacity-75 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative rounded-[2rem] p-2 flex items-center overflow-hidden min-h-[72px] bg-slate-900/60 backdrop-blur-xl border border-white/10 focus-within:border-indigo-500/30 transition-all duration-500 shadow-2xl">
+              <div className={cn("absolute -inset-1 rounded-[2.2rem] blur-md opacity-75 group-hover:opacity-100 transition duration-500", isLight ? "bg-gradient-to-r from-indigo-300/30 to-purple-300/30" : "bg-gradient-to-r from-indigo-500/20 to-purple-500/20")}></div>
+              <div className={cn("relative rounded-[2rem] p-2 flex items-center overflow-hidden min-h-[72px] backdrop-blur-xl border focus-within:border-indigo-500/30 transition-all duration-500 shadow-2xl", isLight ? "bg-white/80 border-slate-200" : "bg-slate-900/60 border-white/10")}>
                 <div className={cn(
                   "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
                   (isMinimized && messages.length === 0) ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
@@ -744,7 +769,7 @@ export default function HomeScreen({
                 <input 
                   type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
                   placeholder={placeholderText} 
-                  className="flex-1 bg-transparent px-4 py-5 focus:outline-none font-bold text-white placeholder:text-slate-500 text-sm text-right" dir="rtl"
+                  className={cn("flex-1 bg-transparent px-4 py-5 focus:outline-none font-bold text-sm text-right", isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-500")} dir="rtl"
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -765,21 +790,21 @@ export default function HomeScreen({
         </div>
 
         {/* Main Section */}
-        <div className="max-w-xl mx-auto px-6 mt-10 space-y-10 pb-20">
+        <div className="max-w-xl lg:max-w-5xl mx-auto px-6 lg:px-8 mt-10 space-y-10 lg:space-y-14 pb-20">
           
           {/* Strategic Tools Bento Grid */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Sparkles size={14} className="text-indigo-400" />
-              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כלים אסטרטגיים</h3>
+              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כלים אסטרטגיים</h3>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
               {/* CBT Journal */}
               <button 
                 onClick={onGoToJournal}
-                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-indigo-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
                 aria-label="יומן מחשבות CBT"
               >
                 <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
@@ -787,7 +812,7 @@ export default function HomeScreen({
                   <BookText size={20} />
                 </div>
                 <div className="space-y-1 mt-4 z-10">
-                  <span className="block text-sm font-black text-white leading-tight">יומן מחשבות</span>
+                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>יומן מחשבות</span>
                   <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">CBT • אפר"ת</span>
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">וויסות רגשי דרך שינוי דפוסי חשיבה</span>
                 </div>
@@ -796,7 +821,7 @@ export default function HomeScreen({
               {/* Bilateral EMDR */}
               <button 
                 onClick={onGoToBilateral}
-                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-indigo-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
                 aria-label="עיבוד בילטרלי EMDR"
               >
                 {/* Visual back and forth tracking orb decoration in background */}
@@ -809,7 +834,7 @@ export default function HomeScreen({
                   <Zap size={20} className="fill-current" />
                 </div>
                 <div className="space-y-1 mt-4 z-10">
-                  <span className="block text-sm font-black text-white leading-tight">עיבוד בילטרלי</span>
+                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עיבוד בילטרלי</span>
                   <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">EMDR Style</span>
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נטרול רגשות קשים והטמעת משאבים</span>
                 </div>
@@ -818,7 +843,7 @@ export default function HomeScreen({
               {/* Breathing Exercises */}
               <button 
                 onClick={() => onGoToBreathing()}
-                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-emerald-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-emerald-400/50 hover:shadow-emerald-100/50" : "bg-slate-900/40 border-white/5 hover:border-emerald-500/30 hover:bg-slate-900/60")}
                 aria-label="תרגולי נשימה מווסתים"
               >
                 <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors pointer-events-none" />
@@ -830,7 +855,7 @@ export default function HomeScreen({
                   <Wind size={20} />
                 </div>
                 <div className="space-y-1 mt-4 z-10">
-                  <span className="block text-sm font-black text-white leading-tight">תרגולי נשימה</span>
+                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>תרגולי נשימה</span>
                   <span className="block text-[10px] text-emerald-400 font-black tracking-widest uppercase">ויסות והרגעה</span>
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">קצב ויזואלי מונחה עם פעמון עדין</span>
                 </div>
@@ -839,7 +864,7 @@ export default function HomeScreen({
               {/* Ambient Sounds */}
               <button 
                 onClick={() => onGoToSounds()}
-                className="col-span-1 p-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] hover:border-indigo-500/30 hover:bg-slate-900/60 active:scale-95 transition-all group overflow-hidden relative"
+                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
                 aria-label="צלילי מרחב לשלווה"
               >
                 <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
@@ -853,7 +878,7 @@ export default function HomeScreen({
                   <Music size={20} />
                 </div>
                 <div className="space-y-1 mt-4 z-10">
-                  <span className="block text-sm font-black text-white leading-tight">צלילי מרחב</span>
+                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>צלילי מרחב</span>
                   <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">מוזיקה מרגיעה</span>
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נעימות סביבתיות וקערות טיבטיות</span>
                 </div>
@@ -867,11 +892,11 @@ export default function HomeScreen({
             <div key={section.id} className="space-y-4">
               <div className="flex items-center gap-2 px-2">
                 <section.icon size={14} style={{ color: section.hue }} />
-                <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">
+                <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>
                   {section.title}
                 </h3>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6" dir="rtl">
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6 lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none lg:mx-0 lg:px-0 lg:pb-0" dir="rtl">
                 {section.items.map((item) => (
                   <UnifiedHomeCard
                     key={item.id}
@@ -889,16 +914,17 @@ export default function HomeScreen({
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Compass size={14} className="text-indigo-400" />
-              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כל הנושאים והתחומים</h3>
+              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כל הנושאים והתחומים</h3>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6" dir="rtl">
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6 lg:grid lg:grid-cols-4 lg:overflow-visible lg:snap-none lg:mx-0 lg:px-0 lg:pb-0" dir="rtl">
               {CATS.map((c) => (
-                <div key={c.key} className="snap-start shrink-0 w-[42vw] xs:w-[45vw] sm:w-[200px]">
-                  <CategoryCard 
-                    category={c} 
-                    count={(BANK[c.key] || []).length} 
+                <div key={c.key} className="snap-start shrink-0 w-[42vw] xs:w-[45vw] sm:w-[200px] lg:w-full">
+                  <CategoryCard
+                    category={c}
+                    count={(BANK[c.key] || []).length}
                     completedCount={(completedCards as string[]).filter((id: string) => id.startsWith(`${c.key}:`)).length}
                     onClick={onSelectCategory}
+                    isLight={isLight}
                   />
                 </div>
               ))}
@@ -910,9 +936,9 @@ export default function HomeScreen({
             <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
               <div className="flex items-center gap-2 px-2">
                 <Anchor size={14} className="text-rose-400" />
-                <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">העוגנים שלי</h3>
+                <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>העוגנים שלי</h3>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x -mx-6 px-6" dir="rtl">
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x -mx-6 px-6 lg:flex-wrap lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0" dir="rtl">
                 {favorites.map((fav: string, i: number) => {
                   const [catKey] = fav.split(":");
                   const cat = CATS.find(c => c.key === catKey);
@@ -921,7 +947,7 @@ export default function HomeScreen({
                     <button 
                       key={i} 
                       onClick={() => onSelectCategory(catKey)} 
-                      className="flex-shrink-0 px-8 py-5 rounded-[2rem] bg-slate-900/40 backdrop-blur-xl border border-white/5 text-slate-200 hover:text-white shadow-md flex items-center gap-4 hover:border-indigo-500/20 active:scale-95 snap-start transition-all"
+                      className={cn("flex-shrink-0 px-8 py-5 rounded-[2rem] backdrop-blur-xl border shadow-md flex items-center gap-4 active:scale-95 snap-start transition-all", isLight ? "bg-white/70 border-slate-200 text-slate-700 hover:text-slate-900 hover:border-indigo-300" : "bg-slate-900/40 border-white/5 text-slate-200 hover:text-white hover:border-indigo-500/20")}
                     >
                       <cat.icon size={18} style={{ color: cat.hue }} />
                       <span className="block text-sm font-black">{cat.label}</span>
@@ -933,7 +959,7 @@ export default function HomeScreen({
           )}
 
           {/* Footer */}
-          <footer className="text-center py-16 border-t border-white/5 space-y-6">
+          <footer className={cn("text-center py-16 border-t space-y-6", isLight ? "border-slate-200" : "border-white/5")}>
             <div className="flex justify-center gap-8 text-[11px] font-black text-slate-500 uppercase tracking-widest">
               <LegalDialog type="terms" trigger={<button className="hover:text-indigo-400 transition-colors">תנאי שימוש</button>} />
               <LegalDialog type="disclaimer" trigger={<button className="hover:text-indigo-400 transition-colors">הבהרה משפטית</button>} />

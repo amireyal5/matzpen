@@ -22,6 +22,7 @@ type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journ
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [showSplash, setShowSplash] = useState(true);
   const [activeCatKey, setActiveCatKey] = useState("SOS");
   const [activePracticeIdx, setActivePracticeIdx] = useState(0);
@@ -118,88 +119,112 @@ function AppContent() {
   const gender = (profileData?.gender || "m") as "m" | "f";
 
   return (
-    <main className="min-h-screen">
-      {screen === "landing" && (
-        <LandingScreen 
-          onComplete={() => setScreen("auth")} 
-          onGoToAuth={handleGoToAuth}
-          onGoToAbout={() => setScreen("about")}
-        />
-      )}
-      {screen === "about" && (
-        <AboutScreen onBack={() => setScreen("landing")} />
-      )}
-      {screen === "auth" && (
-        <AuthScreen 
-          onSuccess={handleAuthSuccess} 
-          onBack={() => setScreen("landing")} 
-        />
-      )}
-      {(screen === "home" && user) && (
-        <HomeScreen 
-          name={name} 
-          gender={gender}
-          onSelectCategory={handleSelectCategory} 
-          onStartGuided={handleStartGuided}
-          onGoToJournal={() => setScreen("journal")}
-          onGoToSounds={(soundId) => {
-            setSoundsParams({ initialSoundId: soundId });
-            setScreen("sounds");
-          }}
-          onGoToBreathing={(breathingId) => {
-            setBreathingParams({ initialBreathingId: breathingId });
-            setScreen("breathing");
-          }}
-          onGoToBilateral={() => setScreen("bilateral")}
-          onBack={() => setScreen("landing")} 
-        />
-      )}
-      {(screen === "deck" && user) && (
-        <DeckScreen 
-          catKey={activeCatKey} 
-          gender={gender} 
-          onBack={() => setScreen("home")} 
-        />
-      )}
-      {(screen === "guided" && user) && (
-        <GuidedSession 
-          catKey={activeCatKey}
-          practiceIdx={activePracticeIdx}
-          gender={gender}
-          onBack={() => setScreen("home")}
-        />
-      )}
-      {(screen === "journal" && user) && (
-        <ThoughtJournal 
-          gender={gender}
-          onBack={() => setScreen("home")}
-        />
-      )}
-      {(screen === "sounds" && user) && (
-        <SoundsScreen 
-          onBack={() => {
-            setSoundsParams({});
-            setScreen("home");
-          }}
-          {...soundsParams}
-        />
-      )}
-      {(screen === "breathing" && user) && (
-        <BreathingScreen 
-          onBack={() => {
-            setBreathingParams({});
-            setScreen("home");
-          }}
-          {...breathingParams}
-        />
-      )}
-      {(screen === "bilateral" && user) && (
-        <BilateralProcessing 
-          gender={gender}
-          onBack={() => setScreen("home")}
-        />
-      )}
-    </main>
+    <div className={theme === "light" ? "light" : "dark"}>
+      <main className={`min-h-screen transition-colors duration-500 ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-white"}`}>
+        {screen === "landing" && (
+          <LandingScreen
+            onComplete={() => setScreen("auth")}
+            onGoToAuth={handleGoToAuth}
+            onGoToAbout={() => setScreen("about")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {screen === "about" && (
+          <AboutScreen
+            onBack={() => setScreen("landing")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {screen === "auth" && (
+          <AuthScreen
+            onSuccess={handleAuthSuccess}
+            onBack={() => setScreen("landing")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "home" && user) && (
+          <HomeScreen 
+            name={name} 
+            gender={gender}
+            onSelectCategory={handleSelectCategory} 
+            onStartGuided={handleStartGuided}
+            onGoToJournal={() => setScreen("journal")}
+            onGoToSounds={(soundId) => {
+              setSoundsParams({ initialSoundId: soundId });
+              setScreen("sounds");
+            }}
+            onGoToBreathing={(breathingId) => {
+              setBreathingParams({ initialBreathingId: breathingId });
+              setScreen("breathing");
+            }}
+            onGoToBilateral={() => setScreen("bilateral")}
+            onBack={() => setScreen("landing")} 
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "deck" && user) && (
+          <DeckScreen
+            catKey={activeCatKey}
+            gender={gender}
+            onBack={() => setScreen("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "guided" && user) && (
+          <GuidedSession
+            catKey={activeCatKey}
+            practiceIdx={activePracticeIdx}
+            gender={gender}
+            onBack={() => setScreen("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "journal" && user) && (
+          <ThoughtJournal
+            gender={gender}
+            onBack={() => setScreen("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "sounds" && user) && (
+          <SoundsScreen
+            onBack={() => {
+              setSoundsParams({});
+              setScreen("home");
+            }}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+            {...soundsParams}
+          />
+        )}
+        {(screen === "breathing" && user) && (
+          <BreathingScreen
+            onBack={() => {
+              setBreathingParams({});
+              setScreen("home");
+            }}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+            {...breathingParams}
+          />
+        )}
+        {(screen === "bilateral" && user) && (
+          <BilateralProcessing
+            gender={gender}
+            onBack={() => setScreen("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+      </main>
+    </div>
   );
 }
 

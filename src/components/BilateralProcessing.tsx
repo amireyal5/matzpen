@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  Wind, 
-  ShieldCheck, 
+import {
+  Play,
+  Pause,
+  Wind,
+  ShieldCheck,
   Quote,
   X,
   ChevronRight,
@@ -22,7 +22,9 @@ import {
   Check,
   ChevronLeft,
   VolumeX,
-  Flower2
+  Flower2,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -153,11 +155,14 @@ const TIMERS = [
 interface BilateralProcessingProps {
   gender: "m" | "f";
   onBack: () => void;
+  theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 type SessionState = "setup" | "active" | "grounding";
 
-export default function BilateralProcessing({ gender, onBack }: BilateralProcessingProps) {
+export default function BilateralProcessing({ gender, onBack, theme = "light", toggleTheme }: BilateralProcessingProps) {
+  const isLight = theme === "light";
   const [sessionState, setSessionState] = useState<SessionState>("setup");
   const [selectedCat, setSelectedCat] = useState<Category>(CATEGORIES[0]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -453,58 +458,80 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
   const getStimulusLeft = () => blsSide === 'left' ? '0%' : blsSide === 'right' ? '100%' : '50%';
 
   return (
-    <div className="min-h-screen bg-slate-950 font-sans text-right overflow-hidden select-none text-white" dir="rtl">
-      <div className="fixed inset-0 opacity-30 transition-all duration-3000" style={{ background: `linear-gradient(to bottom right, ${activeColorHex}40, black)` }} />
+    <div className={cn("min-h-screen font-sans text-right overflow-hidden select-none transition-colors duration-500", sessionState === "setup" || sessionState === "grounding" ? (isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white") : "bg-slate-950 text-white")} dir="rtl">
+      {sessionState === "active" && (
+        <div className="fixed inset-0 opacity-30 transition-all duration-3000" style={{ background: `linear-gradient(to bottom right, ${activeColorHex}40, black)` }} />
+      )}
 
       {sessionState === "setup" && (
         <div className="min-h-screen flex flex-col relative z-10 overflow-y-auto">
-          <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
-            <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
+          <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
+            <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
               <ArrowRight size={18} /> חזרה למסך הבית
             </button>
             <div className="flex flex-col items-center text-center">
-              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">המצפן הרגשי</span>
+              <span className={cn("text-[10px] font-black uppercase tracking-widest leading-none mb-0.5", isLight ? "text-indigo-600" : "text-indigo-400")}>המצפן הרגשי</span>
               <span className="text-sm font-bold">עיבוד בילטרלי EMDR</span>
             </div>
-            <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
-              <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+            <div className="flex items-center gap-3">
+              {toggleTheme && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={toggleTheme}
+                      className={cn(
+                        "w-9/10 h-9/10 rounded-full border flex items-center justify-center transition-all active:scale-95 w-10 h-10",
+                        isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                      )}
+                      aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                    >
+                      {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+                </Tooltip>
+              )}
+              <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
+                <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+              </div>
             </div>
           </header>
 
-          <main className="max-w-xl mx-auto w-full pt-8 pb-24 px-6 space-y-8">
+          <main className="max-w-xl lg:max-w-3xl mx-auto w-full pt-8 pb-24 px-6 space-y-8">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black tracking-tighter">כיול הגדרות הטיפול</h1>
-              <p className="text-slate-400 text-sm">בחרו את מצב הטיפול הדו-צדדי והתאימו את ההגדרות למצבכם כרגע.</p>
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">כיול הגדרות הטיפול</h1>
+              <p className={cn("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>בחרו את מצב הטיפול הדו-צדדי והתאימו את ההגדרות למצבכם כרגע.</p>
             </div>
 
             <div className="space-y-3">
-              <span className="text-xs font-black text-indigo-400 tracking-widest uppercase pr-1">סוג התרגול הבילטרלי</span>
-              <div className="grid grid-cols-2 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+              <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>סוג התרגול הבילטרלי</span>
+              <div className={cn("grid grid-cols-2 gap-2 p-1.5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                 <button
                   onClick={() => setTreatmentMode('desensitize')}
-                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'desensitize' ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-white")}
+                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'desensitize' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
                 >
                   פריקה והפחתת מצוקה
                 </button>
                 <button
                   onClick={() => setTreatmentMode('resource')}
-                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'resource' ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-white")}
+                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'resource' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
                 >
                   חיזוק והטמעת משאבים
                 </button>
               </div>
             </div>
 
+            <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 space-y-8">
             {treatmentMode === 'desensitize' ? (
               <>
                 <div className="space-y-3">
-                  <span className="text-xs font-black text-indigo-400 tracking-widest uppercase pr-1">1. מה מקור המצוקה כרגע?</span>
+                  <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>1. מה מקור המצוקה כרגע?</span>
                   <div className="flex flex-wrap gap-2">
                     {["חרדה", "כעס", "הצפה", "זיכרון כואב", "מתח פיזי"].map((cat) => (
                       <button
                         key={cat}
                         onClick={() => { setDistressCategory(cat); setCustomDistress(""); }}
-                        className={cn("py-2.5 px-4 rounded-xl border text-xs font-bold transition-all", distressCategory === cat && !customDistress ? "bg-indigo-600/20 border-indigo-500 text-white shadow-sm" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
+                        className={cn("py-2.5 px-4 rounded-xl border text-xs font-bold transition-all", distressCategory === cat && !customDistress ? "bg-indigo-600/20 border-indigo-500 text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
                       >
                         {cat}
                       </button>
@@ -515,49 +542,49 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                     value={customDistress}
                     onChange={(e) => { setCustomDistress(e.target.value); setDistressCategory(""); }}
                     placeholder="או תארו משהו אחר במילים שלכם..."
-                    className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-xs font-bold text-white focus:border-indigo-500/50 outline-none placeholder:text-slate-600"
+                    className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-white/5 border-white/5 text-white placeholder:text-slate-600")}
                   />
                 </div>
 
-                <div className="space-y-4 p-6 rounded-3xl bg-white/5 border border-white/5">
+                <div className={cn("space-y-4 p-6 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-indigo-400 tracking-widest uppercase">2. דרגו את עוצמת המצוקה כעת:</span>
-                    <span className="text-sm font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full">{initialSuds} מתוך 10</span>
+                    <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>2. דרגו את עוצמת המצוקה כעת:</span>
+                    <span className={cn("text-sm font-mono font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds} מתוך 10</span>
                   </div>
                   <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
                 </div>
               </>
             ) : (
               <div className="space-y-3">
-                <span className="text-xs font-black text-indigo-400 tracking-widest uppercase pr-1">1. בחרו נתיב מיקוד חיובי</span>
+                <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>1. בחרו נתיב מיקוד חיובי</span>
                 <div className="grid gap-3">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCat(cat)}
-                      className={cn("p-5 rounded-3xl border text-right flex items-center justify-between transition-all duration-300", selectedCat.id === cat.id ? "bg-indigo-600/15 border-indigo-500 shadow-lg shadow-indigo-500/5 text-white" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
+                      className={cn("p-5 rounded-3xl border text-right flex items-center justify-between transition-all duration-300", selectedCat.id === cat.id ? "bg-indigo-600/15 border-indigo-500 shadow-lg shadow-indigo-500/5 text-slate-900 dark:text-white" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : "bg-white/5 text-slate-400")}><cat.icon size={20} /></div>
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-400")}><cat.icon size={20} /></div>
                         <div>
-                          <h3 className="font-bold text-sm text-white">{cat.title}</h3>
-                          <p className="text-[10px] text-slate-400">{cat.subtitle}</p>
+                          <h3 className={cn("font-bold text-sm", isLight ? "text-slate-900" : "text-white")}>{cat.title}</h3>
+                          <p className={cn("text-[10px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
                         </div>
                       </div>
-                      {selectedCat.id === cat.id && <Check size={18} className="text-indigo-400" />}
+                      {selectedCat.id === cat.id && <Check size={18} className={isLight ? "text-indigo-600" : "text-indigo-400"} />}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="space-y-4 p-6 rounded-3xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-2 text-sm font-bold border-b border-white/5 pb-3 mb-2"><Paintbrush size={16} className="text-indigo-400" /><span>עיצוב הגירוי הויזואלי</span></div>
+            <div className={cn("space-y-4 p-6 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+              <div className={cn("flex items-center gap-2 text-sm font-bold border-b pb-3 mb-2", isLight ? "border-slate-200" : "border-white/5")}><Paintbrush size={16} className={isLight ? "text-indigo-600" : "text-indigo-400"} /><span>עיצוב הגירוי הויזואלי</span></div>
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-slate-500 block">סוג האנימציה</span>
                 <div className="grid grid-cols-3 gap-2">
                   {STIMULUS_SHAPES.map((sh) => (
-                    <button key={sh.id} onClick={() => setStimulusShape(sh.id as any)} className={cn("py-2 px-3 rounded-xl border text-xs font-bold transition-all", stimulusShape === sh.id ? "bg-white/10 border-white/20 text-white" : "bg-transparent border-white/5 text-slate-400")}>{sh.label}</button>
+                    <button key={sh.id} onClick={() => setStimulusShape(sh.id as any)} className={cn("py-2 px-3 rounded-xl border text-xs font-bold transition-all", stimulusShape === sh.id ? (isLight ? "bg-slate-100 border-slate-300 text-slate-900" : "bg-white/10 border-white/20 text-white") : isLight ? "bg-transparent border-slate-200 text-slate-500" : "bg-transparent border-white/5 text-slate-400")}>{sh.label}</button>
                   ))}
                 </div>
               </div>
@@ -565,7 +592,7 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
                 <span className="text-[10px] font-black text-slate-500 block font-bold">צבע הכדור / האלמנט</span>
                 <div className="flex gap-3">
                   {STIMULUS_COLORS.map((col) => (
-                    <button key={col.id} onClick={() => setStimulusColor(col.id as any)} className={cn("w-9 h-9 rounded-full flex items-center justify-center transition-all", stimulusColor === col.id ? "ring-2 ring-white ring-offset-2 ring-offset-slate-950 scale-110" : "opacity-80 hover:opacity-100")} style={{ backgroundColor: col.hex }} />
+                    <button key={col.id} onClick={() => setStimulusColor(col.id as any)} className={cn("w-9 h-9 rounded-full flex items-center justify-center transition-all", stimulusColor === col.id ? cn("ring-2 ring-offset-2 scale-110", isLight ? "ring-slate-900 ring-offset-white" : "ring-white ring-offset-slate-950") : "opacity-80 hover:opacity-100")} style={{ backgroundColor: col.hex }} />
                   ))}
                 </div>
               </div>
@@ -573,10 +600,10 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
             {treatmentMode === 'resource' && (
               <div className="space-y-3">
-                <span className="text-xs font-black text-indigo-400 tracking-widest uppercase pr-1">קצב הגירוי להטמעה (מהירות)</span>
+                <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>קצב הגירוי להטמעה (מהירות)</span>
                 <div className="grid grid-cols-3 gap-2">
                   {SPEEDS.map((sp) => (
-                    <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-3.5 rounded-2xl border text-center flex flex-col gap-1.5 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-white shadow-md" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
+                    <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-3.5 rounded-2xl border text-center flex flex-col gap-1.5 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-slate-900 dark:text-white shadow-md" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
                       <span className="text-xs font-bold block">{sp.label}</span>
                       <span className="text-[9px] text-slate-500 font-mono block">{sp.desc} למחזור</span>
                     </button>
@@ -586,11 +613,12 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-indigo-400 tracking-widest uppercase block pr-1">מוזיקת רקע דו-צדדית (פנינג סטריאו)</label>
-              <select value={selectedSoundId} onChange={(e) => setSelectedSoundId(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-xs font-bold text-white focus:border-indigo-500/50 outline-none">
+              <label className={cn("text-[10px] font-black tracking-widest uppercase block pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מוזיקת רקע דו-צדדית (פנינג סטריאו)</label>
+              <select value={selectedSoundId} onChange={(e) => setSelectedSoundId(e.target.value)} className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900" : "bg-white/5 border-white/5 text-white")}>
                 <option value="none" className="bg-slate-900 text-slate-400">ללא מוזיקה</option>
                 {AMBIENT_SOUNDS.map((s) => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.label}</option>)}
               </select>
+            </div>
             </div>
 
             <Button onClick={handleStartSession} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-[2rem] text-xl shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-3">
@@ -819,57 +847,74 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
       {sessionState === "grounding" && (
         <div className="min-h-screen flex flex-col relative z-10 overflow-y-auto">
-          <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
-            <button onClick={handleFinishGrounding} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
+          <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
+            <button onClick={handleFinishGrounding} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
               <ArrowRight size={18} /> חזרה להגדרות
             </button>
             <div className="flex flex-col items-center text-center">
-              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">סיכום התרגול</span>
+              <span className={cn("text-[10px] font-black uppercase tracking-widest leading-none mb-0.5", isLight ? "text-indigo-600" : "text-indigo-400")}>סיכום התרגול</span>
               <span className="text-sm font-bold">תוצאות העיבוד והקרקוע</span>
             </div>
-            <div className="w-10 h-10" />
+            {toggleTheme ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleTheme}
+                    className={cn(
+                      "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95",
+                      isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                    )}
+                    aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                  >
+                    {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+              </Tooltip>
+            ) : <div className="w-10 h-10" />}
           </header>
 
-          <main className="max-w-xl mx-auto w-full pt-8 pb-24 px-6 space-y-8">
+          <main className="max-w-xl lg:max-w-3xl mx-auto w-full pt-8 pb-24 px-6 space-y-8">
             {treatmentMode === 'desensitize' ? (
               <div className="space-y-6">
                 <div className="text-center space-y-3 animate-in fade-in duration-700">
-                  <div className="inline-flex p-3 rounded-full bg-emerald-500/10 text-emerald-400 mb-2">
+                  <div className="inline-flex p-3 rounded-full bg-emerald-500/10 text-emerald-500 mb-2">
                     <ShieldCheck size={40} />
                   </div>
-                  <h1 className="text-3xl font-black tracking-tighter">העיבוד הושלם</h1>
-                  <p className="text-slate-400 text-sm">
+                  <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">העיבוד הושלם</h1>
+                  <p className={cn("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
                     סיימת {activeSet - 1} סבבי עיבוד בילטרלי של {customDistress || distressCategory}.
                   </p>
                 </div>
 
+                <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 space-y-6">
                 {/* SUDs reduction metric card */}
-                <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-                  <div className="flex justify-between items-center text-xs font-black text-slate-400 uppercase tracking-wider">
+                <div className={cn("p-6 rounded-3xl border space-y-4", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                  <div className={cn("flex justify-between items-center text-xs font-black uppercase tracking-wider", isLight ? "text-slate-500" : "text-slate-400")}>
                     <span>רמת מצוקה התחלתית</span>
                     <span>רמת מצוקה כעת</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="text-center">
-                      <span className="text-5xl font-black text-indigo-400 font-mono">{initialSuds}</span>
+                      <span className={cn("text-5xl font-black font-mono", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds}</span>
                       <span className="text-xs text-slate-500 block mt-1">מתוך 10</span>
                     </div>
-                    <div className="w-16 h-[2px] bg-white/10 relative">
+                    <div className={cn("w-16 h-[2px] relative", isLight ? "bg-slate-200" : "bg-white/10")}>
                       <div className="absolute inset-y-0 right-0 bg-indigo-500" style={{ width: '100%' }} />
-                      <ChevronLeft size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-indigo-400 animate-pulse" />
+                      <ChevronLeft size={16} className={cn("absolute left-0 top-1/2 -translate-y-1/2 animate-pulse", isLight ? "text-indigo-600" : "text-indigo-400")} />
                     </div>
                     <div className="text-center">
-                      <span className="text-5xl font-black text-emerald-400 font-mono">{currentSuds}</span>
+                      <span className="text-5xl font-black text-emerald-500 font-mono">{currentSuds}</span>
                       <span className="text-xs text-slate-500 block mt-1">מתוך 10</span>
                     </div>
                   </div>
 
                   {initialSuds > currentSuds ? (
-                    <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-bold text-center">
+                    <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-500 font-bold text-center">
                       הצלחת להפחית את רמת המצוקה ב-{initialSuds - currentSuds} דרגות! זהו הישג משמעותי לעיבוד הרגשי.
                     </div>
                   ) : (
-                    <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 font-bold text-center">
+                    <div className={cn("p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-bold text-center", isLight ? "text-indigo-600" : "text-indigo-300")}>
                       רמת המצוקה נותרה יציבה. עיבוד זיכרונות או רגשות מורכבים עשוי לדרוש מספר תרגולים נוספים.
                     </div>
                   )}
@@ -877,14 +922,14 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
                 {/* Visual Timeline / Chart */}
                 {sudsHistory.length > 1 && (
-                  <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-                    <span className="text-xs font-black text-indigo-400 tracking-widest uppercase block">גרף ירידת המצוקה לאורך הסבבים</span>
+                  <div className={cn("p-6 rounded-3xl border space-y-4", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                    <span className={cn("text-xs font-black tracking-widest uppercase block", isLight ? "text-indigo-600" : "text-indigo-400")}>גרף ירידת המצוקה לאורך הסבבים</span>
                     <div className="h-32 w-full flex items-end justify-between pt-6 px-4 relative">
                       {/* Grid lines */}
-                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 border-b border-white/5">
-                        <div className="border-t border-white/10 w-full" />
-                        <div className="border-t border-white/10 w-full" />
-                        <div className="border-t border-white/10 w-full" />
+                      <div className={cn("absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 border-b", isLight ? "border-slate-200" : "border-white/5")}>
+                        <div className={cn("border-t w-full", isLight ? "border-slate-300" : "border-white/10")} />
+                        <div className={cn("border-t w-full", isLight ? "border-slate-300" : "border-white/10")} />
+                        <div className={cn("border-t w-full", isLight ? "border-slate-300" : "border-white/10")} />
                       </div>
 
                       {/* SVG line representation */}
@@ -922,34 +967,35 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
 
                       {sudsHistory.map((suds, idx) => (
                         <div key={idx} className="flex flex-col items-center z-10" style={{ width: `${100 / sudsHistory.length}%` }}>
-                          <span className="text-[10px] font-bold text-white bg-slate-900 px-1.5 py-0.5 rounded border border-white/10 mb-1 font-mono">{suds}</span>
-                          <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 border border-white" />
+                          <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border mb-1 font-mono", isLight ? "text-slate-900 bg-white border-slate-200" : "text-white bg-slate-900 border-white/10")}>{suds}</span>
+                          <div className={cn("w-2.5 h-2.5 rounded-full bg-indigo-500 border", isLight ? "border-white" : "border-white")} />
                           <span className="text-[9px] text-slate-500 font-black mt-1">סבב {idx === 0 ? "התחלה" : idx}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
+                </div>
               </div>
             ) : (
               <div className="space-y-6">
                 <div className="text-center space-y-3 animate-in fade-in duration-700">
-                  <div className="inline-flex p-3 rounded-full bg-amber-500/10 text-amber-400 mb-2">
+                  <div className="inline-flex p-3 rounded-full bg-amber-500/10 text-amber-500 mb-2">
                     <Smile size={40} />
                   </div>
-                  <h1 className="text-3xl font-black tracking-tighter">המשאב הוטמע בהצלחה</h1>
-                  <p className="text-slate-400 text-sm">
-                    ביצעת עיבוד והטמעה בילטרלית של היגדים מקטגוריית <strong className="text-white">{selectedCat?.title}</strong>.
+                  <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">המשאב הוטמע בהצלחה</h1>
+                  <p className={cn("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
+                    ביצעת עיבוד והטמעה בילטרלית של היגדים מקטגוריית <strong className={isLight ? "text-slate-900" : "text-white"}>{selectedCat?.title}</strong>.
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-                  <span className="text-xs font-black text-indigo-400 tracking-widest uppercase block">היגדים שחזרת עליהם:</span>
-                  <div className="space-y-3">
+                <div className={cn("p-6 rounded-3xl border space-y-4", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                  <span className={cn("text-xs font-black tracking-widest uppercase block", isLight ? "text-indigo-600" : "text-indigo-400")}>היגדים שחזרת עליהם:</span>
+                  <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                     {selectedCat?.affirmations.map((aff, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-right animate-in fade-in duration-500" style={{ animationDelay: `${idx * 150}ms` }}>
-                        <div className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 font-mono">{idx + 1}</div>
-                        <p className="text-xs font-medium text-slate-200">{getGenderAffirmation(aff.text)}</p>
+                      <div key={idx} className={cn("flex items-start gap-3 p-3 rounded-2xl border text-right animate-in fade-in duration-500", isLight ? "bg-white/50 border-slate-100" : "bg-white/[0.02] border-white/5")} style={{ animationDelay: `${idx * 150}ms` }}>
+                        <div className={cn("w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 font-mono", isLight ? "text-indigo-600" : "text-indigo-400")}>{idx + 1}</div>
+                        <p className={cn("text-xs font-medium", isLight ? "text-slate-700" : "text-slate-200")}>{getGenderAffirmation(aff.text)}</p>
                       </div>
                     ))}
                   </div>
@@ -958,8 +1004,8 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             )}
 
             {/* Educational grounding message */}
-            <div className="p-5 rounded-3xl bg-indigo-950/20 border border-indigo-500/10 text-xs text-indigo-300 leading-relaxed space-y-2">
-              <div className="flex items-center gap-2 font-bold text-sm text-indigo-200">
+            <div className={cn("p-5 rounded-3xl border text-xs leading-relaxed space-y-2", isLight ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-indigo-950/20 border-indigo-500/10 text-indigo-300")}>
+              <div className={cn("flex items-center gap-2 font-bold text-sm", isLight ? "text-indigo-800" : "text-indigo-200")}>
                 <Info size={16} />
                 <span>הסבר נוירולוגי על התרגול:</span>
               </div>
@@ -971,18 +1017,18 @@ export default function BilateralProcessing({ gender, onBack }: BilateralProcess
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button 
+            <div className="space-y-3 lg:max-w-md lg:mx-auto lg:w-full">
+              <Button
                 onClick={handleFinishGrounding}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-sm"
               >
                 התחל תרגול חדש
               </Button>
-              
-              <Button 
+
+              <Button
                 variant="outline"
                 onClick={onBack}
-                className="w-full border-white/10 bg-transparent text-slate-400 hover:bg-white/5 py-4 rounded-2xl font-bold text-sm"
+                className={cn("w-full py-4 rounded-2xl font-bold text-sm bg-transparent", isLight ? "border-slate-200 text-slate-500 hover:bg-slate-100" : "border-white/10 text-slate-400 hover:bg-white/5")}
               >
                 סיום וחזרה למסך הבית
               </Button>

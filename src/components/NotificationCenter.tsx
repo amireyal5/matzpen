@@ -21,7 +21,11 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-export default function NotificationCenter() {
+interface NotificationCenterProps {
+  isLight?: boolean;
+}
+
+export default function NotificationCenter({ isLight = false }: NotificationCenterProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isOpen, setIsOpen] = useState(false);
@@ -90,13 +94,18 @@ export default function NotificationCenter() {
       <Tooltip>
         <TooltipTrigger asChild>
           <SheetTrigger asChild>
-            <button 
-              className="relative w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-95"
+            <button
+              className={cn(
+                "relative w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95",
+                isLight
+                  ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm"
+                  : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+              )}
               aria-label="מרכז התראות"
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-slate-950 animate-in zoom-in duration-300">
+                <span className={cn("absolute top-0 right-0 w-4 h-4 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 animate-in zoom-in duration-300", isLight ? "border-white" : "border-slate-950")}>
                   {unreadCount}
                 </span>
               )}

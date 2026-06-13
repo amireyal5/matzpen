@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Flower2, Play, Sparkles, Disc3, Bell, Heart, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, Timer } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
@@ -13,6 +14,7 @@ interface SoundsScreenProps {
   onBack: () => void;
   initialSoundId?: SoundId;
   theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -143,7 +145,8 @@ function SoundCard({ sound, track, play, pause, stop, toggleLoop }: SoundCardPro
   );
 }
 
-export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenProps) {
+export default function SoundsScreen({ onBack, initialSoundId, theme = "light", toggleTheme }: SoundsScreenProps) {
+  const isLight = theme === "light";
   useWakeLock(true);
 
   const {
@@ -175,7 +178,7 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+    <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes eq-bar {
           0%, 100% { height: 4px; }
@@ -188,21 +191,42 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
-      <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md z-10">
-        <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
+      <header className={cn("p-6 flex items-center justify-between border-b backdrop-blur-md z-10 transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
+        <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
           חזרה
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">צלילי מרחב</span>
-          <span className="text-sm font-bold">שקט ומוזיקה מרגיעה</span>
+          <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">צלילי מרחב</span>
+          <span className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-white")}>שקט ומוזיקה מרגיעה</span>
         </div>
-        <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
-          <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+        <div className="flex items-center gap-2">
+          {toggleTheme && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleTheme}
+                  className={cn(
+                    "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                    isLight
+                      ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm"
+                      : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                  )}
+                  aria-label={isLight ? "מצב כהה" : "מצב בהיר"}
+                >
+                  {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isLight ? "מצב כהה" : "מצב בהיר"}</TooltipContent>
+            </Tooltip>
+          )}
+          <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative transition-colors", isLight ? "border-slate-200" : "border-white/10")}>
+            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl mx-auto w-full space-y-8 pb-16">
+      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
         <div className="relative pt-4">
           <div className={cn("absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full transition-opacity", isAnyPlaying ? "animate-pulse opacity-100" : "opacity-60")} />
           <div className="relative w-28 h-28 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl">
@@ -212,26 +236,26 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
 
         <div className="w-full space-y-8 animate-in fade-in duration-300 flex flex-col items-center">
           <div className="text-center space-y-3">
-            <h2 className="text-3xl font-black tracking-tight leading-tight">צלילים לשלווה פנימית</h2>
-            <p className="text-slate-400 font-bold leading-relaxed max-w-md mx-auto text-xs">
+            <h2 className={cn("text-3xl font-black tracking-tight leading-tight transition-colors", isLight ? "text-slate-900" : "text-white")}>צלילים לשלווה פנימית</h2>
+            <p className={cn("font-bold leading-relaxed max-w-md mx-auto text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
               בחר את צליל הרקע המועדף עליך להתכנסות ומדיטציה עמוקה.
             </p>
           </div>
 
           {/* טיימר כיבוי */}
-          <div className="w-full bg-slate-900/40 border border-white/5 rounded-[2rem] p-6 backdrop-blur-md flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl">
+          <div className={cn("w-full rounded-[2rem] p-6 backdrop-blur-md flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl border transition-colors duration-500", isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5")}>
             <div className="flex items-center gap-4 text-right">
-              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-colors", timeLeft !== null ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-slate-500")}>
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-colors", timeLeft !== null ? "bg-emerald-500/10 text-emerald-400" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-500")}>
                 <Timer size={22} className={timeLeft !== null ? "animate-pulse" : ""} />
               </div>
               <div>
-                <span className="block text-base font-black text-white">טיימר כיבוי אוטומטי</span>
-                <span className="block text-xs text-slate-400 mt-0.5">
+                <span className={cn("block text-base font-black", isLight ? "text-slate-900" : "text-white")}>טיימר כיבוי אוטומטי</span>
+                <span className={cn("block text-xs mt-0.5", isLight ? "text-slate-500" : "text-slate-400")}>
                   {timeLeft !== null ? `המוזיקה תעצר בעוד ${formatTime(timeLeft)} דקות` : "הגדרת זמן לכיבוי אוטומטי של הצלילים"}
                 </span>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 justify-end w-full md:w-auto">
               {[0, 5, 15, 30, 45, 60].map((m) => {
                 const isSelected = (m === 0 && timeLeft === null) || (m > 0 && timeLeft !== null && Math.round(timeLeft / 60) === m);
@@ -243,7 +267,9 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
                       "px-3.5 py-2 rounded-xl text-xs font-black border transition-all active:scale-95 flex-1 md:flex-initial text-center",
                       isSelected
                         ? "bg-emerald-500 border-emerald-500 text-slate-950 shadow-md shadow-emerald-500/15"
-                        : "bg-white/5 border-white/5 text-slate-400 hover:text-white hover:border-white/10"
+                        : isLight
+                          ? "bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300"
+                          : "bg-white/5 border-white/5 text-slate-400 hover:text-white hover:border-white/10"
                     )}
                   >
                     {m === 0 ? "ללא טיימר" : `${m} דק׳`}
@@ -271,7 +297,7 @@ export default function SoundsScreen({ onBack, initialSoundId }: SoundsScreenPro
           {isAnyPlaying && (
             <button
               onClick={stopAll}
-              className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors"
+              className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}
             >
               <VolumeX size={16} />
               עצירת ניגון

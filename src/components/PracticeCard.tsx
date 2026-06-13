@@ -48,7 +48,7 @@ export default function PracticeCard({
   const cardShellClasses = "absolute inset-0 bg-white rounded-[45px] flex flex-col backface-hidden border border-black/5 isolate overflow-hidden";
 
   return (
-    <div className="w-full h-[540px] md:h-[600px] perspective-1000 relative group">
+    <div className="w-full h-[540px] md:h-[600px] lg:h-[640px] perspective-1000 relative group">
       <div 
         onClick={() => onFlip(!isFlipped)}
         className={cn(

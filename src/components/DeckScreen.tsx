@@ -20,6 +20,8 @@ interface DeckScreenProps {
   catKey: string;
   gender: "m" | "f";
   onBack: () => void;
+  theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) {
@@ -120,7 +122,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
       className="min-h-screen w-full flex flex-col relative overflow-hidden transition-colors duration-700 ease-in-out"
       style={{ backgroundColor: cat.light }}
     >
-      <header className="relative z-20 flex items-center justify-between pt-8 pb-4 px-6 max-w-lg mx-auto w-full">
+      <header className="relative z-20 flex items-center justify-between pt-8 pb-4 px-6 max-w-lg lg:max-w-xl mx-auto w-full">
         <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-slate-900 transition-colors group">
           <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" /> חזרה
         </button>
@@ -176,7 +178,7 @@ export default function DeckScreen({ catKey, gender, onBack }: DeckScreenProps) 
         </div>
       )}
 
-      <main className="max-w-lg mx-auto w-full flex flex-col items-center justify-center flex-1 py-4 px-6 relative z-10">
+      <main className="max-w-lg lg:max-w-xl mx-auto w-full flex flex-col items-center justify-center flex-1 py-4 px-6 relative z-10">
         <Carousel setApi={setApi} className="w-full" opts={{ direction: "rtl" }}>
           <CarouselContent className="-ml-0 items-center">
             {cards.map((card, i) => (

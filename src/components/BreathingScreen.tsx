@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Flower2, Play, Sparkles, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import { SoundId } from "@/lib/ambient-sound-engine";
@@ -15,6 +16,7 @@ interface BreathingScreenProps {
   onBack: () => void;
   initialBreathingId?: string;
   theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -95,7 +97,8 @@ function BreathingCard({ exercise, onStart }: BreathingCardProps) {
   );
 }
 
-export default function BreathingScreen({ onBack, initialBreathingId }: BreathingScreenProps) {
+export default function BreathingScreen({ onBack, initialBreathingId, theme = "light", toggleTheme }: BreathingScreenProps) {
+  const isLight = theme === "light";
   useWakeLock(true);
 
   const {
@@ -373,22 +376,43 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md z-10">
-        <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
+    <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
+      <header className={cn("p-6 flex items-center justify-between border-b backdrop-blur-md z-10 transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
+        <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
           חזרה
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">תרגולי נשימה</span>
-          <span className="text-sm font-bold">ויסות והרגעה</span>
+          <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">תרגולי נשימה</span>
+          <span className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-white")}>ויסות והרגעה</span>
         </div>
-        <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
-          <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+        <div className="flex items-center gap-2">
+          {toggleTheme && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleTheme}
+                  className={cn(
+                    "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                    isLight
+                      ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100 shadow-sm"
+                      : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                  )}
+                  aria-label={isLight ? "מצב כהה" : "מצב בהיר"}
+                >
+                  {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isLight ? "מצב כהה" : "מצב בהיר"}</TooltipContent>
+            </Tooltip>
+          )}
+          <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative transition-colors", isLight ? "border-slate-200" : "border-white/10")}>
+            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl mx-auto w-full space-y-8 pb-16">
+      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
         <div className="relative pt-4">
           <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full transition-opacity opacity-60" />
           <div className="relative w-28 h-28 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl">
@@ -398,14 +422,14 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
 
         <div className="w-full space-y-8 animate-in fade-in duration-300 flex flex-col items-center">
           <div className="text-center space-y-3">
-            <h2 className="text-3xl font-black tracking-tight leading-tight">תרגולי נשימה וקרקוע</h2>
-            <p className="text-slate-400 font-bold leading-relaxed max-w-md mx-auto text-xs">
+            <h2 className={cn("text-3xl font-black tracking-tight leading-tight transition-colors", isLight ? "text-slate-900" : "text-white")}>תרגולי נשימה וקרקוע</h2>
+            <p className={cn("font-bold leading-relaxed max-w-md mx-auto text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
               תרגילים אינטראקטיביים עם הנחיות קצב ויזואליות מונחות להרגעה, פוקוס, הפחתת חרדה וויסות עוררות יתר.
             </p>
           </div>
 
           {/* גריד תרגילים */}
-          <div className="w-full flex md:grid md:grid-cols-2 gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-6 px-6" dir="rtl">
+          <div className="w-full flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 scrollbar-none snap-x snap-mandatory scroll-smooth -mx-6 px-6" dir="rtl">
             {BREATHING_EXERCISES.map((exercise) => (
               <BreathingCard
                 key={exercise.id}
@@ -416,26 +440,26 @@ export default function BreathingScreen({ onBack, initialBreathingId }: Breathin
           </div>
 
           {/* בקרוב: מדיטציות מונחות */}
-          <div className="w-full space-y-4 pt-6 border-t border-white/5">
-            <h3 className="text-xs font-black text-slate-400 text-center">בקרוב: מדיטציות מונחות בקול עמיר אייל</h3>
+          <div className={cn("w-full space-y-4 pt-6 border-t transition-colors", isLight ? "border-slate-200" : "border-white/5")}>
+            <h3 className={cn("text-xs font-black text-center", isLight ? "text-slate-500" : "text-slate-400")}>בקרוב: מדיטציות מונחות בקול עמיר אייל</h3>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 flex items-center gap-6 opacity-60 cursor-not-allowed">
+              <div className={cn("p-5 rounded-[2rem] border flex items-center gap-6 opacity-60 cursor-not-allowed transition-colors", isLight ? "bg-slate-100/70 border-slate-200" : "bg-white/5 border-white/10")}>
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Play size={20} className="fill-current" />
                 </div>
                 <div className="text-right">
-                  <span className="block font-bold text-white">נשימה מונחית לשלווה</span>
-                  <span className="block text-xs text-slate-500">10 דקות • עמיר אייל</span>
+                  <span className={cn("block font-bold", isLight ? "text-slate-900" : "text-white")}>נשימה מונחית לשלווה</span>
+                  <span className={cn("block text-xs", isLight ? "text-slate-400" : "text-slate-500")}>10 דקות • עמיר אייל</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10 flex items-center gap-6 opacity-60 cursor-not-allowed">
+              <div className={cn("p-5 rounded-[2rem] border flex items-center gap-6 opacity-60 cursor-not-allowed transition-colors", isLight ? "bg-slate-100/70 border-slate-200" : "bg-white/5 border-white/10")}>
                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                   <Play size={20} className="fill-current" />
                 </div>
                 <div className="text-right">
-                  <span className="block font-bold text-white">סריקת גוף להרפיה עמוקה</span>
-                  <span className="block text-xs text-slate-500">15 דקות • עמיר אייל</span>
+                  <span className={cn("block font-bold", isLight ? "text-slate-900" : "text-white")}>סריקת גוף להרפיה עמוקה</span>
+                  <span className={cn("block text-xs", isLight ? "text-slate-400" : "text-slate-500")}>15 דקות • עמיר אייל</span>
                 </div>
               </div>
             </div>

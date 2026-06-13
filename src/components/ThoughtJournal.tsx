@@ -20,7 +20,9 @@ import {
   Check,
   Info,
   Play,
-  Pause
+  Pause,
+  Sun,
+  Moon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +43,8 @@ import {
 interface ThoughtJournalProps {
   gender: "m" | "f";
   onBack: () => void;
+  theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -67,7 +71,8 @@ const MOOD_CHIPS = [
   { label: "דאגה / חשש", emoji: "😟", baseClass: "border-indigo-500/30 text-indigo-400 bg-indigo-500/5 hover:bg-indigo-500/15", activeClass: "bg-indigo-500/25 border-indigo-500 text-indigo-200 shadow-lg shadow-indigo-500/20" },
 ];
 
-export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) {
+export default function ThoughtJournal({ gender, onBack, theme = "light", toggleTheme }: ThoughtJournalProps) {
+  const isLight = theme === "light";
   const { user } = useUser();
   const firestore = useFirestore();
   const [step, setStep] = useState<EfratStep>("event");
@@ -371,25 +376,25 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   disabled={idx >= currentIdx}
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center font-black transition-all duration-300 text-sm border",
-                    isActive 
-                      ? "bg-indigo-600 text-white border-indigo-500 ring-4 ring-indigo-500/30 scale-110 shadow-lg shadow-indigo-500/30" 
+                    isActive
+                      ? "bg-indigo-600 text-white border-indigo-500 ring-4 ring-indigo-500/30 scale-110 shadow-lg shadow-indigo-500/30"
                       : isCompleted
                         ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/40 cursor-pointer hover:bg-indigo-500/20"
-                        : "bg-slate-900 text-slate-600 border-white/5 cursor-not-allowed"
+                        : isLight ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" : "bg-slate-900 text-slate-600 border-white/5 cursor-not-allowed"
                   )}
                 >
                   {isCompleted ? <Check className="h-4.5 w-4.5" /> : s.label}
                 </button>
                 <span className={cn(
                   "absolute -bottom-6 text-[10px] font-black tracking-wider whitespace-nowrap transition-colors duration-300",
-                  isActive ? "text-indigo-400" : isCompleted ? "text-slate-400" : "text-slate-600"
+                  isActive ? (isLight ? "text-indigo-600" : "text-indigo-400") : isCompleted ? (isLight ? "text-slate-500" : "text-slate-400") : (isLight ? "text-slate-300" : "text-slate-600")
                 )}>
                   {s.name}
                 </span>
               </div>
-              
+
               {idx < stepsList.length - 1 && (
-                <div className="flex-1 mx-3 h-[2px] bg-slate-900 relative">
+                <div className={cn("flex-1 mx-3 h-[2px] relative", isLight ? "bg-slate-200" : "bg-slate-900")}>
                   <div 
                     className="absolute inset-0 bg-indigo-500 transition-all duration-500" 
                     style={{ width: isCompleted ? "100%" : "0%" }}
@@ -405,7 +410,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
   if (step === "analyzing") {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700">
+      <div className={cn("min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700 transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100" : "bg-slate-950")}>
         <div className="relative">
           <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
           <div className="relative w-24 h-24 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
@@ -413,8 +418,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           </div>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-white">מנתח את התובנות...</h2>
-          <p className="text-slate-400 font-medium">כבר חוזר אליך עם זווית חדשה ומחזקת.</p>
+          <h2 className={cn("text-2xl font-black", isLight ? "text-slate-900" : "text-white")}>מנתח את התובנות...</h2>
+          <p className={cn("font-medium", isLight ? "text-slate-500" : "text-slate-400")}>כבר חוזר אליך עם זווית חדשה ומחזקת.</p>
         </div>
       </div>
     );
@@ -422,21 +427,40 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
   if (step === "finish") {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col overflow-y-auto" dir="rtl">
-        <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
+      <div className={cn("min-h-screen flex flex-col overflow-y-auto transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")} dir="rtl">
+        <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
+            <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
               <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
             </div>
             <div>
-              <span className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">ניתוח חכם</span>
+              <span className={cn("block text-[10px] font-black uppercase tracking-widest leading-none", isLight ? "text-indigo-600" : "text-indigo-400")}>ניתוח חכם</span>
               <span className="block text-sm font-bold">עמיר אייל</span>
             </div>
           </div>
-          <button onClick={onBack} className="text-xs font-black text-slate-500 hover:text-white transition-colors">סגירה</button>
+          <div className="flex items-center gap-3">
+            {toggleTheme && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleTheme}
+                    className={cn(
+                      "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95",
+                      isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                    )}
+                    aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                  >
+                    {isLight ? <Moon size={16} /> : <Sun size={16} />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+              </Tooltip>
+            )}
+            <button onClick={onBack} className={cn("text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>סגירה</button>
+          </div>
         </header>
 
-        <main className="p-8 max-w-lg mx-auto w-full space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <main className="p-8 max-w-lg lg:max-w-2xl mx-auto w-full space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           
           {analysis?.isCrisis ? (
             <div className="p-8 bg-rose-950/20 rounded-[2.5rem] border border-rose-500/30 text-right space-y-8 backdrop-blur-xl">
@@ -496,16 +520,16 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   <CheckCircle2 size={32} aria-hidden="true" />
                 </div>
                 <h2 className="text-3xl font-black">השלמת את התרגול!</h2>
-                <p className="text-slate-400 text-sm">היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
+                <p className={cn("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>היומן נשמר במרחב האישי שלך לצפייה חוזרת.</p>
               </div>
 
               {analysis ? (
-                <div className="space-y-8">
+                <div className="space-y-8 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
                   {/* Cognitive Distortions Card */}
-                  <div className="space-y-4 bg-slate-900/40 border border-white/5 rounded-3xl p-6">
+                  <div className={cn("space-y-4 border rounded-3xl p-6", isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5")}>
                     <div className="flex items-center gap-2 pr-2">
                       <Sparkles size={16} className="text-amber-400" aria-hidden="true" />
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">עיוותי חשיבה שזיהינו</h3>
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest", isLight ? "text-slate-500" : "text-slate-400")}>עיוותי חשיבה שזיהינו</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {analysis.distortions.map((d, i) => {
@@ -539,34 +563,34 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                     </div>
                     
                     {activeDistortion && (
-                      <div className="mt-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/25 text-slate-300 text-sm leading-relaxed animate-in slide-in-from-top-2 duration-300">
-                        <strong className="block text-amber-400 mb-1 font-bold">{activeDistortion}:</strong>
+                      <div className={cn("mt-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/25 text-sm leading-relaxed animate-in slide-in-from-top-2 duration-300", isLight ? "text-slate-600" : "text-slate-300")}>
+                        <strong className="block text-amber-500 mb-1 font-bold">{activeDistortion}:</strong>
                         {DISTORTIONS_HELP[activeDistortion as keyof typeof DISTORTIONS_HELP]}
                       </div>
                     )}
                   </div>
 
                   {/* Healthy Perspective Card */}
-                  <div className="space-y-3 bg-gradient-to-br from-indigo-950/20 to-purple-950/25 border border-indigo-500/20 rounded-[2.5rem] p-7 relative overflow-hidden backdrop-blur-xl">
+                  <div className={cn("space-y-3 bg-gradient-to-br border rounded-[2.5rem] p-7 relative overflow-hidden backdrop-blur-xl", isLight ? "from-indigo-50 to-purple-50 border-indigo-200" : "from-indigo-950/20 to-purple-950/25 border-indigo-500/20")}>
                     <div className="absolute top-4 right-4 text-indigo-500/10 text-8xl font-serif pointer-events-none select-none">"</div>
                     <div className="flex items-center gap-2 pr-1 mb-2">
-                      <BrainCircuit size={18} className="text-indigo-400" aria-hidden="true" />
-                      <h3 className="text-xs font-black uppercase tracking-widest text-indigo-400">זווית חדשה ומאוזנת יותר</h3>
+                      <BrainCircuit size={18} className={isLight ? "text-indigo-600" : "text-indigo-400"} aria-hidden="true" />
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>זווית חדשה ומאוזנת יותר</h3>
                     </div>
-                    <p className="text-xl leading-relaxed text-slate-100 font-medium italic relative z-10">
+                    <p className={cn("text-xl leading-relaxed font-medium italic relative z-10", isLight ? "text-slate-800" : "text-slate-100")}>
                       "{analysis.healthyPerspective}"
                     </p>
                   </div>
 
                   {/* Process Summary Card */}
-                  <div className="space-y-4 bg-slate-900/40 border border-white/5 rounded-3xl p-6">
+                  <div className={cn("space-y-4 border rounded-3xl p-6", isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5")}>
                     <div className="flex items-center gap-2 pr-1">
                       <BookText size={18} className="text-emerald-400" aria-hidden="true" />
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">סיכום התהליך</h3>
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest", isLight ? "text-slate-500" : "text-slate-400")}>סיכום התהליך</h3>
                     </div>
-                    
+
                     {/* Custom Audio Player */}
-                    <div className="bg-slate-950 border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col gap-3 relative overflow-hidden">
+                    <div className={cn("border rounded-2xl p-4 shadow-xl flex flex-col gap-3 relative overflow-hidden", isLight ? "bg-slate-50 border-slate-100" : "bg-slate-950 border-white/5")}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <button
@@ -584,11 +608,11 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                             )}
                           </button>
                           <div>
-                            <h4 className="text-sm font-bold text-white">הקראת סיכום התהליך</h4>
+                            <h4 className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-white")}>הקראת סיכום התהליך</h4>
                             <p className="text-[10px] text-slate-500">קריינות מותאמת אישית של עמיר אייל</p>
                           </div>
                         </div>
-                        
+
                         {isPlaying && (
                           <span className="flex h-2 w-2 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -596,10 +620,10 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="space-y-1 mt-1">
-                        <div className="relative w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                          <div 
+                        <div className={cn("relative w-full h-1 rounded-full overflow-hidden", isLight ? "bg-slate-200" : "bg-white/5")}>
+                          <div
                             className="absolute top-0 right-0 h-full bg-gradient-to-l from-indigo-500 to-purple-500 rounded-full transition-all duration-100"
                             style={{ width: `${audioProgress}%` }}
                           />
@@ -611,20 +635,20 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                       </div>
                     </div>
 
-                    <p className="text-slate-300 leading-relaxed text-base">
+                    <p className={cn("leading-relaxed text-base", isLight ? "text-slate-600" : "text-slate-300")}>
                       {analysis.summary}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 text-center text-slate-400">
+                <div className={cn("p-8 rounded-[2.5rem] border text-center", isLight ? "bg-slate-50 border-slate-200 text-slate-500" : "bg-white/5 border-white/10 text-slate-400")}>
                   התרגול נשמר, אך הניתוח המורחב לא היה זמין ברגע זה. ניתן לנסות שוב מאוחר יותר דרך היסטוריית היומנים.
                 </div>
               )}
             </>
           )}
 
-          <Button 
+          <Button
             onClick={onBack}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-[2rem] text-xl shadow-xl active:scale-95 transition-all"
           >
@@ -638,29 +662,48 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
   const currentConfig = stepsConfig[step as keyof typeof stepsConfig];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      <header className="p-6 flex items-center justify-between border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
-        <button onClick={onBack} className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-white transition-colors">
+    <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
+      <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
+        <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
           סגירה
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">מודל אפר"ת</span>
+          <span className={cn("text-[10px] font-black uppercase tracking-widest leading-none mb-0.5", isLight ? "text-indigo-600" : "text-indigo-400")}>מודל אפר"ת</span>
           <span className="text-sm font-bold">{currentConfig.title}</span>
         </div>
-        <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
-          <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+        <div className="flex items-center gap-3">
+          {toggleTheme && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleTheme}
+                  className={cn(
+                    "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95",
+                    isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                  )}
+                  aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                >
+                  {isLight ? <Moon size={16} /> : <Sun size={16} />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+            </Tooltip>
+          )}
+          <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
+            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+          </div>
         </div>
       </header>
 
       {/* Visual Stepper */}
-      <div className="border-b border-white/5 bg-slate-950/30 px-6 py-4 sticky top-[88px] z-10 backdrop-blur-sm">
-        <div className="max-w-lg mx-auto w-full pb-3">
+      <div className={cn("border-b px-6 py-4 sticky top-[88px] z-10 backdrop-blur-sm", isLight ? "border-slate-200 bg-white/30" : "border-white/5 bg-slate-950/30")}>
+        <div className="max-w-lg lg:max-w-2xl mx-auto w-full pb-3">
           <Stepper />
         </div>
       </div>
 
-      <main className="flex-1 flex flex-col items-center p-8 max-w-lg mx-auto w-full space-y-8">
+      <main className="flex-1 flex flex-col items-center p-8 max-w-lg lg:max-w-2xl mx-auto w-full space-y-8">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className={cn(
             "w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 transition-all duration-500 border border-indigo-500/10",
@@ -669,20 +712,20 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             <BookText size={32} aria-hidden="true" />
           </div>
           <div className="space-y-2">
-            <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
+            <div className={cn("inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-[10px] font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>
               {currentConfig.title}
             </div>
-            <h3 className="text-xl md:text-2xl font-bold leading-tight px-4">
+            <h3 className={cn("text-xl md:text-2xl lg:text-3xl font-bold leading-tight px-4", isLight ? "text-slate-900" : "text-white")}>
               {currentConfig.prompt}
             </h3>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button 
+              <button
                 type="button"
                 onClick={() => handlePlayAudio(currentConfig.prompt)}
                 disabled={isLoadingAudio}
-                className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors disabled:opacity-50"
+                className={cn("text-xs font-black flex items-center gap-2 transition-colors disabled:opacity-50", isLight ? "text-indigo-600 hover:text-slate-900" : "text-indigo-400 hover:text-white")}
                 aria-label="השמע הנחיה"
               >
                 {isLoadingAudio ? <Loader2 size={14} className="animate-spin" /> : isPlaying ? <RotateCcw size={14} /> : <Volume2 size={14} />}
@@ -701,7 +744,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               {/* Mood Selector Grid */}
               <div className="space-y-3">
                 <span className="text-xs font-black text-slate-500 block pr-1">איך זה מרגיש בגוף ובלב? (ניתן לבחור יותר מרגש אחד)</span>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   {MOOD_CHIPS.map((chip) => {
                     const isSelected = selectedMoods.includes(chip.label);
                     return (
@@ -728,13 +771,13 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
               </div>
               
               {/* Intensity Slider */}
-              <div className="space-y-3 p-5 rounded-2xl bg-white/5 border border-white/5">
+              <div className={cn("space-y-3 p-5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-400">עוצמת הרגש</span>
-                  <span className="text-sm font-bold text-indigo-400 font-mono">{moodIntensity}%</span>
+                  <span className={cn("text-xs font-black", isLight ? "text-slate-500" : "text-slate-400")}>עוצמת הרגש</span>
+                  <span className={cn("text-sm font-bold font-mono", isLight ? "text-indigo-600" : "text-indigo-400")}>{moodIntensity}%</span>
                 </div>
-                <Slider 
-                  value={[moodIntensity]} 
+                <Slider
+                  value={[moodIntensity]}
                   onValueChange={(val) => setMoodIntensity(val[0])}
                   min={0}
                   max={100}
@@ -747,28 +790,28 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   <span>עוצמתי מאוד</span>
                 </div>
               </div>
-              
+
               {/* Additional Feeling Textbox */}
               <div className="space-y-2 relative">
                 <span className="text-xs font-black text-slate-500 block pr-1">פרטים נוספים או תחושות גופניות:</span>
-                <Textarea 
+                <Textarea
                   value={additionalFeelingText}
                   onChange={(e) => setAdditionalFeelingText(e.target.value)}
                   placeholder="לדוגמה: הרגשתי מועקה חזקה בחזה, קוצר נשימה או דופק מהיר..."
-                  className="min-h-[120px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
+                  className={cn("min-h-[120px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
                   aria-label="תיאור נוסף של הרגש"
                 />
-                
+
                 {/* Voice button for Feeling step */}
                 <div className="absolute left-4 bottom-4 flex gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button 
+                      <button
                         type="button"
                         onClick={toggleRecording}
                         className={cn(
                           "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
-                          isRecording ? "bg-rose-500 animate-pulse text-white" : "bg-white/10 hover:bg-white/20 text-white"
+                          isRecording ? "bg-rose-500 animate-pulse text-white" : isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
                         )}
                         aria-label="הקלטת שמע"
                       >
@@ -782,24 +825,24 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             </div>
           ) : (
             <div className="w-full space-y-4 animate-in fade-in duration-500 relative">
-              <Textarea 
+              <Textarea
                 value={currentVal}
                 onChange={(e) => setData(prev => ({ ...prev, [step]: e.target.value }))}
                 placeholder={currentConfig.placeholder}
-                className="min-h-[220px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
+                className={cn("min-h-[220px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
                 aria-label={currentConfig.title}
               />
-              
+
               {/* Voice button for Standard step */}
               <div className="absolute left-4 bottom-4 flex gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button 
+                    <button
                       type="button"
                       onClick={toggleRecording}
                       className={cn(
                         "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
-                        isRecording ? "bg-rose-500 animate-pulse text-white" : "bg-white/10 hover:bg-white/20 text-white"
+                        isRecording ? "bg-rose-500 animate-pulse text-white" : isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
                       )}
                       aria-label={isRecording ? "עצור הקלטה" : "דבר אליי (הקלטה)"}
                     >
@@ -814,7 +857,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
           {/* Voice recording overlay */}
           {isRecording && (
-            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-[2rem] flex flex-col items-center justify-center p-6 space-y-6 animate-in fade-in duration-300 z-30 border border-white/5">
+            <div className={cn("absolute inset-0 backdrop-blur-md rounded-[2rem] flex flex-col items-center justify-center p-6 space-y-6 animate-in fade-in duration-300 z-30 border", isLight ? "bg-white/90 border-slate-200" : "bg-slate-950/90 border-white/5")}>
               <div className="relative flex items-center justify-center">
                 <div className="absolute w-24 h-24 rounded-full bg-rose-500/20 animate-ping" />
                 <div className="absolute w-20 h-20 rounded-full bg-rose-500/30 animate-pulse" />
@@ -822,12 +865,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                   <Mic className="h-6 w-6 animate-pulse" />
                 </div>
               </div>
-              
+
               <div className="text-center space-y-1.5">
-                <p className="text-base font-black text-rose-400">אני מקשיב לך...</p>
-                <p className="text-xs text-slate-400">הקול שלך מתורגם לטקסט בזמן אמת</p>
+                <p className="text-base font-black text-rose-500">אני מקשיב לך...</p>
+                <p className={cn("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>הקול שלך מתורגם לטקסט בזמן אמת</p>
               </div>
-              
+
               {/* Glowing animated wave bars */}
               <div className="flex items-center gap-1.5 h-10 justify-center">
                 <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.1s] h-5" />
@@ -836,12 +879,12 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                 <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.2s] h-6" />
                 <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.4s] h-4" />
               </div>
-              
-              <Button 
+
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={toggleRecording}
-                className="border-rose-500/30 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-2xl h-12 px-6"
+                className="border-rose-500/30 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 rounded-2xl h-12 px-6"
               >
                 סיום הקלטה והמשך
               </Button>
@@ -858,7 +901,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
                     key={idx}
                     type="button"
                     onClick={() => handleTagClick(tag)}
-                    className="text-xs px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-slate-400 hover:bg-indigo-600/15 hover:border-indigo-500/30 hover:text-indigo-300 transition-all active:scale-95 text-right"
+                    className={cn("text-xs px-3 py-1.5 rounded-xl border transition-all active:scale-95 text-right", isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700" : "bg-white/5 border-white/5 text-slate-400 hover:bg-indigo-600/15 hover:border-indigo-500/30 hover:text-indigo-300")}
                   >
                     + {tag}
                   </button>
@@ -870,8 +913,8 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </div>
       </main>
 
-      <footer className="p-8 max-w-lg mx-auto w-full grid grid-cols-2 gap-4">
-        <Button 
+      <footer className="p-8 max-w-lg lg:max-w-2xl mx-auto w-full grid grid-cols-2 gap-4">
+        <Button
           type="button"
           variant="outline"
           onClick={() => {
@@ -880,11 +923,11 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
             if (currentIdx > 0) setStep(sequence[currentIdx - 1]);
           }}
           disabled={step === "event"}
-          className="border-white/10 bg-transparent text-slate-400 h-16 rounded-[1.5rem] font-bold hover:bg-white/5"
+          className={cn("h-16 rounded-[1.5rem] font-bold bg-transparent", isLight ? "border-slate-200 text-slate-500 hover:bg-slate-100" : "border-white/10 text-slate-400 hover:bg-white/5")}
         >
           הקודם
         </Button>
-        <Button 
+        <Button
           type="button"
           onClick={handleNext}
           disabled={!isCurrentStepValid}
