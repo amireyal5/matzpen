@@ -22,9 +22,10 @@ import {
   Check,
   ChevronLeft,
   VolumeX,
-  Flower2,
   Sun,
-  Moon
+  Moon,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -39,6 +40,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AMBIENT_SOUNDS } from "@/lib/ambient-sound-engine";
+import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
+import AmbientVideoBackground from "@/components/AmbientVideoBackground";
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
@@ -188,15 +191,18 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   const [desensitizePhase, setDesensitizePhase] = useState<'focus' | 'processing' | 'checkin'>('focus');
   
   const [resourcePhase, setResourcePhase] = useState<'speak' | 'install' | 'breath'>('speak');
-  
+
   const [phaseTimeLeft, setPhaseTimeLeft] = useState<number>(0);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+
   useWakeLock(isPlaying);
-  
+
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const droneAudioRef = useRef<HTMLAudioElement | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const pannerNodeRef = useRef<StereoPannerNode | null>(null);
+  const sessionContainerRef = useRef<HTMLDivElement>(null);
+  const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const affIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const blsIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -208,6 +214,49 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
   useEffect(() => { sessionStateRef.current = sessionState; }, [sessionState]);
+
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setShowControls(true);
+      if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
+      return;
+    }
+    setShowControls(true);
+    hideControlsTimeoutRef.current = setTimeout(() => setShowControls(false), 4000);
+    return () => { if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current); };
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    return () => {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await sessionContainerRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (e) { /* fullscreen not supported / denied */ }
+  };
+
+  const handleScreenTap = () => {
+    if (!isFullscreen) return;
+    setShowControls(prev => {
+      if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
+      const next = !prev;
+      if (next) hideControlsTimeoutRef.current = setTimeout(() => setShowControls(false), 4000);
+      return next;
+    });
+  };
 
   const activeColorHex = STIMULUS_COLORS.find(c => c.id === stimulusColor)?.hex || '#06B6D4';
 
@@ -403,32 +452,23 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
   useEffect(() => {
     if (isPlaying && selectedSoundId !== "none" && sessionState === "active") {
-      const soundDef = AMBIENT_SOUNDS.find(s => s.id === selectedSoundId);
-      if (soundDef) {
-        const audio = new Audio(soundDef.url);
-        audio.loop = true;
-        audio.volume = droneVolume;
-        droneAudioRef.current = audio;
-        try {
-          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-          const ctx = new AudioContextClass();
-          audioContextRef.current = ctx;
-          const source = ctx.createMediaElementSource(audio);
-          const panner = ctx.createStereoPanner();
-          source.connect(panner);
-          panner.connect(ctx.destination);
-          pannerNodeRef.current = panner;
-          if (ctx.state === 'suspended') ctx.resume();
+      if (!droneAudioRef.current) {
+        const soundDef = AMBIENT_SOUNDS.find(s => s.id === selectedSoundId);
+        if (soundDef) {
+          const audio = new Audio(soundDef.url);
+          audio.loop = true;
+          audio.volume = droneVolume;
+          droneAudioRef.current = audio;
           audio.play().catch(() => {});
-        } catch (e) { audio.play().catch(() => {}); }
+        }
+      } else {
+        droneAudioRef.current.play().catch(() => {});
       }
     } else {
-      if (droneAudioRef.current) { droneAudioRef.current.pause(); droneAudioRef.current = null; }
-      if (audioContextRef.current) { audioContextRef.current.close().catch(() => {}); audioContextRef.current = null; pannerNodeRef.current = null; }
+      if (droneAudioRef.current) { droneAudioRef.current.pause(); droneAudioRef.current.src = ""; droneAudioRef.current = null; }
     }
     return () => {
-      if (droneAudioRef.current) droneAudioRef.current.pause();
-      if (audioContextRef.current) audioContextRef.current.close().catch(() => {});
+      if (droneAudioRef.current) { droneAudioRef.current.pause(); droneAudioRef.current.src = ""; droneAudioRef.current = null; }
     };
   }, [isPlaying, selectedSoundId, sessionState]);
 
@@ -448,19 +488,17 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     return () => { if (blsIntervalRef.current) clearInterval(blsIntervalRef.current); };
   }, [isStimulusMoving, speed, treatmentMode]);
 
-  useEffect(() => {
-    if (pannerNodeRef.current && audioContextRef.current) {
-      const targetPan = isStimulusMoving ? (blsSide === 'left' ? -0.85 : 0.85) : 0.0;
-      pannerNodeRef.current.pan.linearRampToValueAtTime(targetPan, audioContextRef.current.currentTime + 0.4);
-    }
-  }, [blsSide, isStimulusMoving]);
-
   const getStimulusLeft = () => blsSide === 'left' ? '0%' : blsSide === 'right' ? '100%' : '50%';
 
   return (
     <div className={cn("min-h-screen font-sans text-right overflow-hidden select-none transition-colors duration-500", sessionState === "setup" || sessionState === "grounding" ? (isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white") : "bg-slate-950 text-white")} dir="rtl">
       {sessionState === "active" && (
-        <div className="fixed inset-0 opacity-30 transition-all duration-3000" style={{ background: `linear-gradient(to bottom right, ${activeColorHex}40, black)` }} />
+        <AmbientVideoBackground
+          src={AMBIENT_VIDEOS[1]}
+          className="fixed inset-0"
+          overlayClassName="transition-all duration-[3000ms]"
+          overlayStyle={{ background: `linear-gradient(to bottom right, ${activeColorHex}40, black)`, opacity: 0.55 }}
+        />
       )}
 
       {sessionState === "setup" && (
@@ -629,8 +667,25 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       )}
 
       {sessionState === "active" && (
-        <div className="min-h-screen flex flex-col relative">
-          <div className="p-8 flex justify-between items-start z-50">
+        <div ref={sessionContainerRef} onClick={handleScreenTap} className="min-h-screen flex flex-col relative bg-slate-950">
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes bls-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+            @keyframes bls-glow-pulse { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 50% { opacity: 0.75; transform: scale(1.25); } }
+            @keyframes bls-ring-ping { 0% { transform: scale(0.75); opacity: 0.55; } 100% { transform: scale(2.1); opacity: 0; } }
+            @keyframes bls-petal-sway { 0%, 100% { transform: rotate(var(--rot)) scale(1); } 50% { transform: rotate(calc(var(--rot) + 6deg)) scale(1.08); } }
+            @keyframes bls-ring-spin { to { transform: rotate(360deg); } }
+            @keyframes bls-drift-1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(6%, -8%) scale(1.15); } }
+            @keyframes bls-drift-2 { 0%, 100% { transform: translate(0, 0) scale(1.1); } 50% { transform: translate(-8%, 6%) scale(0.95); } }
+          ` }} />
+
+          {isFullscreen && (
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+              <div className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full blur-[120px] opacity-30" style={{ backgroundColor: activeColorHex, animation: 'bls-drift-1 18s ease-in-out infinite' }} />
+              <div className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 rounded-full blur-[120px] opacity-20" style={{ backgroundColor: activeColorHex, animation: 'bls-drift-2 22s ease-in-out infinite' }} />
+            </div>
+          )}
+
+          <div className={cn("p-8 flex justify-between items-start z-50 transition-opacity duration-500", isFullscreen && !showControls ? "opacity-0 pointer-events-none" : "opacity-100")}>
             <button onClick={handleExitEarly} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all hover:scale-105 active:scale-95"><X size={20} /></button>
             <div className="flex flex-col items-center text-center bg-black/40 backdrop-blur-3xl border border-white/5 rounded-full px-5 py-2">
               {treatmentMode === 'desensitize' ? (
@@ -639,14 +694,19 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 <><span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">הטמעת משאבים • {selectedCat.title}</span><span className="text-xs font-bold text-white">משפט {nextAffIndexRef.current === 0 ? selectedCat.affirmations.length : nextAffIndexRef.current} מתוך {selectedCat.affirmations.length}</span></>
               )}
             </div>
-            {selectedSoundId !== "none" ? (
-              <Popover>
-                <PopoverTrigger asChild><button className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"><Settings2 size={20} /></button></PopoverTrigger>
-                <PopoverContent className="w-64 bg-slate-950 border-white/10 rounded-[2rem] p-6 shadow-2xl" side="bottom" align="end" dir="rtl">
-                  <Slider value={[droneVolume * 100]} max={100} onValueChange={(vals) => setDroneVolume(vals[0] / 100)} className="py-2" />
-                </PopoverContent>
-              </Popover>
-            ) : <div className="w-12 h-12" />}
+            <div className="flex items-center gap-3">
+              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all hover:scale-105 active:scale-95" aria-label={isFullscreen ? "צא ממסך מלא" : "מסך מלא"}>
+                {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+              </button>
+              {selectedSoundId !== "none" && (
+                <Popover>
+                  <PopoverTrigger asChild><button onClick={(e) => e.stopPropagation()} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"><Settings2 size={20} /></button></PopoverTrigger>
+                  <PopoverContent className="w-64 bg-slate-950 border-white/10 rounded-[2rem] p-6 shadow-2xl" side="bottom" align="end" dir="rtl">
+                    <Slider value={[droneVolume * 100]} max={100} onValueChange={(vals) => setDroneVolume(vals[0] / 100)} className="py-2" />
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           </div>
 
           {!(treatmentMode === 'desensitize' && desensitizePhase === 'checkin') && !(treatmentMode === 'resource' && resourcePhase === 'breath') && (
@@ -654,9 +714,54 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               <div className="w-full relative h-20 flex items-center">
                 <div className="absolute left-0 right-0 h-[1px] bg-white/5" />
                 <div className="absolute transform-gpu transition-all -translate-x-1/2" style={{ transition: `left ${isStimulusMoving ? (treatmentMode === 'resource' ? 1750 : getSpeedMs() / 2) : 500}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), transform 300ms`, left: getStimulusLeft() }}>
-                  {stimulusShape === 'orb' && <div className="rounded-full transition-all duration-300" style={{ width: isSpeaking ? '70px' : '44px', height: isSpeaking ? '70px' : '44px', backgroundColor: activeColorHex, boxShadow: `0 0 35px ${activeColorHex}` }} />}
-                  {stimulusShape === 'flower' && <div className="transition-all duration-300 flex items-center justify-center rounded-full bg-slate-950/80 p-3 border border-white/10" style={{ width: isSpeaking ? '74px' : '54px', height: isSpeaking ? '74px' : '54px', color: activeColorHex }}><Flower2 className="h-7 w-7" /></div>}
-                  {stimulusShape === 'ring' && <div className="relative flex items-center justify-center" style={{ width: isSpeaking ? '70px' : '50px', height: isSpeaking ? '70px' : '50px' }}><div className="absolute inset-0 rounded-full border-[3px]" style={{ borderColor: `${activeColorHex}25`, borderTopColor: activeColorHex }} /><div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: activeColorHex }} /></div>}
+                  {stimulusShape === 'orb' && (
+                    <div className="relative flex items-center justify-center transition-all duration-300" style={{ width: isSpeaking ? '76px' : '52px', height: isSpeaking ? '76px' : '52px' }}>
+                      <div className="absolute rounded-full blur-2xl" style={{ inset: '-50%', backgroundColor: activeColorHex, animation: 'bls-glow-pulse 2.6s ease-in-out infinite' }} />
+                      <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: activeColorHex, animation: 'bls-ring-ping 2.6s ease-out infinite' }} />
+                      <div className="absolute inset-0 rounded-full border-2" style={{ borderColor: activeColorHex, animation: 'bls-ring-ping 2.6s ease-out infinite 1.3s' }} />
+                      <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle at 35% 30%, #ffffff, ${activeColorHex} 65%)`, boxShadow: `0 0 30px ${activeColorHex}, 0 0 60px ${activeColorHex}80`, animation: 'bls-breathe 2.6s ease-in-out infinite' }} />
+                    </div>
+                  )}
+                  {stimulusShape === 'flower' && (
+                    <div className="relative flex items-center justify-center transition-all duration-300" style={{ width: isSpeaking ? '88px' : '66px', height: isSpeaking ? '88px' : '66px', animation: 'bls-breathe 3s ease-in-out infinite' }}>
+                      <div className="absolute rounded-full blur-2xl opacity-50" style={{ inset: '-30%', backgroundColor: activeColorHex }} />
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-[42%] h-1/2 rounded-full mix-blend-screen"
+                          style={{
+                            top: 0,
+                            left: '50%',
+                            marginLeft: '-21%',
+                            transformOrigin: '50% 100%',
+                            background: `linear-gradient(to top, transparent, ${activeColorHex}cc)`,
+                            // @ts-ignore custom property used by bls-petal-sway keyframes
+                            '--rot': `${i * 60}deg`,
+                            transform: `rotate(${i * 60}deg)`,
+                            animation: `bls-petal-sway 4s ease-in-out infinite`,
+                            animationDelay: `${i * 0.15}s`,
+                          } as React.CSSProperties}
+                        />
+                      ))}
+                      <div className="absolute w-[34%] h-[34%] rounded-full" style={{ background: `radial-gradient(circle, #ffffff, ${activeColorHex})`, boxShadow: `0 0 18px ${activeColorHex}` }} />
+                    </div>
+                  )}
+                  {stimulusShape === 'ring' && (
+                    <div className="relative flex items-center justify-center transition-all duration-300" style={{ width: isSpeaking ? '82px' : '60px', height: isSpeaking ? '82px' : '60px', animation: 'bls-breathe 2.6s ease-in-out infinite' }}>
+                      <div className="absolute rounded-full blur-2xl opacity-40" style={{ inset: '-35%', backgroundColor: activeColorHex }} />
+                      <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: `conic-gradient(${activeColorHex}, transparent, ${activeColorHex})`,
+                          WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px))',
+                          mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px))',
+                          animation: 'bls-ring-spin 6s linear infinite',
+                        }}
+                      />
+                      <div className="absolute inset-[18%] rounded-full border" style={{ borderColor: `${activeColorHex}40` }} />
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: activeColorHex, boxShadow: `0 0 14px ${activeColorHex}` }} />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -807,16 +912,16 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
           {/* Bottom Session Control Panel */}
           {!(treatmentMode === 'desensitize' && desensitizePhase === 'checkin') && !(treatmentMode === 'resource' && resourcePhase === 'breath') && (
-            <div className="fixed bottom-10 left-0 right-0 flex justify-center px-6 z-50">
-              <div className="bg-black/60 backdrop-blur-3xl p-3 px-8 rounded-full border border-white/10 flex items-center gap-6 shadow-2xl">
+            <div className={cn("fixed bottom-10 left-0 right-0 flex justify-center px-6 z-50 transition-opacity duration-500", isFullscreen && !showControls ? "opacity-0 pointer-events-none" : "opacity-100")}>
+              <div onClick={(e) => e.stopPropagation()} className="bg-black/60 backdrop-blur-3xl p-3 px-8 rounded-full border border-white/10 flex items-center gap-6 shadow-2xl">
                 <div className="flex items-center gap-1.5 text-white/20">
                   {isLoading ? (
                     <Loader2 size={14} className="animate-spin text-indigo-400" />
                   ) : (
                     <div className="flex items-center gap-1">
                       {[...Array(4)].map((_, i) => (
-                        <div 
-                          key={i} 
+                        <div
+                          key={i}
                           className={cn("w-0.5 rounded-full transition-all duration-300", blsSide === (i < 2 ? 'left' : 'right') ? "bg-indigo-400 shadow-[0_0_8px_indigo]" : "bg-white/10")}
                           style={{ height: isStimulusMoving ? '12px' : '4px' }}
                         />
@@ -824,8 +929,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     </div>
                   )}
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setIsPlaying(!isPlaying)}
                   className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
                   aria-label={isPlaying ? "השהה" : "נגן"}

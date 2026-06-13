@@ -7,10 +7,21 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import { SoundId } from "@/lib/ambient-sound-engine";
+import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
+import AmbientVideoBackground from "@/components/AmbientVideoBackground";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 import { BREATHING_EXERCISES, BreathingExercise } from "@/lib/breathing-exercises";
+
+// מיפוי כל סגנון תרגול נשימה לסרטון נוף מרגיע מתאים
+const BREATHING_VIDEO_BY_STYLE: Record<BreathingExercise["style"], string> = {
+  "grounding-glow": AMBIENT_VIDEOS[0],
+  "glow-circle": AMBIENT_VIDEOS[0],
+  "flower": AMBIENT_VIDEOS[1],
+  "mandala": AMBIENT_VIDEOS[1],
+  "nebula": AMBIENT_VIDEOS[2],
+};
 
 interface BreathingScreenProps {
   onBack: () => void;
@@ -480,7 +491,11 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
       {/* מודל תרגול נשימה אינטראקטיבי */}
       {activeExercise && (
         <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-6 select-none animate-in fade-in duration-300">
-          <div className={cn("absolute inset-0 z-0 bg-gradient-to-b opacity-45", activeExercise.bgGradient)} />
+          <AmbientVideoBackground
+            src={BREATHING_VIDEO_BY_STYLE[activeExercise.style]}
+            className="z-0"
+            overlayClassName={cn("bg-gradient-to-b opacity-70", activeExercise.bgGradient)}
+          />
           
           {activeExercise.style === "glow-circle" && (
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none mix-blend-screen overflow-hidden">

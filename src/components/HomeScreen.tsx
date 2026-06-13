@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy, Cloud } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -27,6 +27,7 @@ interface HomeScreenProps {
   onGoToSounds: (soundId?: any) => void;
   onGoToBreathing: (breathingId?: string) => void;
   onGoToBilateral: () => void;
+  onGoToImagery: () => void;
   onBack: () => void;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
@@ -358,6 +359,7 @@ export default function HomeScreen({
   onGoToSounds, 
   onGoToBreathing, 
   onGoToBilateral,
+  onGoToImagery,
   onBack,
   theme = "light",
   toggleTheme
@@ -881,6 +883,27 @@ export default function HomeScreen({
                   <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>צלילי מרחב</span>
                   <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">מוזיקה מרגיעה</span>
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נעימות סביבתיות וקערות טיבטיות</span>
+                </div>
+              </button>
+
+              {/* Guided Imagery */}
+              <button
+                onClick={onGoToImagery}
+                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-violet-400/50 hover:shadow-violet-100/50" : "bg-slate-900/40 border-white/5 hover:border-violet-500/30 hover:bg-slate-900/60")}
+                aria-label="דימיון מודרך"
+              >
+                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-violet-500/5 blur-2xl group-hover:bg-violet-500/10 transition-colors pointer-events-none" />
+                <div className="absolute left-4 top-4 w-10 h-10 pointer-events-none opacity-25" style={{ animation: 'bento-breath 6s infinite ease-in-out' }}>
+                  <Cloud size={32} className="text-violet-400" />
+                </div>
+
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
+                  <Sparkles size={20} />
+                </div>
+                <div className="space-y-1 mt-4 z-10">
+                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>דימיון מודרך</span>
+                  <span className="block text-[10px] text-violet-400 font-black tracking-widest uppercase">מסעות ויזואליים</span>
+                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">וידאו, מוזיקה והכוונה כתובה להרפיה עמוקה</span>
                 </div>
               </button>
 

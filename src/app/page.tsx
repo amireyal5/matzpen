@@ -12,13 +12,15 @@ import GuidedSession from "@/components/GuidedSession";
 import ThoughtJournal from "@/components/ThoughtJournal";
 import SoundsScreen from "@/components/SoundsScreen";
 import BreathingScreen from "@/components/BreathingScreen";
+import GuidedImageryScreen from "@/components/GuidedImageryScreen";
 import BilateralProcessing from "@/components/BilateralProcessing";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { onMessageListener } from "@/firebase/messaging";
+import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery";
 
 function AppContent() {
   const [screen, setScreen] = useState<Screen>("landing");
@@ -27,13 +29,12 @@ function AppContent() {
   const [activeCatKey, setActiveCatKey] = useState("SOS");
   const [activePracticeIdx, setActivePracticeIdx] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [soundsParams, setSoundsParams] = useState<{
-    initialSoundId?: any;
-  }>({});
   const [breathingParams, setBreathingParams] = useState<{
     initialBreathingId?: string;
   }>({});
-  
+
+  const ambientMixer = useAmbientMixer();
+
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
@@ -63,7 +64,7 @@ function AppContent() {
           setScreen("home");
         }
       } else {
-        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "sounds" || screen === "breathing" || screen === "bilateral") {
+        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "sounds" || screen === "breathing" || screen === "bilateral" || screen === "imagery") {
           setScreen("auth");
         }
       }
@@ -153,7 +154,9 @@ function AppContent() {
             onStartGuided={handleStartGuided}
             onGoToJournal={() => setScreen("journal")}
             onGoToSounds={(soundId) => {
-              setSoundsParams({ initialSoundId: soundId });
+              // מנגן את הצליל באופן מיידי בתוך אינטראקציית המשתמש (לחיצה),
+              // כך שדפדפנים לא יחסמו את הניגון האוטומטי כ-autoplay
+              if (soundId) ambientMixer.play(soundId);
               setScreen("sounds");
             }}
             onGoToBreathing={(breathingId) => {
@@ -161,6 +164,7 @@ function AppContent() {
               setScreen("breathing");
             }}
             onGoToBilateral={() => setScreen("bilateral")}
+            onGoToImagery={() => setScreen("imagery")}
             onBack={() => setScreen("landing")} 
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
@@ -196,12 +200,12 @@ function AppContent() {
         {(screen === "sounds" && user) && (
           <SoundsScreen
             onBack={() => {
-              setSoundsParams({});
+              ambientMixer.stopAll();
               setScreen("home");
             }}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-            {...soundsParams}
+            mixer={ambientMixer}
           />
         )}
         {(screen === "breathing" && user) && (
@@ -218,6 +222,13 @@ function AppContent() {
         {(screen === "bilateral" && user) && (
           <BilateralProcessing
             gender={gender}
+            onBack={() => setScreen("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "imagery" && user) && (
+          <GuidedImageryScreen
             onBack={() => setScreen("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}

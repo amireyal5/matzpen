@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { ArrowRight, Flower2, Play, Sparkles, Disc3, Bell, Heart, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, Timer } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useWakeLock } from "@/hooks/use-wake-lock";
-import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
+import type { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import { SoundId, SoundDefinition } from "@/lib/ambient-sound-engine";
+import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
+import AmbientVideoBackground from "@/components/AmbientVideoBackground";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface SoundsScreenProps {
   onBack: () => void;
-  initialSoundId?: SoundId;
+  mixer: ReturnType<typeof useAmbientMixer>;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
 }
@@ -145,7 +147,7 @@ function SoundCard({ sound, track, play, pause, stop, toggleLoop }: SoundCardPro
   );
 }
 
-export default function SoundsScreen({ onBack, initialSoundId, theme = "light", toggleTheme }: SoundsScreenProps) {
+export default function SoundsScreen({ onBack, mixer, theme = "light", toggleTheme }: SoundsScreenProps) {
   const isLight = theme === "light";
   useWakeLock(true);
 
@@ -160,16 +162,7 @@ export default function SoundsScreen({ onBack, initialSoundId, theme = "light", 
     toggleTrackLoop,
     timeLeft,
     startTimer,
-  } = useAmbientMixer();
-
-  // טעינה ראשונית של סאונד מדף הבית (מוגן מפני לולאה אינסופית)
-  const hasAutoPlayedRef = useRef(false);
-  useEffect(() => {
-    if (initialSoundId && !hasAutoPlayedRef.current) {
-      hasAutoPlayedRef.current = true;
-      play(initialSoundId);
-    }
-  }, [initialSoundId, play]);
+  } = mixer;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -178,7 +171,11 @@ export default function SoundsScreen({ onBack, initialSoundId, theme = "light", 
   };
 
   return (
-    <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
+    <div className={cn(
+      "min-h-screen flex flex-col transition-colors duration-500 relative isolate",
+      isLight ? "text-slate-900" : "text-white",
+      !isAnyPlaying && (isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100" : "bg-slate-950")
+    )}>
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes eq-bar {
           0%, 100% { height: 4px; }
@@ -191,7 +188,16 @@ export default function SoundsScreen({ onBack, initialSoundId, theme = "light", 
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
 
-      <header className={cn("p-6 flex items-center justify-between border-b backdrop-blur-md z-10 transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
+      {/* רקע וידאו נופי חי - מופיע כשמתנגן צליל, להעמקת תחושת הנוכחות והשלווה */}
+      {isAnyPlaying && (
+        <AmbientVideoBackground
+          src={AMBIENT_VIDEOS[2]}
+          className="fixed inset-0 -z-10 animate-in fade-in duration-1000"
+          overlayClassName={isLight ? "bg-white/70" : "bg-slate-950/70"}
+        />
+      )}
+
+      <header className={cn("relative z-10 p-6 flex items-center justify-between border-b backdrop-blur-md transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
         <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
           חזרה
@@ -226,7 +232,7 @@ export default function SoundsScreen({ onBack, initialSoundId, theme = "light", 
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
+      <main className="relative z-10 flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
         <div className="relative pt-4">
           <div className={cn("absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full transition-opacity", isAnyPlaying ? "animate-pulse opacity-100" : "opacity-60")} />
           <div className="relative w-28 h-28 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl">
@@ -306,7 +312,7 @@ export default function SoundsScreen({ onBack, initialSoundId, theme = "light", 
         </div>
       </main>
 
-      <footer className="p-8 max-w-lg mx-auto w-full z-10">
+      <footer className="relative z-10 p-8 max-w-lg mx-auto w-full">
         <Button
           onClick={onBack}
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"

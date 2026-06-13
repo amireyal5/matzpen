@@ -9,7 +9,8 @@ export type SoundId =
   | "calm-peaceful"
   | "autumn-sky"
   | "hz-frequency-258"
-  | "ambient-calm";
+  | "ambient-calm"
+  | "ancient-flow";
 
 export interface SoundDefinition {
   id: SoundId;
@@ -82,5 +83,12 @@ export const AMBIENT_SOUNDS: SoundDefinition[] = [
     description: "צלילי אמביינט מלטפים",
     url: "https://storage.googleapis.com/studio-7313343264-8d6d7.firebasestorage.app/meditation-sounds/ambient-calm.mp3",
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600",
+  },
+  {
+    id: "ancient-flow",
+    label: "זרימה עתיקה",
+    description: "מקצב נשימה איטי של 5 שניות לזרימה והרגעה",
+    url: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/meditation-sounds%2Fsiarhei_korbut-ancient-flow-breathing-5-seconds-pattern-523497.mp3?alt=media&token=9312f735-0769-4561-99ec-ab898b20b74a",
+    image: "https://images.unsplash.com/photo-1500964757637-c85e8a162699?q=80&w=600",
   },
 ];
