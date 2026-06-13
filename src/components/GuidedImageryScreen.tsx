@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowRight, Play, Pause, X, Sun, Moon, Sparkles, VolumeX, Volume2, RotateCcw, Trees, Waves, Cloud, Clock, Mic, MicOff } from "lucide-react";
+import { ArrowRight, Play, Pause, X, Sun, Moon, Sparkles, VolumeX, Volume2, RotateCcw, Trees, Waves, Cloud, Clock, Mic, MicOff, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -10,8 +10,7 @@ import AmbientVideoBackground from "@/components/AmbientVideoBackground";
 import { GUIDED_IMAGERY_JOURNEYS, GuidedImageryJourney, ImageryStep } from "@/lib/guided-imagery";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
+import { useUser } from "@/firebase";
 
 interface GuidedImageryScreenProps {
   onBack: () => void;
@@ -90,6 +89,7 @@ function JourneyCard({ journey, onStart }: { journey: GuidedImageryJourney; onSt
 }
 
 export default function GuidedImageryScreen({ onBack, theme = "light", toggleTheme }: GuidedImageryScreenProps) {
+  const { user } = useUser();
   const isLight = theme === "light";
   useWakeLock(true);
 
@@ -366,7 +366,13 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
             </Tooltip>
           )}
           <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative transition-colors", isLight ? "border-slate-200" : "border-white/10")}>
-            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+            {user?.photoURL ? (
+              <Image src={user.photoURL} alt="פרופיל אישי" fill className="object-cover rounded-full" />
+            ) : (
+              <div className={cn("w-full h-full flex items-center justify-center", isLight ? "bg-slate-100 text-slate-500" : "bg-slate-800 text-slate-400")}>
+                <UserIcon size={16} />
+              </div>
+            )}
           </div>
         </div>
       </header>

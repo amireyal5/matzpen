@@ -22,7 +22,8 @@ import {
   Play,
   Pause,
   Sun,
-  Moon
+  Moon,
+  User as UserIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ import { Slider } from "@/components/ui/slider";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/Logo";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { analyzeJournal, JournalAnalysisOutput } from "@/ai/flows/journal-analysis-flow";
 import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
@@ -46,8 +48,6 @@ interface ThoughtJournalProps {
   theme?: "light" | "dark";
   toggleTheme?: () => void;
 }
-
-const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "analyzing" | "finish";
 
@@ -489,12 +489,12 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
       <div className={cn("min-h-screen flex flex-col overflow-y-auto transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")} dir="rtl">
         <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
           <div className="flex items-center gap-3">
-            <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
-              <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+            <div className={cn("w-10 h-10 rounded-full border flex items-center justify-center p-1.5 relative overflow-hidden", isLight ? "border-slate-200 bg-indigo-50 text-indigo-600" : "border-white/10 bg-indigo-950/40 text-indigo-400")}>
+              <Logo variant="icon" className="w-full h-full" />
             </div>
             <div>
               <span className={cn("block text-[10px] font-black uppercase tracking-widest leading-none", isLight ? "text-indigo-600" : "text-indigo-400")}>ניתוח חכם</span>
-              <span className="block text-sm font-bold">עמיר אייל</span>
+              <span className="block text-sm font-bold">המצפן הרגשי</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -668,7 +668,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                           </button>
                           <div>
                             <h4 className={cn("text-sm font-bold", isLight ? "text-slate-900" : "text-white")}>הקראת סיכום התהליך</h4>
-                            <p className="text-[10px] text-slate-500">קריינות מותאמת אישית של עמיר אייל</p>
+                            <p className="text-[10px] text-slate-500">קריינות מותאמת אישית של המצפן</p>
                           </div>
                         </div>
 
@@ -750,7 +750,13 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
             </Tooltip>
           )}
           <div className={cn("w-10 h-10 rounded-full border overflow-hidden relative", isLight ? "border-slate-200" : "border-white/10")}>
-            <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+            {user?.photoURL ? (
+              <Image src={user.photoURL} alt="פרופיל אישי" fill className="object-cover rounded-full" />
+            ) : (
+              <div className={cn("w-full h-full flex items-center justify-center", isLight ? "bg-slate-100 text-slate-500" : "bg-slate-800 text-slate-400")}>
+                <UserIcon size={16} />
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -852,14 +858,27 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
 
               {/* Additional Feeling Textbox */}
               <div className="space-y-2 relative">
-                <span className="text-xs font-black text-slate-500 block pr-1">פרטים נוספים או תחושות גופניות:</span>
+                <span className="text-xs font-black text-slate-500 block pr-1">פרטים נוספים או מחשבות נלוות:</span>
                 <Textarea
                   value={additionalFeelingText}
                   onChange={(e) => setAdditionalFeelingText(e.target.value)}
-                  placeholder="לדוגמה: הרגשתי מועקה חזקה בחזה, קוצר נשימה או דופק מהיר..."
+                  placeholder="תאר/י במילים שלך את מה שאת/ה מרגיש/ה..."
                   className={cn("min-h-[120px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
                   aria-label="תיאור נוסף של הרגש"
                 />
+
+                <div className={cn(
+                  "mt-3 p-4 rounded-2xl border text-xs leading-relaxed text-right flex items-start gap-2.5",
+                  isLight 
+                    ? "bg-amber-50 border-amber-200/60 text-amber-800" 
+                    : "bg-amber-950/20 border-amber-500/20 text-amber-200"
+                )}>
+                  <Info size={16} className="shrink-0 mt-0.5 text-amber-500" aria-hidden="true" />
+                  <div>
+                    <strong className="block mb-0.5 font-bold">הבהרה חשובה לגבי תסמינים גופניים:</strong>
+                    כלי זה מיועד לתמיכה וויסות רגשי בלבד. אם הינך חווה תחושות גופניות חריגות (כמו לחץ או מועקה בחזה, קוצר נשימה, סחרחורת או כאב), אנא פנה/י לבירור רפואי מיידי. אין להסתמך על תרגול זה כתחליף לאבחון או טיפול רפואי.
+                  </div>
+                </div>
 
                 {/* Voice button for Feeling step */}
                 <div className="absolute left-4 bottom-4 flex gap-2">

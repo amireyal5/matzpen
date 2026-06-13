@@ -557,8 +557,13 @@ export default function HomeScreen({
                 <div className="relative">
                   <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-150 animate-pulse-soft" />
                   <div className="relative w-24 h-24">
-                    <div className="w-full h-full rounded-full border-4 border-white/20 shadow-2xl overflow-hidden relative">
-                      <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+                    <div className={cn(
+                      "w-full h-full rounded-full border-4 shadow-2xl flex items-center justify-center p-5 relative overflow-hidden",
+                      isLight 
+                        ? "bg-indigo-50 border-white text-indigo-600 shadow-indigo-100" 
+                        : "bg-indigo-950/40 border-white/10 text-indigo-400"
+                    )}>
+                      <Logo variant="icon" className="w-full h-full" />
                     </div>
                     <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-slate-950 rounded-full shadow-lg z-40" />
                   </div>
@@ -777,8 +782,11 @@ export default function HomeScreen({
                   (isMinimized && messages.length === 0) ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
                 )}>
                   <div className="relative w-10 h-10">
-                    <div className="w-full h-full rounded-full border-2 border-indigo-500 shadow-lg overflow-hidden relative">
-                      <Image src={PROFESSIONAL_PHOTO_URL} alt="עמיר אייל" fill className="object-cover" />
+                    <div className={cn(
+                      "w-full h-full rounded-full border-2 border-indigo-500 shadow-lg flex items-center justify-center p-2 relative overflow-hidden",
+                      isLight ? "bg-indigo-50 text-indigo-600" : "bg-indigo-950/40 text-indigo-400"
+                    )}>
+                      <Logo variant="icon" className="w-full h-full" />
                     </div>
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
                   </div>
