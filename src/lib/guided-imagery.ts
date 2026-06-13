@@ -4,6 +4,7 @@ import { AMBIENT_VIDEOS } from "./ambient-videos";
 export interface ImageryStep {
   text: string;
   duration: number; // בשניות
+  audio?: string; // נתיב לקובץ שמע
 }
 
 export interface GuidedImageryJourney {
@@ -51,16 +52,13 @@ export const GUIDED_IMAGERY_JOURNEYS: GuidedImageryJourney[] = [
     soundId: "calm-peaceful",
     icon: "ocean",
     steps: [
-      { text: "עצום את עיניך, ותן לכתפיים לרדת ולהתרכך", duration: 20 },
-      { text: "דמיין את עצמך עומד על חוף רחב, החול החם נוגע בכפות הרגליים", duration: 25 },
-      { text: "לפניך משתרע האוקיינוס - כחול עמוק, נושם ונע באיטיות", duration: 25 },
-      { text: "כל גל שמתקרב לחוף ונסוג בחזרה, מזכיר לך שאפשר לשחרר", duration: 25 },
-      { text: "השמש מחממת את העור, ורוח קלה מלטפת את הפנים", duration: 25 },
-      { text: "עם כל נשימה פנימה, שאף רוגע מהאוויר המלוח", duration: 25 },
-      { text: "עם כל נשיפה, השאר מאחור עוד קצת ממה שכבד", duration: 25 },
-      { text: "תן לקול הגלים להיות כל מה שצריך לשמוע כרגע", duration: 30 },
-      { text: "המקום הזה כאן בשבילך, תמיד, כשתצטרך לחזור אליו", duration: 25 },
-      { text: "לאט, חזור למרחב שבו אתה נמצא, ופקח את עיניך כשמוכן", duration: 20 },
+      { text: "עצום את עיניך, ותן לכתפיים לרדת ולהתרכך", duration: 20, audio: "/דימיון מודרך/ocean-shore/1.mp3" },
+      { text: "דמיין את עצמך עומד על חוף רחב, החול החם נוגע בכפות הרגליים", duration: 25, audio: "/דימיון מודרך/ocean-shore/2.mp3" },
+      { text: "לפניך משתרע האוקיינוס - כחול עמוק, נושם ונע באיטיות", duration: 25, audio: "/דימיון מודרך/ocean-shore/3.mp3" },
+      { text: "כל גל שמתקרב לחוף ונסוג בחזרה, מזכיר לך שאפשר לשחרר", duration: 25, audio: "/דימיון מודרך/ocean-shore/4.mp3" },
+      { text: "השמש מחממת את העור, ורוח קלה מלטפת את הפנים", duration: 25, audio: "/דימיון מודרך/ocean-shore/5.mp3" },
+      { text: "עם כל נשימה פנימה, שאף רוגע מהאוויר המלוח", duration: 25, audio: "/דימיון מודרך/ocean-shore/6.mp3" },
+      { text: "עם כל נשיפה, השאר מאחור עוד קצת ממה שכבד", duration: 25, audio: "/דימיון מודרך/ocean-shore/7.mp3" }
     ],
   },
   {

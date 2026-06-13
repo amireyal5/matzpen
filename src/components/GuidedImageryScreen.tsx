@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import AmbientVideoBackground from "@/components/AmbientVideoBackground";
-import { GUIDED_IMAGERY_JOURNEYS, GuidedImageryJourney } from "@/lib/guided-imagery";
+import { GUIDED_IMAGERY_JOURNEYS, GuidedImageryJourney, ImageryStep } from "@/lib/guided-imagery";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -111,6 +111,8 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
   const [isComplete, setIsComplete] = useState(false);
 
   const activeJourneyRef = useRef<GuidedImageryJourney | null>(null);
+  const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => { activeJourneyRef.current = activeJourney; }, [activeJourney]);
 
   // טעינת קולות הקראה הזמינים בדפדפן (לרוב נטענים באופן אסינכרוני)
@@ -123,23 +125,40 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
   }, []);
 
   // מקריא קטע טקסט בקול נשי בעברית, ללא תלות במצב ההשתקה (לשימוש בהדלקת ההקראה)
-  const speakText = useCallback((text?: string) => {
-    if (!text || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "he-IL";
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voice = pickHebrewFemaleVoice(voices);
-    if (voice) utterance.voice = voice;
-    window.speechSynthesis.speak(utterance);
-  }, [voices]);
+  const speakText = useCallback((step: ImageryStep) => {
+    if (typeof window === "undefined") return;
+
+    // עצירת הקראה קודמת
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.pause();
+      narrationAudioRef.current = null;
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (step.audio) {
+      const audio = new Audio(step.audio);
+      narrationAudioRef.current = audio;
+      audio.muted = isNarrationMuted;
+      audio.play().catch(err => console.log("Audio play error:", err));
+    } else if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(step.text);
+      utterance.lang = "he-IL";
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      const voice = pickHebrewFemaleVoice(voices);
+      if (voice) utterance.voice = voice;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [voices, isNarrationMuted]);
 
   // מקריא קטע טקסט רק אם ההקראה לא הושתקה - לשימוש בזרימה הרגילה של המסע
-  const speakStep = useCallback((text?: string) => {
+  const speakStep = useCallback((step?: ImageryStep) => {
+    if (!step) return;
     if (isNarrationMuted) return;
-    speakText(text);
+    speakText(step);
   }, [isNarrationMuted, speakText]);
 
   const startJourney = (journey: GuidedImageryJourney) => {
@@ -153,12 +172,18 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       play(journey.soundId);
       duckMusic(journey.soundId);
     }
-    speakStep(journey.steps[0].text);
+    speakStep(journey.steps[0]);
   };
 
   const exitJourney = () => {
     if (activeJourney) stop(activeJourney.soundId);
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.pause();
+      narrationAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
     setActiveJourney(null);
     setIsPlaying(false);
     setIsComplete(false);
@@ -175,7 +200,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       play(activeJourney.soundId);
       duckMusic(activeJourney.soundId);
     }
-    speakStep(activeJourney.steps[0].text);
+    speakStep(activeJourney.steps[0]);
   };
 
   const toggleMusic = () => {
@@ -196,10 +221,21 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
     if (isNarrationMuted) {
       setIsNarrationMuted(false);
       if (activeJourney && isPlaying && !isComplete) {
-        speakText(activeJourney.steps[stepIndex].text);
+        if (narrationAudioRef.current) {
+          narrationAudioRef.current.muted = false;
+          narrationAudioRef.current.play().catch(err => console.log("Audio play error:", err));
+        } else {
+          speakText(activeJourney.steps[stepIndex]);
+        }
       }
     } else {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      if (narrationAudioRef.current) {
+        narrationAudioRef.current.muted = true;
+        narrationAudioRef.current.pause();
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
       setIsNarrationMuted(true);
     }
   };
@@ -208,11 +244,21 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
     if (!activeJourney || isComplete) return;
     if (isPlaying) {
       if (!isMusicMuted) pause(activeJourney.soundId);
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.pause();
+      if (narrationAudioRef.current) {
+        narrationAudioRef.current.pause();
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.pause();
+      }
       setIsPlaying(false);
     } else {
       if (!isMusicMuted) play(activeJourney.soundId);
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.resume();
+      if (narrationAudioRef.current && !isNarrationMuted) {
+        narrationAudioRef.current.play().catch(err => console.log("Audio play error:", err));
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.resume();
+      }
       setIsPlaying(true);
     }
   };
@@ -226,7 +272,13 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
         setIsPlaying(false);
         setIsComplete(true);
         if (!isMusicMuted) stop(activeJourney.soundId);
-        if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+        if (narrationAudioRef.current) {
+          narrationAudioRef.current.pause();
+          narrationAudioRef.current = null;
+        }
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+        }
         return;
       }
 
@@ -237,20 +289,26 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
         const nextStep = activeJourney.steps[nextIdx];
         setStepIndex(nextIdx);
         setStepTimeLeft(nextStep?.duration ?? 0);
-        speakStep(nextStep?.text);
+        speakStep(nextStep);
       } else {
         setStepTimeLeft(stepTimeLeft - 1);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeJourney, isPlaying, isComplete, totalTimeLeft, stepTimeLeft, stepIndex, isMusicMuted, stop, speakStep]);
+  }, [activeJourney, isPlaying, isComplete, totalTimeLeft, stepTimeLeft, stepIndex, isMusicMuted, stop, speakStep, speakText]);
 
   // עצירת המוזיקה וההקראה אם המשתמש עוזב את המסך באמצע מסע פעיל
   useEffect(() => {
     return () => {
       if (activeJourneyRef.current) stop(activeJourneyRef.current.soundId);
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      if (narrationAudioRef.current) {
+        narrationAudioRef.current.pause();
+        narrationAudioRef.current = null;
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 

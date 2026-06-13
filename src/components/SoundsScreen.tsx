@@ -233,12 +233,7 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
       </header>
 
       <main className="relative z-10 flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
-        <div className="relative pt-4">
-          <div className={cn("absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full transition-opacity", isAnyPlaying ? "animate-pulse opacity-100" : "opacity-60")} />
-          <div className="relative w-28 h-28 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl">
-            <Music size={50} className={cn("animate-in fade-in zoom-in duration-1000", isAnyPlaying && "animate-pulse")} />
-          </div>
-        </div>
+
 
         <div className="w-full space-y-8 animate-in fade-in duration-300 flex flex-col items-center">
           <div className="text-center space-y-3">
