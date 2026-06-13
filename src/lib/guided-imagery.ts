@@ -5,6 +5,7 @@ export interface ImageryStep {
   text: string;
   duration: number; // בשניות
   audio?: string; // נתיב לקובץ שמע
+  isSilent?: boolean; // האם השלב שקט ללא הקראה
 }
 
 export interface GuidedImageryJourney {
@@ -58,7 +59,8 @@ export const GUIDED_IMAGERY_JOURNEYS: GuidedImageryJourney[] = [
       { text: "כל גל שמתקרב לחוף ונסוג בחזרה, מזכיר לך שאפשר לשחרר", duration: 25, audio: "/דימיון מודרך/ocean-shore/4.mp3" },
       { text: "השמש מחממת את העור, ורוח קלה מלטפת את הפנים", duration: 25, audio: "/דימיון מודרך/ocean-shore/5.mp3" },
       { text: "עם כל נשימה פנימה, שאף רוגע מהאוויר המלוח", duration: 25, audio: "/דימיון מודרך/ocean-shore/6.mp3" },
-      { text: "עם כל נשיפה, השאר מאחור עוד קצת ממה שכבד", duration: 25, audio: "/דימיון מודרך/ocean-shore/7.mp3" }
+      { text: "עם כל נשיפה, השאר מאחור עוד קצת ממה שכבד", duration: 25, audio: "/דימיון מודרך/ocean-shore/7.mp3" },
+      { text: "זמן לשקט והטמעה בקצב הגלים...", duration: 35, isSilent: true }
     ],
   },
   {

@@ -137,6 +137,10 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       window.speechSynthesis.cancel();
     }
 
+    if (step.isSilent) {
+      return;
+    }
+
     if (step.audio) {
       const audio = new Audio(step.audio);
       narrationAudioRef.current = audio;
@@ -267,11 +271,23 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
     if (!activeJourney || !isPlaying || isComplete) return;
 
     const interval = setInterval(() => {
+      // יציאה הדרגתית של המוזיקה ב-5 השניות האחרונות
+      if (totalTimeLeft <= 5 && !isMusicMuted) {
+        const fadeVol = Math.max(0, Math.round(((totalTimeLeft - 1) / 5) * 35));
+        setVolume(activeJourney.soundId, fadeVol);
+      }
+
       if (totalTimeLeft <= 1) {
         setTotalTimeLeft(0);
         setIsPlaying(false);
         setIsComplete(true);
-        if (!isMusicMuted) stop(activeJourney.soundId);
+        if (!isMusicMuted) {
+          stop(activeJourney.soundId);
+          // שחזור עוצמת השמע ל-35 עבור המסעות הבאים
+          setTimeout(() => {
+            setVolume(activeJourney.soundId, 35);
+          }, 500);
+        }
         if (narrationAudioRef.current) {
           narrationAudioRef.current.pause();
           narrationAudioRef.current = null;
