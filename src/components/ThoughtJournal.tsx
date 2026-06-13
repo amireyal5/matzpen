@@ -88,6 +88,53 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
   const [moodIntensity, setMoodIntensity] = useState<number>(50);
   const [additionalFeelingText, setAdditionalFeelingText] = useState("");
 
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load draft on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedStep = localStorage.getItem("matzpen_journal_step") as EfratStep | null;
+      const storedData = localStorage.getItem("matzpen_journal_data");
+      const storedMoods = localStorage.getItem("matzpen_journal_moods");
+      const storedIntensity = localStorage.getItem("matzpen_journal_intensity");
+      const storedAdditional = localStorage.getItem("matzpen_journal_additional");
+      
+      if (storedStep && ["event", "interpretation", "feeling", "reaction", "analyzing", "finish"].includes(storedStep)) {
+        if (storedStep !== "analyzing" && storedStep !== "finish") {
+          setStep(storedStep);
+        }
+      }
+      if (storedData) {
+        try {
+          setData(JSON.parse(storedData));
+        } catch (e) {}
+      }
+      if (storedMoods) {
+        try {
+          setSelectedMoods(JSON.parse(storedMoods));
+        } catch (e) {}
+      }
+      if (storedIntensity) {
+        setMoodIntensity(Number(storedIntensity));
+      }
+      if (storedAdditional) {
+        setAdditionalFeelingText(storedAdditional);
+      }
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Save draft on changes
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("matzpen_journal_step", step);
+      localStorage.setItem("matzpen_journal_data", JSON.stringify(data));
+      localStorage.setItem("matzpen_journal_moods", JSON.stringify(selectedMoods));
+      localStorage.setItem("matzpen_journal_intensity", String(moodIntensity));
+      localStorage.setItem("matzpen_journal_additional", additionalFeelingText);
+    }
+  }, [step, data, selectedMoods, moodIntensity, additionalFeelingText, isHydrated]);
+
   const [analysis, setAnalysis] = useState<JournalAnalysisOutput | null>(null);
   const [activeDistortion, setActiveDistortion] = useState<string | null>(null);
   
@@ -289,6 +336,16 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
     }
   };
 
+  const clearDraft = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("matzpen_journal_step");
+      localStorage.removeItem("matzpen_journal_data");
+      localStorage.removeItem("matzpen_journal_moods");
+      localStorage.removeItem("matzpen_journal_intensity");
+      localStorage.removeItem("matzpen_journal_additional");
+    }
+  };
+
   const handleNext = async () => {
     if (isRecording) {
       setIsRecording(false);
@@ -317,9 +374,11 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
           });
         }
 
+        clearDraft();
         setStep("finish");
       } catch (err) {
         console.error("Analysis failed", err);
+        clearDraft();
         setStep("finish");
       }
     }

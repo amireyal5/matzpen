@@ -38,12 +38,59 @@ function AppContent() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
+  // Load state from localStorage on mount
   useEffect(() => {
     // אתחול האזנה להודעות פוש כשהאפליקציה פתוחה
     onMessageListener();
-    
+
+    if (typeof window !== "undefined") {
+      const storedTheme = localStorage.getItem("matzpen_theme") as "light" | "dark" | null;
+      if (storedTheme === "light" || storedTheme === "dark") {
+        setTheme(storedTheme);
+      }
+
+      const storedScreen = localStorage.getItem("matzpen_screen") as Screen | null;
+      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery"].includes(storedScreen)) {
+        const storedCatKey = localStorage.getItem("matzpen_catKey");
+        const storedPracticeIdx = localStorage.getItem("matzpen_practiceIdx");
+        const storedBreathingParams = localStorage.getItem("matzpen_breathingParams");
+
+        if (storedCatKey) setActiveCatKey(storedCatKey);
+        if (storedPracticeIdx) setActivePracticeIdx(Number(storedPracticeIdx));
+        if (storedBreathingParams) {
+          try {
+            setBreathingParams(JSON.parse(storedBreathingParams));
+          } catch (e) {}
+        }
+        setScreen(storedScreen);
+      }
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Persist state in localStorage when it changes
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("matzpen_screen", screen);
+      localStorage.setItem("matzpen_theme", theme);
+      localStorage.setItem("matzpen_catKey", activeCatKey);
+      localStorage.setItem("matzpen_practiceIdx", String(activePracticeIdx));
+      localStorage.setItem("matzpen_breathingParams", JSON.stringify(breathingParams));
+    }
+  }, [screen, theme, activeCatKey, activePracticeIdx, breathingParams, isHydrated]);
+
+  // Splash screen show/skip logic
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("matzpen_splash_shown") === "true") {
+      setShowSplash(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
       setShowSplash(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("matzpen_splash_shown", "true");
+      }
     }, 3200);
     return () => clearTimeout(timer);
   }, []);
@@ -70,10 +117,6 @@ function AppContent() {
       }
     }
   }, [profileData, user, isUserLoading, screen]);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   useEffect(() => {
     if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about") {
