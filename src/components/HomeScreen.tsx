@@ -840,7 +840,7 @@ export default function HomeScreen({
                   {section.title}
                 </h3>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory flex-row-reverse -mx-6 px-6" dir="rtl">
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6" dir="rtl">
                 {section.items.map((item) => (
                   <UnifiedHomeCard
                     key={item.id}
@@ -859,7 +859,7 @@ export default function HomeScreen({
               <Compass size={14} className="text-indigo-400" />
               <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כל הנושאים והתחומים</h3>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory flex-row-reverse -mx-6 px-6" dir="rtl">
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory -mx-6 px-6" dir="rtl">
               {CATS.map((c) => (
                 <div key={c.key} className="snap-start shrink-0 w-[42vw] xs:w-[45vw] sm:w-[200px]">
                   <CategoryCard 
@@ -880,7 +880,7 @@ export default function HomeScreen({
                 <Anchor size={14} className="text-rose-400" />
                 <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">העוגנים שלי</h3>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x flex-row-reverse -mx-6 px-6" dir="rtl">
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x -mx-6 px-6" dir="rtl">
                 {favorites.map((fav: string, i: number) => {
                   const [catKey] = fav.split(":");
                   const cat = CATS.find(c => c.key === catKey);
