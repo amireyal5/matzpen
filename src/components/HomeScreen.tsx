@@ -289,9 +289,10 @@ interface UnifiedHomeCardProps {
   onStartGuided: (catKey: string, practiceIdx: number) => void;
   onGoToSounds: (soundId?: any) => void;
   onGoToBreathing: (breathingId?: string) => void;
+  isLight?: boolean;
 }
 
-function UnifiedHomeCard({ item, onStartGuided, onGoToSounds, onGoToBreathing }: UnifiedHomeCardProps) {
+function UnifiedHomeCard({ item, onStartGuided, onGoToSounds, onGoToBreathing, isLight }: UnifiedHomeCardProps) {
   const [imageError, setImageError] = useState(false);
   
   const handlePlay = () => {
@@ -310,41 +311,66 @@ function UnifiedHomeCard({ item, onStartGuided, onGoToSounds, onGoToBreathing }:
   return (
     <button
       onClick={handlePlay}
-      className="snap-start shrink-0 w-[72vw] xs:w-[75vw] sm:w-[260px] lg:w-full h-36 rounded-[2rem] overflow-hidden border border-white/5 bg-slate-900/40 backdrop-blur-xl transition-all duration-500 shadow-lg relative p-5 flex flex-col justify-between text-right group hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] active:scale-95"
+      className={cn(
+        "snap-start shrink-0 w-[72vw] xs:w-[75vw] sm:w-[260px] lg:w-full h-36 rounded-[2rem] overflow-hidden border backdrop-blur-xl transition-all duration-500 relative p-5 flex flex-col justify-between text-right group active:scale-95",
+        isLight 
+          ? "bg-white/60 border-slate-200/60 shadow-sm hover:border-indigo-400/50 hover:shadow-indigo-100/50" 
+          : "bg-slate-900/40 border-white/5 shadow-lg hover:border-indigo-500/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+      )}
     >
       <div className="absolute inset-0 z-0">
-        {item.type !== "practice" && !imageError ? (
+        {!imageError ? (
           <Image
             src={item.image}
             alt={item.label}
             fill
-            className="object-cover transition-transform duration-700 brightness-[0.3] group-hover:scale-105"
+            className={cn(
+              "object-cover transition-all duration-700 group-hover:scale-105",
+              isLight 
+                ? "brightness-[0.9] contrast-[0.95] group-hover:brightness-[0.95]" 
+                : "brightness-[0.3] group-hover:brightness-[0.4]"
+            )}
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className={cn("absolute inset-0 bg-gradient-to-br transition-all duration-500 opacity-60", item.gradient)} />
+          <div className={cn("absolute inset-0 bg-gradient-to-br transition-all duration-500", isLight ? "opacity-30" : "opacity-60", item.gradient)} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
+        <div className={cn(
+          "absolute inset-0 transition-colors duration-500",
+          isLight 
+            ? "bg-gradient-to-t from-white via-white/85 to-white/10" 
+            : "bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"
+        )} />
       </div>
 
       <div className="relative z-10 flex justify-between items-start w-full">
         <div 
-          className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform duration-300"
+          className={cn(
+            "w-10 h-10 rounded-full border flex items-center justify-center shadow-md shrink-0 group-hover:scale-110 transition-transform duration-300",
+            isLight 
+              ? "bg-white/80 border-slate-200/60 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600" 
+              : "bg-white/10 border-white/10 text-white"
+          )}
         >
           {item.type === "practice" ? (
-            <Play size={16} className="fill-current translate-x-[1px] text-white" />
+            <Play size={16} className="fill-current translate-x-[1px]" />
           ) : (
-            <IconComponent size={16} className="text-white" />
+            <IconComponent size={16} />
           )}
         </div>
         <div className="text-right pr-2">
-          <span className="block font-black text-sm text-white leading-snug">{item.label}</span>
-          <span className="block text-[10px] text-slate-300 font-bold opacity-90 line-clamp-2 mt-0.5 leading-tight">{item.description}</span>
+          <span className={cn("block font-black text-sm leading-snug", isLight ? "text-slate-900" : "text-white")}>{item.label}</span>
+          <span className={cn("block text-[10px] font-bold opacity-90 line-clamp-2 mt-0.5 leading-tight", isLight ? "text-slate-600" : "text-slate-300")}>{item.description}</span>
         </div>
       </div>
 
       <div className="relative z-10 flex justify-between items-center w-full">
-        <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-slate-350 border border-white/5 backdrop-blur-sm">
+        <span className={cn(
+          "text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border backdrop-blur-sm",
+          isLight 
+            ? "bg-slate-100/90 text-slate-700 border-slate-200/50" 
+            : "bg-white/10 text-slate-350 border-white/5"
+        )}>
           {item.tag}
         </span>
       </div>
@@ -951,6 +977,7 @@ export default function HomeScreen({
                     onStartGuided={onStartGuided}
                     onGoToSounds={onGoToSounds}
                     onGoToBreathing={onGoToBreathing}
+                    isLight={isLight}
                   />
                 ))}
               </div>
