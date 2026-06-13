@@ -88,18 +88,19 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
   const activeStepRef = useRef<number>(0);
   
   useEffect(() => {
+    let active = true;
     activeStepRef.current = stepIdx;
     const currentStepId = stepIdx;
 
     const autoPlay = async () => {
       // המתנה קלה כדי לאפשר למעבר האנימציה להסתיים
       await new Promise(r => setTimeout(r, 600));
-      if (activeStepRef.current !== currentStepId || isFinished) return;
+      if (!active || activeStepRef.current !== currentStepId || isFinished) return;
 
       setIsLoadingAudio(true);
       try {
         const { audioUri } = await generateSpeech({ text: steps[currentStepId].text, gender });
-        if (activeStepRef.current !== currentStepId || isFinished) return;
+        if (!active || activeStepRef.current !== currentStepId || isFinished) return;
 
         const audio = new Audio(audioUri);
         audio.onplay = () => setIsPlaying(true);
@@ -108,20 +109,21 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
         audio.onerror = () => {
           setIsPlaying(false);
           setIsLoadingAudio(false);
-          audioRef.current = null;
+          if (active) audioRef.current = null;
         };
         audioRef.current = audio;
         await audio.play();
       } catch (error) {
         console.warn("Speech auto-play skipped:", error);
       } finally {
-        setIsLoadingAudio(false);
+        if (active) setIsLoadingAudio(false);
       }
     };
 
     autoPlay();
 
     return () => {
+      active = false;
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
