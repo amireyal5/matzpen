@@ -1,10 +1,30 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, BookText, Send, RotateCcw, Volume2, Loader2, Mic, MicOff, CheckCircle2, Sparkles, BrainCircuit, Phone, AlertTriangle, UserPlus, ChevronLeft } from "lucide-react";
+import { 
+  ArrowRight, 
+  BookText, 
+  Send, 
+  RotateCcw, 
+  Volume2, 
+  Loader2, 
+  Mic, 
+  MicOff, 
+  CheckCircle2, 
+  Sparkles, 
+  BrainCircuit, 
+  Phone, 
+  AlertTriangle, 
+  UserPlus, 
+  ChevronLeft,
+  Check,
+  Info,
+  Play,
+  Pause
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -27,6 +47,26 @@ const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/uploa
 
 type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "analyzing" | "finish";
 
+const DISTORTIONS_HELP = {
+  "הכל או כלום": "ראיית דברים בשחור-לבן. אם משהו אינו מושלם, הוא נחשב כישלון מוחלט (למשל: 'אם איחרתי בחמש דקות, כל הפגישה הרוסה').",
+  "חשיבה קטסטרופלית": "ניבוי העתיד בצורה שלילית באופן קיצוני ללא התחשבות בתוצאות סבירות יותר (למשל: 'אני בטוח אכשל ויפטרו אותי').",
+  "קריאת מחשבות": "הנחה שאנו יודעים מה אנשים אחרים חושבים, מבלי שיש לנו הוכחות לכך (למשל: 'היא מסתכלת עליי ומצטערת שפגשה אותי').",
+  "חשיבה רגשית": "הנחה שהרגשות השליליים שלנו משקפים את המציאות כפי שהיא (למשל: 'אני מרגיש אשם, לכן בטוח עשיתי משהו נורא').",
+  "הכללה": "הסקת מסקנה גורפת על בסיס אירוע בודד (למשל: 'תמיד הכל מתקלקל לי', 'אף אחד לא אוהב אותי').",
+  "פילטר שלילי": "התמקדות בלעדית בפרטים השליליים תוך התעלמות מכל ההיבטים החיוביים (למשל: 'היו עשר מחמאות אבל הערה אחת רעה אומרת שהכל גרוע').",
+  "העצמה מזעור": "ניפוח של טעויות ומגרעות ומזעור של הצלחות ונקודות חוזק.",
+  "הצהרות 'צריך'": "חוקים נוקשים לגבי האופן שבו אנו או אחרים צריכים להתנהג (למשל: 'אני חייב תמיד להצליח', 'הוא היה צריך לדעת')."
+};
+
+const MOOD_CHIPS = [
+  { label: "כעס / עצבנות", emoji: "😡", baseClass: "border-rose-500/30 text-rose-400 bg-rose-500/5 hover:bg-rose-500/15", activeClass: "bg-rose-500/25 border-rose-500 text-rose-200 shadow-lg shadow-rose-500/20" },
+  { label: "חרדה / לחץ", emoji: "😨", baseClass: "border-amber-500/30 text-amber-400 bg-amber-500/5 hover:bg-amber-500/15", activeClass: "bg-amber-500/25 border-amber-500 text-amber-200 shadow-lg shadow-amber-500/20" },
+  { label: "עצב / כאב", emoji: "😢", baseClass: "border-sky-500/30 text-sky-400 bg-sky-500/5 hover:bg-sky-500/15", activeClass: "bg-sky-500/25 border-sky-500 text-sky-200 shadow-lg shadow-sky-500/20" },
+  { label: "אכזבה / תסכול", emoji: "😞", baseClass: "border-purple-500/30 text-purple-400 bg-purple-500/5 hover:bg-purple-500/15", activeClass: "bg-purple-500/25 border-purple-500 text-purple-200 shadow-lg shadow-purple-500/20" },
+  { label: "בושה / אשמה", emoji: "😳", baseClass: "border-pink-500/30 text-pink-400 bg-pink-500/5 hover:bg-pink-500/15", activeClass: "bg-pink-500/25 border-pink-500 text-pink-200 shadow-lg shadow-pink-500/20" },
+  { label: "דאגה / חשש", emoji: "😟", baseClass: "border-indigo-500/30 text-indigo-400 bg-indigo-500/5 hover:bg-indigo-500/15", activeClass: "bg-indigo-500/25 border-indigo-500 text-indigo-200 shadow-lg shadow-indigo-500/20" },
+];
+
 export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -37,11 +77,25 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     feeling: "",
     reaction: ""
   });
+  
+  // Custom states for Feeling step
+  const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
+  const [moodIntensity, setMoodIntensity] = useState<number>(50);
+  const [additionalFeelingText, setAdditionalFeelingText] = useState("");
+
   const [analysis, setAnalysis] = useState<JournalAnalysisOutput | null>(null);
+  const [activeDistortion, setActiveDistortion] = useState<string | null>(null);
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  
+  // Custom audio player state
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  
   const recognitionRef = useRef<any>(null);
 
   useWakeLock(step !== 'finish');
@@ -61,7 +115,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     },
     feeling: {
       title: "ר - רגש",
-      prompt: g("מה הרגשת באותו רגע? נסה לדייק את הרגש (כעס, עצב, עלבון, פחד).", "מה הרגשת באותו רגע? נסי לדייק את הרגש (כעס, עצב, עלבון, פחד)."),
+      prompt: g("מה הרגשת באותו רגע? בחר או תאר את הרגש ועוצמתו.", "מה הרגשת באותו רגע? בחרי או תארי את הרגש ועוצמתו."),
       placeholder: g("איך זה הרגיש?", "איך זה הרגיש?")
     },
     reaction: {
@@ -70,6 +124,38 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
       placeholder: g("מה התגובה שבחרת?", "מה התגובה שבחרת?")
     }
   };
+
+  const suggestionTags = {
+    event: [
+      g("שיחה לא נעימה בעבודה", "שיחה לא נעימה בעבודה"),
+      g("ויכוח טעון עם בן הזוג", "ויכוח טעון עם בת הזוג"),
+      g("עיכוב מתסכל בכביש", "עיכוב מתסכל בכביש"),
+      g("הודעת חדשות מלחיצה", "הודעת חדשות מלחיצה")
+    ],
+    interpretation: [
+      g("הם בטח חושבים שאני לא מספיק טוב", "הם בטח חושבים שאני לא מספיק טובה"),
+      g("תמיד הכל קורה לי, אני חסר מזל", "תמיד הכל קורה לי, אני חסרת מזל"),
+      g("הם עושים את זה בכוונה לפגוע בי", "הם עושים את זה בכוונה לפגוע בי"),
+      g("זה ייגמר באסון ואין מה לעשות", "זה ייגמר באסון ואין מה לעשות")
+    ],
+    reaction: [
+      g("הסתגרתי בתוך עצמי ולא דיברתי", "הסתגרתי בתוך עצמי ולא דיברתי"),
+      g("הגבתי מיד בכעס ובצעקות", "הגבתי מיד בכעס ובצעקות"),
+      g("לקחתי נשימה עמוקה ועניתי ברוגע", "לקחתי נשימה עמוקה ועניתי ברוגע"),
+      g("התחלתי להעסיק את עצמי במשהו אחר", "התחלתי להעסיק את עצמי במשהו אחר")
+    ]
+  };
+
+  // Sync Feeling step data
+  useEffect(() => {
+    const computed = [
+      selectedMoods.length > 0 ? `רגשות: ${selectedMoods.join(", ")}` : "",
+      `עוצמה: ${moodIntensity}%`,
+      additionalFeelingText ? `תיאור נוסף: ${additionalFeelingText}` : ""
+    ].filter(Boolean).join(" | ");
+    
+    setData(prev => ({ ...prev, feeling: computed }));
+  }, [selectedMoods, moodIntensity, additionalFeelingText]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -90,15 +176,22 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           }
           
           if (finalTranscript.trim()) {
-            setData(prev => {
-              const currentStepKey = step as keyof typeof data;
-              const currentText = prev[currentStepKey];
-              if (currentText.includes(finalTranscript.trim())) return prev;
-              return { 
-                ...prev, 
-                [currentStepKey]: (currentText + ' ' + finalTranscript.trim()).trim() 
-              };
-            });
+            if (step === "feeling") {
+              setAdditionalFeelingText(prev => {
+                if (prev.includes(finalTranscript.trim())) return prev;
+                return (prev + ' ' + finalTranscript.trim()).trim();
+              });
+            } else {
+              setData(prev => {
+                const currentStepKey = step as keyof typeof data;
+                const currentText = prev[currentStepKey];
+                if (currentText.includes(finalTranscript.trim())) return prev;
+                return { 
+                  ...prev, 
+                  [currentStepKey]: (currentText + ' ' + finalTranscript.trim()).trim() 
+                };
+              });
+            }
           }
         };
 
@@ -110,32 +203,67 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
     return () => {
       if (recognitionRef.current) recognitionRef.current.stop();
-      if (currentAudio) currentAudio.pause();
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.onplay = null;
+        currentAudio.onpause = null;
+        currentAudio.onended = null;
+        currentAudio.ontimeupdate = null;
+        currentAudio.onloadedmetadata = null;
+      }
     };
-  }, [step]);
+  }, [step, currentAudio]);
 
   const handlePlayAudio = async (text: string) => {
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
+      if (isPlaying) {
+        currentAudio.pause();
+        setIsPlaying(false);
+        return;
+      } else {
+        currentAudio.play();
+        setIsPlaying(true);
+        return;
+      }
     }
 
     setIsLoadingAudio(true);
     try {
       const { audioUri } = await generateSpeech({ text, gender });
       const audio = new Audio(audioUri);
-      setCurrentAudio(audio);
       
       audio.onplay = () => {
         setIsPlaying(true);
         setIsLoadingAudio(false);
       };
-      audio.onended = () => setIsPlaying(false);
+      
+      audio.onpause = () => {
+        setIsPlaying(false);
+      };
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        setAudioProgress(0);
+        setAudioCurrentTime(0);
+      };
+
+      audio.ontimeupdate = () => {
+        setAudioCurrentTime(audio.currentTime);
+        if (audio.duration) {
+          setAudioProgress((audio.currentTime / audio.duration) * 100);
+        }
+      };
+
+      audio.onloadedmetadata = () => {
+        setAudioDuration(audio.duration);
+      };
+
       audio.onerror = () => {
         setIsPlaying(false);
         setIsLoadingAudio(false);
       };
       
+      setCurrentAudio(audio);
       audio.play();
     } catch (err) {
       console.error("Audio generation failed", err);
@@ -192,7 +320,88 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
     }
   };
 
+  const handleTagClick = (tag: string) => {
+    setData(prev => {
+      const currentVal = prev[step as keyof typeof data] || "";
+      const newVal = currentVal ? `${currentVal} ${tag}` : tag;
+      return { ...prev, [step]: newVal };
+    });
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time) || time === Infinity) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   const currentVal = data[step as keyof typeof data] || "";
+  const isFeelingStepValid = selectedMoods.length > 0 || additionalFeelingText.trim() !== "";
+  const isCurrentStepValid = step === "feeling" 
+    ? isFeelingStepValid 
+    : (currentVal.trim() !== "" || isRecording);
+
+  // Stepper component
+  const Stepper = () => {
+    const stepsList: { key: EfratStep; label: string; name: string }[] = [
+      { key: "event", label: "א", name: "אירוע" },
+      { key: "interpretation", label: "פ", name: "פרשנות" },
+      { key: "feeling", label: "ר", name: "רגש" },
+      { key: "reaction", label: "ת", name: "תגובה" }
+    ];
+    
+    const currentIdx = stepsList.findIndex(s => s.key === step);
+    
+    return (
+      <div className="w-full flex items-center justify-between px-2 select-none" dir="rtl">
+        {stepsList.map((s, idx) => {
+          const isActive = s.key === step;
+          const isCompleted = currentIdx > idx;
+          
+          return (
+            <div key={s.key} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (idx < currentIdx) {
+                      setStep(s.key);
+                    }
+                  }}
+                  disabled={idx >= currentIdx}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center font-black transition-all duration-300 text-sm border",
+                    isActive 
+                      ? "bg-indigo-600 text-white border-indigo-500 ring-4 ring-indigo-500/30 scale-110 shadow-lg shadow-indigo-500/30" 
+                      : isCompleted
+                        ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/40 cursor-pointer hover:bg-indigo-500/20"
+                        : "bg-slate-900 text-slate-600 border-white/5 cursor-not-allowed"
+                  )}
+                >
+                  {isCompleted ? <Check className="h-4.5 w-4.5" /> : s.label}
+                </button>
+                <span className={cn(
+                  "absolute -bottom-6 text-[10px] font-black tracking-wider whitespace-nowrap transition-colors duration-300",
+                  isActive ? "text-indigo-400" : isCompleted ? "text-slate-400" : "text-slate-600"
+                )}>
+                  {s.name}
+                </span>
+              </div>
+              
+              {idx < stepsList.length - 1 && (
+                <div className="flex-1 mx-3 h-[2px] bg-slate-900 relative">
+                  <div 
+                    className="absolute inset-0 bg-indigo-500 transition-all duration-500" 
+                    style={{ width: isCompleted ? "100%" : "0%" }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   if (step === "analyzing") {
     return (
@@ -230,48 +439,48 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         <main className="p-8 max-w-lg mx-auto w-full space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           
           {analysis?.isCrisis ? (
-            <div className="p-8 bg-rose-50 rounded-[2.5rem] border-2 border-rose-200 text-right space-y-8">
-              <div className="flex items-center gap-4 text-rose-600">
-                <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
+            <div className="p-8 bg-rose-950/20 rounded-[2.5rem] border border-rose-500/30 text-right space-y-8 backdrop-blur-xl">
+              <div className="flex items-center gap-4 text-rose-400">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
                   <AlertTriangle size={28} aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-black">זיהוי מצוקה קשה</h3>
               </div>
               
-              <p className="text-slate-800 leading-relaxed font-bold text-lg">
+              <p className="text-rose-100 leading-relaxed font-bold text-lg">
                 {analysis.summary}
               </p>
 
               <div className="grid gap-4">
-                <a href="tel:1201" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group" aria-label="התקשר לערן">
+                <a href="tel:1201" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר לערן">
                   <div className="flex items-center gap-4 text-right">
                     <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Phone size={20} />
                     </div>
                     <div>
-                      <span className="block font-black text-rose-700">ער"ן - עזרה ראשונה נפשית</span>
-                      <span className="block text-xs text-slate-500">חיוג חינם: 1201</span>
+                      <span className="block font-black text-rose-300">ער"ן - עזרה ראשונה נפשית</span>
+                      <span className="block text-xs text-slate-400">חיוג חינם: 1201</span>
                     </div>
                   </div>
-                  <ChevronLeft size={20} className="text-rose-300 rotate-180" />
+                  <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
                 </a>
 
-                <a href="tel:101" className="flex items-center justify-between p-5 bg-white border border-rose-200 rounded-2xl hover:bg-rose-100 transition-all group" aria-label="התקשר למדא">
+                <a href="tel:101" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר למדא">
                   <div className="flex items-center gap-4 text-right">
                     <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Phone size={20} />
                     </div>
                     <div>
-                      <span className="block font-black text-emerald-700">מד"א - חירום רפואי</span>
-                      <span className="block text-xs text-slate-500">חיוג חירום: 101</span>
+                      <span className="block font-black text-emerald-300">מד"א - חירום רפואי</span>
+                      <span className="block text-xs text-slate-400">חיוג חירום: 101</span>
                     </div>
                   </div>
-                  <ChevronLeft size={20} className="text-rose-300 rotate-180" />
+                  <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
                 </a>
 
-                <div className="p-6 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-right">
-                  <UserPlus className="text-indigo-500 shrink-0" size={24} aria-hidden="true" />
-                  <p className="text-sm font-bold text-indigo-900 leading-relaxed">
+                <div className="p-6 bg-indigo-950/20 border border-indigo-500/20 rounded-2xl flex items-center gap-4 text-right">
+                  <UserPlus className="text-indigo-400 shrink-0" size={24} aria-hidden="true" />
+                  <p className="text-sm font-bold text-indigo-200 leading-relaxed">
                     {g(
                       "בבקשה, פנה עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.",
                       "בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישארי לבד."
@@ -292,58 +501,123 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
 
               {analysis ? (
                 <div className="space-y-8">
-                  <div className="space-y-4">
+                  {/* Cognitive Distortions Card */}
+                  <div className="space-y-4 bg-slate-900/40 border border-white/5 rounded-3xl p-6">
                     <div className="flex items-center gap-2 pr-2">
                       <Sparkles size={16} className="text-amber-400" aria-hidden="true" />
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h3>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">עיוותי חשיבה שזיהינו</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {analysis.distortions.map((d, i) => (
-                        <span key={i} className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold">
-                          {d}
-                        </span>
-                      ))}
+                      {analysis.distortions.map((d, i) => {
+                        const cleanName = Object.keys(DISTORTIONS_HELP).find(k => d.includes(k) || k.includes(d)) || d;
+                        const hasExplanation = !!DISTORTIONS_HELP[cleanName as keyof typeof DISTORTIONS_HELP];
+                        const isSelected = activeDistortion === cleanName;
+                        
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              if (hasExplanation) {
+                                setActiveDistortion(isSelected ? null : cleanName);
+                              }
+                            }}
+                            className={cn(
+                              "px-3.5 py-2 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-1.5 border",
+                              isSelected 
+                                ? "bg-amber-500/20 border-amber-500 text-amber-200 shadow-md shadow-amber-500/10"
+                                : "bg-amber-500/5 border-amber-500/10 text-amber-400 hover:bg-amber-500/10"
+                            )}
+                          >
+                            {d}
+                            {hasExplanation && (
+                              <Info size={14} className={cn("shrink-0 transition-transform duration-300 text-amber-500/70", isSelected ? "rotate-180" : "")} />
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 pr-2">
-                      <BrainCircuit size={16} className="text-indigo-400" aria-hidden="true" />
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h3>
-                    </div>
-                    <div className="p-6 rounded-[2rem] bg-white/5 border border-white/10 text-lg leading-relaxed italic border-r-4 border-r-indigo-500">
-                      "{analysis.healthyPerspective}"
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between pr-2">
-                      <div className="flex items-center gap-2">
-                        <BookText size={16} className="text-emerald-400" aria-hidden="true" />
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">סיכום התהליך</h3>
+                    
+                    {activeDistortion && (
+                      <div className="mt-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/25 text-slate-300 text-sm leading-relaxed animate-in slide-in-from-top-2 duration-300">
+                        <strong className="block text-amber-400 mb-1 font-bold">{activeDistortion}:</strong>
+                        {DISTORTIONS_HELP[activeDistortion as keyof typeof DISTORTIONS_HELP]}
                       </div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button 
+                    )}
+                  </div>
+
+                  {/* Healthy Perspective Card */}
+                  <div className="space-y-3 bg-gradient-to-br from-indigo-950/20 to-purple-950/25 border border-indigo-500/20 rounded-[2.5rem] p-7 relative overflow-hidden backdrop-blur-xl">
+                    <div className="absolute top-4 right-4 text-indigo-500/10 text-8xl font-serif pointer-events-none select-none">"</div>
+                    <div className="flex items-center gap-2 pr-1 mb-2">
+                      <BrainCircuit size={18} className="text-indigo-400" aria-hidden="true" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-indigo-400">זווית חדשה ומאוזנת יותר</h3>
+                    </div>
+                    <p className="text-xl leading-relaxed text-slate-100 font-medium italic relative z-10">
+                      "{analysis.healthyPerspective}"
+                    </p>
+                  </div>
+
+                  {/* Process Summary Card */}
+                  <div className="space-y-4 bg-slate-900/40 border border-white/5 rounded-3xl p-6">
+                    <div className="flex items-center gap-2 pr-1">
+                      <BookText size={18} className="text-emerald-400" aria-hidden="true" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">סיכום התהליך</h3>
+                    </div>
+                    
+                    {/* Custom Audio Player */}
+                    <div className="bg-slate-950 border border-white/5 rounded-2xl p-4 shadow-xl flex flex-col gap-3 relative overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
                             onClick={() => handlePlayAudio(analysis.summary)}
                             disabled={isLoadingAudio}
-                            className="text-[10px] font-black text-indigo-400 flex items-center gap-1 hover:text-white transition-colors"
-                            aria-label="השמע סיכום"
+                            className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 shrink-0 shadow-lg shadow-indigo-600/30"
                           >
-                            {isLoadingAudio ? <Loader2 size={12} className="animate-spin" /> : isPlaying ? <RotateCcw size={12} /> : <Volume2 size={12} />}
-                            השמע סיכום
+                            {isLoadingAudio ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : isPlaying ? (
+                              <Pause className="h-5 w-5 fill-white" />
+                            ) : (
+                              <Play className="h-5 w-5 fill-white translate-x-[1px]" />
+                            )}
                           </button>
-                        </TooltipTrigger>
-                        <TooltipContent>השמע סיכום בקול</TooltipContent>
-                      </Tooltip>
+                          <div>
+                            <h4 className="text-sm font-bold text-white">הקראת סיכום התהליך</h4>
+                            <p className="text-[10px] text-slate-500">קריינות מותאמת אישית של עמיר אייל</p>
+                          </div>
+                        </div>
+                        
+                        {isPlaying && (
+                          <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-1 mt-1">
+                        <div className="relative w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div 
+                            className="absolute top-0 right-0 h-full bg-gradient-to-l from-indigo-500 to-purple-500 rounded-full transition-all duration-100"
+                            style={{ width: `${audioProgress}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                          <span>{formatTime(audioCurrentTime)}</span>
+                          <span>{formatTime(audioDuration)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 text-slate-200">
+
+                    <p className="text-slate-300 leading-relaxed text-base">
                       {analysis.summary}
-                    </div>
+                    </p>
                   </div>
                 </div>
               ) : (
-                <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 text-center text-slate-400">
+                <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/10 text-center text-slate-400">
                   התרגול נשמר, אך הניתוח המורחב לא היה זמין ברגע זה. ניתן לנסות שוב מאוחר יותר דרך היסטוריית היומנים.
                 </div>
               )}
@@ -371,7 +645,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           סגירה
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">מודל אפר"ת</span>
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">מודל אפר"ת</span>
           <span className="text-sm font-bold">{currentConfig.title}</span>
         </div>
         <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden relative">
@@ -379,11 +653,18 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
         </div>
       </header>
 
+      {/* Visual Stepper */}
+      <div className="border-b border-white/5 bg-slate-950/30 px-6 py-4 sticky top-[88px] z-10 backdrop-blur-sm">
+        <div className="max-w-lg mx-auto w-full pb-3">
+          <Stepper />
+        </div>
+      </div>
+
       <main className="flex-1 flex flex-col items-center p-8 max-w-lg mx-auto w-full space-y-8">
         <div className="flex flex-col items-center text-center space-y-6">
           <div className={cn(
-            "w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 transition-all duration-500",
-            (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20" : ""
+            "w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 transition-all duration-500 border border-indigo-500/10",
+            (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20 border-indigo-500/30" : ""
           )}>
             <BookText size={32} aria-hidden="true" />
           </div>
@@ -398,6 +679,7 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           <Tooltip>
             <TooltipTrigger asChild>
               <button 
+                type="button"
                 onClick={() => handlePlayAudio(currentConfig.prompt)}
                 disabled={isLoadingAudio}
                 className="text-xs font-black text-indigo-400 flex items-center gap-2 hover:text-white transition-colors disabled:opacity-50"
@@ -411,45 +693,186 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           </Tooltip>
         </div>
 
-        <div className="w-full space-y-4 animate-in fade-in duration-700 relative">
-          <Textarea 
-            value={currentVal}
-            onChange={(e) => setData(prev => ({ ...prev, [step]: e.target.value }))}
-            placeholder={currentConfig.placeholder}
-            className="min-h-[220px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
-            aria-label={currentConfig.title}
-          />
+        {/* Dynamic Inputs depending on current Step */}
+        <div className="w-full relative">
           
-          <div className="absolute left-4 bottom-4 flex gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  onClick={toggleRecording}
-                  className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
-                    isRecording ? "bg-rose-500 animate-pulse" : "bg-white/10 hover:bg-white/20 text-white"
-                  )}
-                  aria-label={isRecording ? "עצור הקלטה" : "דבר אליי (הקלטה)"}
-                >
-                  {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>{isRecording ? "עצור הקלטה" : "השתמש בקול במקום להקליד"}</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="w-full flex justify-center">
-          {isRecording && (
-            <p className="text-[10px] font-black text-rose-500 animate-pulse uppercase tracking-[0.2em]">
-              מבצע המרה של הקול שלך לטקסט...
-            </p>
+          {step === "feeling" ? (
+            <div className="w-full space-y-6 animate-in fade-in duration-500">
+              {/* Mood Selector Grid */}
+              <div className="space-y-3">
+                <span className="text-xs font-black text-slate-500 block pr-1">איך זה מרגיש בגוף ובלב? (ניתן לבחור יותר מרגש אחד)</span>
+                <div className="grid grid-cols-2 gap-3">
+                  {MOOD_CHIPS.map((chip) => {
+                    const isSelected = selectedMoods.includes(chip.label);
+                    return (
+                      <button
+                        key={chip.label}
+                        type="button"
+                        onClick={() => {
+                          const updated = isSelected 
+                            ? selectedMoods.filter(m => m !== chip.label) 
+                            : [...selectedMoods, chip.label];
+                          setSelectedMoods(updated);
+                        }}
+                        className={cn(
+                          "flex items-center gap-2.5 p-4 rounded-2xl border text-sm font-bold transition-all duration-300 text-right justify-start",
+                          isSelected ? chip.activeClass : chip.baseClass
+                        )}
+                      >
+                        <span className="text-lg">{chip.emoji}</span>
+                        <span>{chip.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Intensity Slider */}
+              <div className="space-y-3 p-5 rounded-2xl bg-white/5 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-400">עוצמת הרגש</span>
+                  <span className="text-sm font-bold text-indigo-400 font-mono">{moodIntensity}%</span>
+                </div>
+                <Slider 
+                  value={[moodIntensity]} 
+                  onValueChange={(val) => setMoodIntensity(val[0])}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className="py-2 cursor-pointer"
+                />
+                <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                  <span>קל</span>
+                  <span>בינוני</span>
+                  <span>עוצמתי מאוד</span>
+                </div>
+              </div>
+              
+              {/* Additional Feeling Textbox */}
+              <div className="space-y-2 relative">
+                <span className="text-xs font-black text-slate-500 block pr-1">פרטים נוספים או תחושות גופניות:</span>
+                <Textarea 
+                  value={additionalFeelingText}
+                  onChange={(e) => setAdditionalFeelingText(e.target.value)}
+                  placeholder="לדוגמה: הרגשתי מועקה חזקה בחזה, קוצר נשימה או דופק מהיר..."
+                  className="min-h-[120px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
+                  aria-label="תיאור נוסף של הרגש"
+                />
+                
+                {/* Voice button for Feeling step */}
+                <div className="absolute left-4 bottom-4 flex gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        type="button"
+                        onClick={toggleRecording}
+                        className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
+                          isRecording ? "bg-rose-500 animate-pulse text-white" : "bg-white/10 hover:bg-white/20 text-white"
+                        )}
+                        aria-label="הקלטת שמע"
+                      >
+                        {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>דבר/י במקום להקליד</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full space-y-4 animate-in fade-in duration-500 relative">
+              <Textarea 
+                value={currentVal}
+                onChange={(e) => setData(prev => ({ ...prev, [step]: e.target.value }))}
+                placeholder={currentConfig.placeholder}
+                className="min-h-[220px] bg-slate-900 border-white/10 text-white rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none"
+                aria-label={currentConfig.title}
+              />
+              
+              {/* Voice button for Standard step */}
+              <div className="absolute left-4 bottom-4 flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button 
+                      type="button"
+                      onClick={toggleRecording}
+                      className={cn(
+                        "w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg",
+                        isRecording ? "bg-rose-500 animate-pulse text-white" : "bg-white/10 hover:bg-white/20 text-white"
+                      )}
+                      aria-label={isRecording ? "עצור הקלטה" : "דבר אליי (הקלטה)"}
+                    >
+                      {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isRecording ? "עצור הקלטה" : "השתמש בקול במקום להקליד"}</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           )}
+
+          {/* Voice recording overlay */}
+          {isRecording && (
+            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-[2rem] flex flex-col items-center justify-center p-6 space-y-6 animate-in fade-in duration-300 z-30 border border-white/5">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-24 h-24 rounded-full bg-rose-500/20 animate-ping" />
+                <div className="absolute w-20 h-20 rounded-full bg-rose-500/30 animate-pulse" />
+                <div className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center text-white relative shadow-lg shadow-rose-500/50">
+                  <Mic className="h-6 w-6 animate-pulse" />
+                </div>
+              </div>
+              
+              <div className="text-center space-y-1.5">
+                <p className="text-base font-black text-rose-400">אני מקשיב לך...</p>
+                <p className="text-xs text-slate-400">הקול שלך מתורגם לטקסט בזמן אמת</p>
+              </div>
+              
+              {/* Glowing animated wave bars */}
+              <div className="flex items-center gap-1.5 h-10 justify-center">
+                <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.1s] h-5" />
+                <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.3s] h-8" />
+                <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.5s] h-10" />
+                <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.2s] h-6" />
+                <div className="w-1 bg-rose-500 rounded-full animate-bounce duration-300 [animation-delay:0.4s] h-4" />
+              </div>
+              
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={toggleRecording}
+                className="border-rose-500/30 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-2xl h-12 px-6"
+              >
+                סיום הקלטה והמשך
+              </Button>
+            </div>
+          )}
+
+          {/* Tag Suggestions */}
+          {step !== "feeling" && suggestionTags[step as keyof typeof suggestionTags] && (
+            <div className="space-y-2 mt-4 animate-in fade-in duration-500">
+              <span className="text-[10px] font-black text-slate-500 block pr-1">הצעות להתחלה:</span>
+              <div className="flex flex-wrap gap-2">
+                {suggestionTags[step as keyof typeof suggestionTags].map((tag, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleTagClick(tag)}
+                    className="text-xs px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-slate-400 hover:bg-indigo-600/15 hover:border-indigo-500/30 hover:text-indigo-300 transition-all active:scale-95 text-right"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
       <footer className="p-8 max-w-lg mx-auto w-full grid grid-cols-2 gap-4">
         <Button 
+          type="button"
           variant="outline"
           onClick={() => {
             const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
@@ -462,8 +885,9 @@ export default function ThoughtJournal({ gender, onBack }: ThoughtJournalProps) 
           הקודם
         </Button>
         <Button 
+          type="button"
           onClick={handleNext}
-          disabled={(!currentVal.trim() && !isRecording)}
+          disabled={!isCurrentStepValid}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all"
         >
           {step === "reaction" ? "ניתוח התהליך" : "המשך"}

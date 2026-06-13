@@ -25,6 +25,11 @@ function AppContent() {
   const [activeCatKey, setActiveCatKey] = useState("SOS");
   const [activePracticeIdx, setActivePracticeIdx] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [meditationParams, setMeditationParams] = useState<{
+    initialTab?: "sounds" | "breathing";
+    initialSoundId?: any;
+    initialBreathingId?: string;
+  }>({});
   
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -135,7 +140,10 @@ function AppContent() {
           onSelectCategory={handleSelectCategory} 
           onStartGuided={handleStartGuided}
           onGoToJournal={() => setScreen("journal")}
-          onGoToMeditation={() => setScreen("meditation")}
+          onGoToMeditation={(tab, soundId, breathingId) => {
+            setMeditationParams({ initialTab: tab, initialSoundId: soundId, initialBreathingId: breathingId });
+            setScreen("meditation");
+          }}
           onGoToBilateral={() => setScreen("bilateral")}
           onBack={() => setScreen("landing")} 
         />
@@ -163,7 +171,11 @@ function AppContent() {
       )}
       {(screen === "meditation" && user) && (
         <MeditationScreen 
-          onBack={() => setScreen("home")}
+          onBack={() => {
+            setMeditationParams({});
+            setScreen("home");
+          }}
+          {...meditationParams}
         />
       )}
       {(screen === "bilateral" && user) && (

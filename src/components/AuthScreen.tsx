@@ -259,7 +259,7 @@ export default function AuthScreen({ onSuccess, onBack, localProfile }: AuthScre
                     className="bg-slate-950 border-slate-800 pr-10 h-12 text-white placeholder:text-slate-500 rounded-xl focus:border-indigo-500/50 transition-colors"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required={mode !== "forgot"}
+                    required
                     minLength={6}
                   />
                 </div>

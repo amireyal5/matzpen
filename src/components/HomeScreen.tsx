@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2 } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Brain } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import Image from "next/image";
@@ -15,6 +15,8 @@ import NotificationCenter from "@/components/NotificationCenter";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AMBIENT_SOUNDS } from "@/lib/ambient-sound-engine";
+import { BREATHING_EXERCISES } from "@/lib/breathing-exercises";
 
 interface HomeScreenProps {
   name: string;
@@ -22,7 +24,7 @@ interface HomeScreenProps {
   onSelectCategory: (key: string) => void;
   onStartGuided: (catKey: string, practiceIdx: number) => void;
   onGoToJournal: () => void;
-  onGoToMeditation: () => void;
+  onGoToMeditation: (tab?: "sounds" | "breathing", soundId?: any, breathingId?: string) => void;
   onGoToBilateral: () => void;
   onBack: () => void;
 }
@@ -30,6 +32,318 @@ interface HomeScreenProps {
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
 type Message = { role: 'user' | 'model', content: string };
+
+interface HomeItem {
+  id: string;
+  type: "practice" | "breathing" | "sound";
+  label: string;
+  description: string;
+  tag: string;
+  image: string;
+  hue: string;
+  gradient: string;
+  catKey?: string;
+  index?: number;
+  breathingId?: string;
+  soundId?: any;
+}
+
+const TOPIC_SECTIONS: {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  hue: string;
+  items: HomeItem[];
+}[] = [
+  {
+    id: "sos",
+    title: "עזרה מיידית וקרקוע (SOS)",
+    description: "כלים מהירים להפחתת חרדה והצפה רגשית ברגעים קשים",
+    icon: AlertTriangle,
+    hue: "#DC2626",
+    items: [
+      {
+        id: "sos-practice-0",
+        type: "practice",
+        catKey: "SOS",
+        index: 0,
+        label: "שטוף פנים במים קרים",
+        description: "הפעלת רפלקס הצלילה להאטת הדופק והרגעת הגוף",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1548676924-48e71ceac151?q=80&w=600",
+        hue: "#DC2626",
+        gradient: "from-red-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sos-breathing-ptsd",
+        type: "breathing",
+        breathingId: "ptsd-grounding",
+        label: "ויסות הצפה (PTSD)",
+        description: "נשימה מרגיעה ללא עצירות להרגעת מערכת העצבים",
+        tag: "תרגיל נשימה",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600",
+        hue: "#10B981",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sos-practice-3",
+        type: "practice",
+        catKey: "SOS",
+        index: 3,
+        label: "קרקוע חושי 5–4–3–2–1",
+        description: "העברת הקשב מהמחשבות הטורדניות אל החושים במציאות",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600",
+        hue: "#DC2626",
+        gradient: "from-red-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sos-sound-calm",
+        type: "sound",
+        soundId: "ambient-calm",
+        label: "רוגע עדין",
+        description: "צלילי אמביינט מלטפים ליצירת מרחב בטוח",
+        tag: "סאונד מרגיע",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600",
+        hue: "#6366F1",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      }
+    ]
+  },
+  {
+    id: "body",
+    title: "גוף ונשימה (ויסות פיזיולוגי)",
+    description: "חיבור מחדש לתחושות הפיזיות ושחרור מתחים צבורים",
+    icon: Wind,
+    hue: "#059669",
+    items: [
+      {
+        id: "body-practice-0",
+        type: "practice",
+        catKey: "BODY",
+        index: 0,
+        label: "סריקת גוף (Body Scan)",
+        description: "חיבור מחדש לגוף וזיהוי היכן המתח שוכן",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600",
+        hue: "#059669",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "body-breathing-calm",
+        type: "breathing",
+        breathingId: "calm-circle",
+        label: "נשימה מרגיעה (מעגל)",
+        description: "תרגול נשימה מינימליסטי להפחתת מתח מהירה",
+        tag: "תרגיל נשימה",
+        image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=600",
+        hue: "#10B981",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "body-practice-4",
+        type: "practice",
+        catKey: "BODY",
+        index: 4,
+        label: "חיבוק פרפר (EMDR)",
+        description: "טכניקת גירוי דו-צדדי לעיבוד רגשי מהיר",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=600",
+        hue: "#059669",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "body-sound-bowl",
+        type: "sound",
+        soundId: "tibetan-bowl",
+        label: "קערה טיבטית",
+        description: "צלילי קערה מסורתית להרפיית מתחים מהירה",
+        tag: "סאונד מרגיע",
+        image: "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=600",
+        hue: "#6366F1",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      }
+    ]
+  },
+  {
+    id: "sleep",
+    title: "שינה ורוגע (השקטת התודעה)",
+    description: "טקסי מעבר רכים מעשייה למנוחה ושקיעה בשינה בריאה",
+    icon: Moon,
+    hue: "#4F46E5",
+    items: [
+      {
+        id: "sleep-practice-0",
+        type: "practice",
+        catKey: "SLEEP",
+        index: 0,
+        label: "רשימת פריקת דאגות",
+        description: "רישום המשימות המעסיקות אותך בלילה מחוץ למוח",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600",
+        hue: "#4F46E5",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sleep-breathing-nebula",
+        type: "breathing",
+        breathingId: "cosmic-nebula",
+        label: "הרפיה עמוקה לשינה",
+        description: "שיטת 4-7-8 המפורסמת להרגעת הגוף לפני שינה",
+        tag: "תרגיל נשימה",
+        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600",
+        hue: "#10B981",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sleep-practice-4",
+        type: "practice",
+        catKey: "SLEEP",
+        index: 4,
+        label: "הכרת תודה לפני שינה",
+        description: "סיום היום בהפניית קשב חיובי לשינה שלווה",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600",
+        hue: "#4F46E5",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "sleep-sound-dreamscape",
+        type: "sound",
+        soundId: "dreamscape",
+        label: "חלום בהקיץ",
+        description: "נוף קול רגוע ומחבר להרפיה ונשימה שקטה",
+        tag: "סאונד מרגיע",
+        image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600",
+        hue: "#6366F1",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      }
+    ]
+  },
+  {
+    id: "mind",
+    title: "חוסן וניהול מחשבות (ויסות קוגניטיבי)",
+    description: "שחרור מלופים מחשבתיים, פוקוס ואיזון רגשי מעמיק",
+    icon: Brain,
+    hue: "#D97706",
+    items: [
+      {
+        id: "mind-practice-resilience-0",
+        type: "practice",
+        catKey: "RESILIENCE",
+        index: 0,
+        label: "רשימת ניצחונות",
+        description: "כתיבת הצלחות עבר לבניית תחושת מסוגלות מחודשת",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=600",
+        hue: "#2563EB",
+        gradient: "from-blue-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "mind-breathing-box",
+        type: "breathing",
+        breathingId: "box-mandala",
+        label: "נשימת קופסה",
+        description: "טכניקה צבאית לחידוד הפוקוס ואיפוס רמת המתח",
+        tag: "תרגיל נשימה",
+        image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600",
+        hue: "#10B981",
+        gradient: "from-emerald-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "mind-practice-acceptance-0",
+        type: "practice",
+        catKey: "ACCEPTANCE",
+        index: 0,
+        label: "מחשבות הן עננים",
+        description: "התבוננות על המחשבות הטורדניות מבחוץ כעננים חולפים",
+        tag: "תרגיל מהיר",
+        image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=600",
+        hue: "#7C3AED",
+        gradient: "from-purple-950/40 via-slate-900 to-slate-950"
+      },
+      {
+        id: "mind-sound-frequency",
+        type: "sound",
+        soundId: "hz-frequency-258",
+        label: "תדר ריפוי 258Hz",
+        description: "מוזיקת זן ותדר מיוחד לאיזון האנרגיה במוח",
+        tag: "סאונד מרגיע",
+        image: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?q=80&w=600",
+        hue: "#6366F1",
+        gradient: "from-indigo-950/40 via-slate-900 to-slate-950"
+      }
+    ]
+  }
+];
+
+interface UnifiedHomeCardProps {
+  item: HomeItem;
+  onStartGuided: (catKey: string, practiceIdx: number) => void;
+  onGoToMeditation: (tab?: "sounds" | "breathing", soundId?: any, breathingId?: string) => void;
+}
+
+function UnifiedHomeCard({ item, onStartGuided, onGoToMeditation }: UnifiedHomeCardProps) {
+  const [imageError, setImageError] = useState(false);
+  
+  const handlePlay = () => {
+    if (item.type === "practice") {
+      onStartGuided(item.catKey!, item.index!);
+    } else if (item.type === "breathing") {
+      onGoToMeditation("breathing", undefined, item.breathingId);
+    } else if (item.type === "sound") {
+      onGoToMeditation("sounds", item.soundId);
+    }
+  };
+
+  const IconComponent = item.type === "practice" ? BookText :
+                        item.type === "breathing" ? Wind : Music;
+
+  return (
+    <button
+      onClick={handlePlay}
+      className="snap-start shrink-0 w-[72vw] xs:w-[75vw] sm:w-[260px] h-36 rounded-[2rem] overflow-hidden border border-slate-100 hover:border-indigo-200 transition-all duration-500 shadow-sm hover:shadow-lg relative p-5 flex flex-col justify-between text-right group"
+    >
+      <div className="absolute inset-0 z-0">
+        {item.type !== "practice" && !imageError ? (
+          <Image
+            src={item.image}
+            alt={item.label}
+            fill
+            className="object-cover transition-transform duration-700 brightness-[0.4] group-hover:scale-105"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className={cn("absolute inset-0 bg-gradient-to-br transition-all duration-500 opacity-90", item.gradient)} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+      </div>
+
+      <div className="relative z-10 flex justify-between items-start w-full">
+        <div 
+          className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg shrink-0 group-hover:scale-110 transition-transform duration-300"
+        >
+          {item.type === "practice" ? (
+            <Play size={16} className="fill-current translate-x-[1px] text-white" />
+          ) : (
+            <IconComponent size={16} className="text-white" />
+          )}
+        </div>
+        <div className="text-right pr-2">
+          <span className="block font-black text-sm text-white leading-snug">{item.label}</span>
+          <span className="block text-[10px] text-slate-300 font-medium opacity-90 line-clamp-2 mt-0.5 leading-tight">{item.description}</span>
+        </div>
+      </div>
+
+      <div className="relative z-10 flex justify-between items-center w-full">
+        <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/10 backdrop-blur-sm">
+          {item.tag}
+        </span>
+      </div>
+    </button>
+  );
+}
 
 export default function HomeScreen({ 
   name: initialName, 
@@ -47,7 +361,7 @@ export default function HomeScreen({
   const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
@@ -132,7 +446,7 @@ export default function HomeScreen({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="bg-slate-950 text-white pt-10 pb-16 px-6 relative z-10 overflow-hidden transition-all duration-1000 ease-in-out">
+      <header className="bg-slate-950 text-white pt-8 pb-10 px-6 relative z-10 overflow-hidden transition-all duration-1000 ease-in-out">
         <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-6">
           <div className="w-full flex justify-between items-center mb-4">
              <div className="flex items-center gap-3">
@@ -412,7 +726,7 @@ export default function HomeScreen({
         )}
       </div>
 
-      <div className="max-w-xl mx-auto px-6 mt-12 space-y-12 pb-20">
+      <div className="max-w-xl mx-auto px-6 mt-6 space-y-10 pb-20">
         
         <div className="space-y-4">
           <div className="flex items-center gap-2 px-2">
@@ -461,7 +775,7 @@ export default function HomeScreen({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button 
-                  onClick={onGoToMeditation}
+                  onClick={() => onGoToMeditation()}
                   className="p-4 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col items-center text-center gap-2 active:scale-95 group"
                   aria-label="מרחב המדיטציה"
                 >
@@ -479,13 +793,53 @@ export default function HomeScreen({
           </div>
         </div>
 
+        {TOPIC_SECTIONS.map((section) => (
+          <div key={section.id} className="space-y-4">
+            <div className="flex items-center gap-2 px-2">
+              <section.icon size={14} style={{ color: section.hue }} />
+              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">
+                {section.title}
+              </h3>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory flex-row-reverse -mx-6 px-6" dir="rtl">
+              {section.items.map((item) => (
+                <UnifiedHomeCard
+                  key={item.id}
+                  item={item}
+                  onStartGuided={onStartGuided}
+                  onGoToMeditation={onGoToMeditation}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-2">
+            <Compass size={14} className="text-indigo-600" />
+            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">כל הנושאים והתחומים</h3>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory flex-row-reverse -mx-6 px-6" dir="rtl">
+            {CATS.map((c) => (
+              <div key={c.key} className="snap-start shrink-0 w-[42vw] xs:w-[45vw] sm:w-[200px]">
+                <CategoryCard 
+                  category={c} 
+                  count={(BANK[c.key] || []).length} 
+                  completedCount={(completedCards as string[]).filter((id: string) => id.startsWith(`${c.key}:`)).length}
+                  onClick={onSelectCategory}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
         {favorites.length > 0 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
             <div className="flex items-center gap-2 px-2">
               <Anchor size={14} className="text-rose-500" />
               <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">העוגנים שלי</h3>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x flex-row-reverse" dir="rtl">
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x flex-row-reverse -mx-6 px-6" dir="rtl">
               {favorites.map((fav: string, i: number) => {
                 const [catKey] = fav.split(":");
                 const cat = CATS.find(c => c.key === catKey);
@@ -500,24 +854,6 @@ export default function HomeScreen({
             </div>
           </div>
         )}
-
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 px-2">
-            <Compass size={14} className="text-indigo-600" />
-            <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase text-right">ספריית הכלים</h3>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6" dir="rtl">
-            {CATS.map((c) => (
-              <CategoryCard 
-                key={c.key} 
-                category={c} 
-                count={(BANK[c.key] || []).length} 
-                completedCount={completedCards.filter(id => id.startsWith(`${c.key}:`)).length}
-                onClick={onSelectCategory}
-              />
-            ))}
-          </div>
-        </div>
 
         <footer className="text-center py-16 border-t border-slate-100 space-y-6">
           <div className="flex justify-center gap-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">

@@ -18,7 +18,7 @@ export default function CategoryCard({ category, count, completedCount, onClick 
   return (
     <button
       onClick={() => onClick(category.key)}
-      className="group relative flex flex-col gap-2 sm:gap-4 p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-right overflow-hidden active:scale-95 aspect-square"
+      className="group relative flex flex-col w-full gap-2 sm:gap-4 p-4 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 text-right overflow-hidden active:scale-95 aspect-square"
       style={{ backgroundColor: category.light }}
     >
       <div 

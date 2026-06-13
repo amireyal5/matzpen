@@ -18,6 +18,11 @@ const RecommendationInputSchema = z.object({
   gender: z.enum(['m', 'f']).describe('מגדר המשתמש (m/f) לצורך פנייה נכונה.'),
   name: z.string().optional().describe('שם המשתמש לפנייה אישית.'),
   history: z.array(MessageSchema).optional().describe('היסטוריית השיחה הנוכחית.'),
+  categories: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    tagLine: z.string(),
+  })).optional(),
 });
 export type RecommendationInput = z.infer<typeof RecommendationInputSchema>;
 

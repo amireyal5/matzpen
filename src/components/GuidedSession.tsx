@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Sparkles, Check, ChevronLeft, Volume2, RotateCcw, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Check, ChevronLeft } from "lucide-react";
 import { BANK, CATS } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useWakeLock } from "@/hooks/use-wake-lock";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { generateSpeech } from "@/ai/flows/tts-flow";
 
 interface GuidedSessionProps {
   catKey: string;
@@ -22,9 +21,6 @@ const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/uploa
 export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: GuidedSessionProps) {
   const [stepIdx, setStepIdx] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   // מניעת כיבוי מסך בזמן תרגול פעיל
   useWakeLock(!isFinished);
@@ -48,45 +44,6 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
 
   const currentStep = steps[stepIdx];
   const progress = ((stepIdx + 1) / steps.length) * 100;
-
-  useEffect(() => {
-    // מנטרלים הקראה אוטומטית במעבר שלב
-    // handlePlayAudio(currentStep.text);
-    return () => {
-      if (currentAudio) {
-        currentAudio.pause();
-      }
-    };
-  }, [stepIdx]);
-
-  const handlePlayAudio = async (text: string) => {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    }
-
-    setIsLoadingAudio(true);
-    try {
-      const { audioUri } = await generateSpeech({ text, gender });
-      const audio = new Audio(audioUri);
-      setCurrentAudio(audio);
-      
-      audio.onplay = () => {
-        setIsPlaying(true);
-        setIsLoadingAudio(false);
-      };
-      audio.onended = () => setIsPlaying(false);
-      audio.onerror = () => {
-        setIsPlaying(false);
-        setIsLoadingAudio(false);
-      };
-      
-      audio.play();
-    } catch (err) {
-      console.error("Audio generation failed", err);
-      setIsLoadingAudio(false);
-    }
-  };
 
   const handleNext = () => {
     if (stepIdx < steps.length - 1) {
@@ -154,10 +111,7 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
         <div className="space-y-12 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           <div className="flex justify-center">
-             <div className={cn(
-               "w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500",
-               (isPlaying || isLoadingAudio) ? "scale-110 shadow-2xl shadow-indigo-500/20" : "scale-100"
-             )} style={{ backgroundColor: `${cat.hue}15` }}>
+             <div className="w-20 h-20 rounded-3xl flex items-center justify-center bg-white/5 border border-white/5" style={{ backgroundColor: `${cat.hue}15` }}>
                <cat.icon size={40} style={{ color: cat.hue }} />
              </div>
           </div>
@@ -169,16 +123,6 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack }: G
             <h3 className="text-2xl md:text-3xl font-bold leading-tight text-slate-100">
               {currentStep.text}
             </h3>
-          </div>
-
-          <div className="flex justify-center gap-4">
-            <button 
-              onClick={() => handlePlayAudio(currentStep.text)}
-              disabled={isLoadingAudio}
-              className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all disabled:opacity-50"
-            >
-              {isLoadingAudio ? <Loader2 size={24} className="animate-spin" /> : isPlaying ? <RotateCcw size={24} /> : <Volume2 size={24} />}
-            </button>
           </div>
         </div>
       </main>
