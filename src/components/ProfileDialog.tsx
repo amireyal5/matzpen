@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { User as UserIcon, X, Check, LogOut, BookText, History, Calendar, BrainCircuit, Sparkles, ChevronLeft, Trash2, AlertTriangle, Loader2, Mail, Bell, BellOff, Flame, LineChart as LineChartIcon } from "lucide-react";
+import { User as UserIcon, X, Check, LogOut, Trash2, AlertTriangle, Loader2, Mail, Bell, BellOff, Flame, LineChart as LineChartIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { useUser, useAuth, updateDocumentNonBlocking, useCollection, useMemoFirebase, useFirestore } from "@/firebase";
+import { useUser, useAuth, updateDocumentNonBlocking, useFirestore } from "@/firebase";
 import { signOut, deleteUser } from "firebase/auth";
-import { collection, query, doc, getDocs, deleteDoc, where } from "firebase/firestore";
-import { format } from "date-fns";
-import { he } from "date-fns/locale";
+import { collection, query, getDocs, deleteDoc, where } from "firebase/firestore";
 import { requestNotificationPermission } from "@/firebase/messaging";
 import { MOOD_OPTIONS, computeStreak, getMoodTrend } from "@/lib/mood";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -31,31 +29,13 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
-  const [view, setView] = useState<"profile" | "journals" | "insights">("profile");
-  const [selectedJournal, setSelectedJournal] = useState<any | null>(null);
+  const [view, setView] = useState<"profile" | "insights">("profile");
   const [editName, setEditName] = useState("");
   const [editGender, setEditGender] = useState<"m" | "f">("m");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [isUpdatingNotifications, setIsUpdatingNotifications] = useState(false);
-
-  const journalsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(
-      collection(firestore, "thoughtJournals"),
-      where("userId", "==", user.uid)
-    );
-  }, [user, firestore]);
-
-  const { data: rawJournals, isLoading: isLoadingJournals } = useCollection(journalsQuery);
-
-  const journals = useMemo(() => {
-    if (!rawJournals) return null;
-    return [...rawJournals].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [rawJournals]);
 
   useEffect(() => {
     if (isOpen && profileData) {
@@ -65,7 +45,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     }
     if (!isOpen) {
       setView("profile");
-      setSelectedJournal(null);
     }
   }, [isOpen, profileData]);
 
@@ -124,6 +103,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     setDeleteError("");
 
     try {
+      // מחיקת יומנים היסטוריים אם קיימים
       const journalsSnap = await getDocs(query(
         collection(firestore, "thoughtJournals"),
         where("userId", "==", user.uid)
@@ -143,38 +123,12 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     }
   };
 
-  const handleDeleteJournal = async (id: string) => {
-    if (!firestore) return;
-    const journalRef = doc(firestore, "thoughtJournals", id);
-    try {
-      await deleteDoc(journalRef);
-      if (selectedJournal?.id === id) setSelectedJournal(null);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const completedCount = profileData?.completed?.length || 0;
-  const favoritesCount = profileData?.favorites?.length || 0;
   const notificationsEnabled = !!profileData?.notificationsEnabled;
 
   const moodStreak = useMemo(() => computeStreak(profileData?.moodLogs), [profileData]);
   const moodTrend = useMemo(() => getMoodTrend(profileData?.moodLogs, 14), [profileData]);
   const loggedDaysCount = useMemo(() => moodTrend.filter(d => d.value !== null).length, [moodTrend]);
-
-  const topDistortions = useMemo(() => {
-    if (!journals) return [];
-    const counts: Record<string, number> = {};
-    journals.forEach((j: any) => {
-      j.analysis?.distortions?.forEach((d: string) => {
-        counts[d] = (counts[d] || 0) + 1;
-      });
-    });
-    return Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [journals]);
 
   const moodEmojiByValue = (value: number) => MOOD_OPTIONS.find(o => o.value === value)?.emoji || "";
 
@@ -182,8 +136,8 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl w-full max-h-[90vh] rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate translate-z-0 flex flex-col" dir="rtl">
         <DialogHeader className="sr-only">
-          <DialogTitle>פרופיל אישי ומרחב יומנים</DialogTitle>
-          <DialogDescription>ניהול חשבון וצפייה בתובנות שמורות</DialogDescription>
+          <DialogTitle>פרופיל אישי ותובנות</DialogTitle>
+          <DialogDescription>ניהול חשבון וצפייה בתובנות אישיות</DialogDescription>
         </DialogHeader>
         
         <div className="relative shrink-0 h-48 w-full bg-slate-950 rounded-t-[3rem] overflow-hidden p-8 flex flex-col justify-end">
@@ -212,16 +166,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
             >
               <LineChartIcon size={14} />
               תובנות
-            </button>
-            <button
-              onClick={() => setView("journals")}
-              className={cn(
-                "flex items-center gap-2 px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all",
-                view === "journals" ? "bg-white text-slate-950 shadow-xl" : "text-white/50 hover:text-white"
-              )}
-            >
-              <History size={14} />
-              יומנים
             </button>
           </div>
         </div>
@@ -315,15 +259,9 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">תרגילים שבוצעו</p>
-                  <p className="text-2xl font-black text-slate-900">{completedCount}</p>
-                </div>
-                <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">עוגנים שמורים</p>
-                  <p className="text-2xl font-black text-rose-500">{favoritesCount}</p>
-                </div>
+              <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">תרגילים שבוצעו</p>
+                <p className="text-2xl font-black text-slate-900">{completedCount}</p>
               </div>
 
               <div className="space-y-4 pt-4">
@@ -358,7 +296,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                           מחיקת חשבון לצמיתות?
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-slate-600 font-medium leading-relaxed pt-2">
-                          פעולה זו תמחק את כל המידע האישי שלך, כולל כל יומני המחשבות וההתקדמות שלך באפליקציה. <strong>לא ניתן לבטל פעולה זו.</strong>
+                          פעולה זו תמחק את כל המידע האישי שלך, כולל כל היסטוריית התרגולים וההתקדמות שלך באפליקציה. <strong>לא ניתן לבטל פעולה זו.</strong>
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       {deleteError && (
@@ -384,7 +322,7 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                 </div>
               </div>
             </div>
-          ) : view === "insights" ? (
+          ) : (
             <div className="animate-in fade-in duration-500 space-y-8 pt-10">
               <div className="grid grid-cols-2 gap-5">
                 <div className="bg-amber-50/80 p-5 rounded-3xl border border-amber-100 text-center space-y-1 shadow-sm">
@@ -439,178 +377,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                   </div>
                 )}
               </div>
-
-              <div className="space-y-3">
-                <h3 className="text-sm font-black text-slate-900 px-1">דפוסי חשיבה נפוצים</h3>
-                {topDistortions.length > 0 ? (
-                  <div className="bg-slate-50/80 rounded-3xl border border-slate-100 p-4 h-52" dir="ltr">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={topDistortions} layout="vertical" margin={{ top: 5, right: 16, left: 0, bottom: 5 }}>
-                        <XAxis type="number" hide allowDecimals={false} />
-                        <YAxis
-                          type="category"
-                          dataKey="name"
-                          width={140}
-                          orientation="right"
-                          tick={{ fontSize: 11, fontWeight: 700, fill: "#475569" }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <RechartsTooltip
-                          formatter={(value: any) => [value, "פעמים"]}
-                          contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 700, direction: "rtl" }}
-                        />
-                        <Bar dataKey="count" fill="#f59e0b" radius={[8, 8, 8, 8]} barSize={16} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <div className="text-center py-10 px-4 bg-slate-50/80 rounded-3xl border border-slate-100 space-y-1">
-                    <p className="font-bold text-slate-900 text-sm">עדיין אין מספיק נתונים</p>
-                    <p className="text-xs text-slate-400">תרגולים ביומן המחשבות יחשפו כאן את הדפוסים החוזרים שלך.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="animate-in fade-in duration-500 space-y-6 pt-10">
-              {selectedJournal ? (
-                <div className="animate-in slide-in-from-left duration-500 space-y-8">
-                  <button 
-                    onClick={() => setSelectedJournal(null)}
-                    className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest hover:translate-x-1 transition-transform"
-                  >
-                    <ChevronLeft size={16} className="rotate-180" />
-                    חזרה לרשימה
-                  </button>
-
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                        <BookText size={20} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900">תיעוד תרגול אפר"ת</h3>
-                        <p className="text-xs text-slate-400">{format(new Date(selectedJournal.createdAt), "d MMMM yyyy, HH:mm", { locale: he })}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                      {[
-                        { label: "א - אירוע", val: selectedJournal.event },
-                        { label: "פ - פרשנות", val: selectedJournal.interpretation },
-                        { label: "ר - רגש", val: selectedJournal.feeling },
-                        { label: "ת - תגובה", val: selectedJournal.reaction }
-                      ].map((step, i) => (
-                        <div key={i} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
-                          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{step.label}</span>
-                          <p className="text-sm font-medium text-slate-700 leading-relaxed">{step.val}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {selectedJournal.analysis && (
-                      <div className="pt-6 border-t border-slate-100 space-y-6">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Sparkles size={16} className="text-amber-400" />
-                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">מה זיהיתי בפרשנות שלך?</h4>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedJournal.analysis.distortions.map((d: string, i: number) => (
-                              <span key={i} className="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-xs font-bold">
-                                {d}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <BrainCircuit size={16} className="text-indigo-400" />
-                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">זווית חדשה ומאוזנת יותר</h4>
-                          </div>
-                          <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 italic text-sm font-medium text-indigo-900 leading-relaxed">
-                            "{selectedJournal.analysis.healthyPerspective}"
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between px-2">
-                    <h3 className="text-xl font-black text-slate-900">היומנים שלי</h3>
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {journals?.length || 0} תרגולים
-                    </div>
-                  </div>
-
-                  {isLoadingJournals ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-20">
-                      <Loader2 size={40} className="animate-spin" />
-                      <p className="font-bold">טוען יומנים...</p>
-                    </div>
-                  ) : journals && journals.length > 0 ? (
-                    <div className="grid gap-4">
-                      {journals.map((journal) => (
-                        <div 
-                          key={journal.id}
-                          className="group relative bg-white border border-slate-100 p-6 rounded-[2rem] hover:shadow-xl hover:shadow-indigo-500/5 transition-all cursor-pointer"
-                          onClick={() => setSelectedJournal(journal)}
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                <BookText size={20} />
-                              </div>
-                              <div className="space-y-0.5">
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-wide">
-                                  {format(new Date(journal.createdAt), "EEEE, d MMMM", { locale: he })}
-                                </p>
-                                <h4 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                                  {journal.event}
-                                </h4>
-                              </div>
-                            </div>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteJournal(journal.id);
-                              }}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {journal.analysis?.distortions?.slice(0, 2).map((d: string, i: number) => (
-                              <span key={i} className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-                                {d}
-                              </span>
-                            ))}
-                            {journal.analysis?.distortions?.length > 2 && (
-                              <span className="text-[10px] font-bold text-slate-400">+{journal.analysis.distortions.length - 2}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-20 space-y-4">
-                      <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-300 mx-auto">
-                        <BookText size={32} />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-bold text-slate-900">עדיין אין יומנים שמורים</p>
-                        <p className="text-xs text-slate-400">תרגולים שתבצע ביומן המחשבות יופיעו כאן.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>
