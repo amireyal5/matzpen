@@ -47,7 +47,7 @@ function JourneyCard({ journey, onStart }: { journey: GuidedImageryJourney; onSt
       <div className="absolute inset-0 z-0">
         {!imageError ? (
           <Image
-            src={journey.image}
+            src={journey.image || "/logo.png"}
             alt={journey.title}
             fill
             className="object-cover transition-transform duration-700 brightness-[0.3] group-hover:scale-105"
