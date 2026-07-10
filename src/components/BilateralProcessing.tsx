@@ -787,7 +787,14 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
           )}
 
           <div className={cn("p-8 flex justify-between items-start z-50 transition-opacity duration-500", isFullscreen && !showControls ? "opacity-0 pointer-events-none" : "opacity-100")}>
-            <button onClick={handleExitEarly} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-3xl border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all hover:scale-105 active:scale-95"><X size={20} /></button>
+            <button
+              onClick={handleExitEarly}
+              className="px-4 h-12 rounded-full bg-black/70 backdrop-blur-3xl border border-white/20 flex items-center gap-2 text-white hover:text-indigo-400 hover:border-indigo-500/40 transition-all hover:scale-105 active:scale-95 shadow-lg"
+              aria-label="סגור תרגול"
+            >
+              <X size={18} />
+              <span className="text-xs font-black">סגור תרגול</span>
+            </button>
             <div className="flex flex-col items-center text-center bg-black/40 backdrop-blur-3xl border border-white/5 rounded-full px-5 py-2">
               {treatmentMode === 'desensitize' ? (
                 <><span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">סט {activeSet} • פריקה והפחתת מצוקה</span><span className="text-xs font-bold text-white">{desensitizePhase === 'focus' ? "שלב התמקדות" : desensitizePhase === 'processing' ? "עיבוד בילטרלי" : "בדיקת SUDs"}</span></>
@@ -1054,8 +1061,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       {sessionState === "grounding" && (
         <div className="min-h-screen flex flex-col relative z-10 overflow-y-auto">
           <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
-            <button onClick={handleFinishGrounding} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
-              <ArrowRight size={18} /> חזרה להגדרות
+            <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
+              <ArrowRight size={18} /> חזרה למסך הבית
             </button>
             <div className="flex flex-col items-center text-center">
               <span className={cn("text-[10px] font-black uppercase tracking-widest leading-none mb-0.5", isLight ? "text-indigo-600" : "text-indigo-400")}>סיכום התרגול</span>

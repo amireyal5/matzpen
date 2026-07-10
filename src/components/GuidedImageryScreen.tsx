@@ -339,7 +339,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       <header className={cn("p-6 flex items-center justify-between border-b backdrop-blur-md z-10 transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
         <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
-          חזרה
+          חזרה למסך הבית
         </button>
         <div className="flex flex-col items-center">
           <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">דימיון מודרך</span>
@@ -427,10 +427,11 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
           <header className="relative z-10 flex justify-between items-center w-full max-w-lg mx-auto">
             <button
               onClick={exitJourney}
-              className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-all active:scale-95 shadow-sm backdrop-blur-md"
+              className="px-4 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 hover:text-white transition-all active:scale-95 shadow-sm backdrop-blur-md"
               aria-label="סגור מסע"
             >
               <X size={16} />
+              <span className="text-xs font-black">סגור מסע</span>
             </button>
             <div className="text-right">
               <h3 className="font-black text-lg text-white drop-shadow-lg">{activeJourney.title}</h3>
@@ -483,11 +484,13 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
                   />
                 </div>
 
+                {/* Subtitles removed for distraction-free imagery as requested by user
                 <div key={stepIndex} className="animate-in fade-in zoom-in-95 duration-[1500ms]">
                   <p className="text-xl md:text-3xl font-bold text-white leading-relaxed drop-shadow-lg max-w-md">
                     {activeJourney.steps[stepIndex].text}
                   </p>
                 </div>
+                */}
               </>
             ) : (
               <div className="text-center space-y-6 animate-in zoom-in duration-500">

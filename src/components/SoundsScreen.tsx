@@ -211,18 +211,22 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
       `}} />
 
       {/* רקע וידאו נופי חי - מופיע כשמתנגן צליל, להעמקת תחושת הנוכחות והשלווה */}
-      {isAnyPlaying && (
-        <AmbientVideoBackground
-          src={AMBIENT_VIDEOS[2]}
-          className="fixed inset-0 -z-10 animate-in fade-in duration-1000"
-          overlayClassName={isLight ? "bg-white/70" : "bg-slate-950/70"}
-        />
-      )}
+      {isAnyPlaying && (() => {
+        const playingSound = sounds.find((s) => trackStates[s.id].playState === "playing");
+        const playingSoundIdx = playingSound ? sounds.indexOf(playingSound) : 0;
+        return (
+          <AmbientVideoBackground
+            src={AMBIENT_VIDEOS[playingSoundIdx % AMBIENT_VIDEOS.length]}
+            className="fixed inset-0 -z-10 animate-in fade-in duration-1000"
+            overlayClassName={isLight ? "bg-white/70" : "bg-slate-950/70"}
+          />
+        );
+      })()}
 
       <header className={cn("relative z-10 p-6 flex items-center justify-between border-b backdrop-blur-md transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
         <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
           <ArrowRight size={18} />
-          חזרה
+          חזרה למסך הבית
         </button>
         <div className="flex flex-col items-center">
           <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">צלילי מרחב</span>
@@ -345,7 +349,7 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
       {activeSound && (
         <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-6 select-none animate-in fade-in duration-300">
           <AmbientVideoBackground
-            src={AMBIENT_VIDEOS[activeSound.id === "ambient-calm" ? 0 : activeSound.id === "tibetan-bowl" ? 1 : 2]}
+            src={AMBIENT_VIDEOS[sounds.indexOf(activeSound) % AMBIENT_VIDEOS.length]}
             className="z-0"
             overlayClassName={cn("bg-gradient-to-b opacity-60", isLight ? "from-indigo-950/30 to-slate-950/80" : "from-slate-950/80 to-slate-950")}
           />
@@ -353,10 +357,11 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
           <header className="relative z-10 flex justify-between items-center w-full max-w-lg mx-auto">
             <button
               onClick={() => setActiveSoundId(null)}
-              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95 shadow-sm"
-              aria-label="סגור מסך מלא"
+              className="px-4 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 hover:text-white transition-all active:scale-95 shadow-sm backdrop-blur-md"
+              aria-label="סגור נגן"
             >
-              <X size={18} />
+              <X size={16} />
+              <span className="text-xs font-black">סגור נגן</span>
             </button>
             <div className="text-right">
               <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">נגן צלילי מרחב</span>

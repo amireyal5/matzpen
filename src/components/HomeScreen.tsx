@@ -1031,87 +1031,114 @@ export default function HomeScreen({
               <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>איך אפשר לעזור לך כרגע?</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
               {/* Goal 1: עזרה להירגע */}
               <button
                 onClick={() => onGoToBreathing("ptsd-grounding")}
                 className={cn(
-                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
                   isLight 
                     ? "bg-emerald-50/75 border-emerald-200/60 hover:bg-emerald-100/70 hover:border-emerald-350 shadow-emerald-100/10" 
                     : "bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-950/30 hover:border-emerald-500/40 text-emerald-100"
                 )}
               >
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex justify-between items-start w-full">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
                     isLight ? "bg-white text-emerald-600" : "bg-emerald-500/10 text-emerald-400"
                   )}>
-                    <Wind size={28} />
+                    <Wind size={24} />
                   </div>
-                  <div>
-                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>🌬️ עזרה להירגע</h4>
-                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
-                      נשימה מודרכת להאטת דופק מהירה
-                    </p>
-                  </div>
+                  <ChevronLeft size={16} className={isLight ? "text-emerald-600/50" : "text-emerald-400/50"} />
                 </div>
-                <ChevronLeft size={20} className={isLight ? "text-emerald-650/50" : "text-emerald-400/50"} />
+                <div className="space-y-1 mt-4 z-10">
+                  <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עזרה להירגע</h4>
+                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                    נשימה מודרכת להאטת דופק מהירה
+                  </p>
+                </div>
               </button>
 
               {/* Goal 2: עזרה בשינה */}
               <button
                 onClick={() => onGoToSounds("dreamscape")}
                 className={cn(
-                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
                   isLight 
                     ? "bg-indigo-50/75 border-indigo-200/60 hover:bg-indigo-100/70 hover:border-indigo-350 shadow-indigo-100/10" 
                     : "bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-950/30 hover:border-indigo-500/40 text-indigo-100"
                 )}
               >
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex justify-between items-start w-full">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
                     isLight ? "bg-white text-indigo-600" : "bg-indigo-500/10 text-indigo-400"
                   )}>
-                    <Moon size={28} />
+                    <Moon size={24} />
                   </div>
-                  <div>
-                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>🎵 עזרה בשינה</h4>
-                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
-                      צלילי סביבה ונעימות להרדמות מהירה
-                    </p>
-                  </div>
+                  <ChevronLeft size={16} className={isLight ? "text-indigo-650/50" : "text-indigo-400/50"} />
                 </div>
-                <ChevronLeft size={20} className={isLight ? "text-indigo-650/50" : "text-indigo-400/50"} />
+                <div className="space-y-1 mt-4 z-10">
+                  <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עזרה בשינה</h4>
+                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                    צלילי סביבה ונעימות להרדמות
+                  </p>
+                </div>
               </button>
 
               {/* Goal 3: לנקות את הראש */}
               <button
                 onClick={() => onGoToBilateral()}
                 className={cn(
-                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
                   isLight 
                     ? "bg-purple-50/75 border-purple-200/60 hover:bg-purple-100/70 hover:border-purple-350 shadow-purple-100/10" 
                     : "bg-purple-950/20 border-purple-900/30 hover:bg-purple-950/30 hover:border-purple-500/40 text-purple-100"
                 )}
               >
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex justify-between items-start w-full">
                   <div className={cn(
-                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
                     isLight ? "bg-white text-purple-600" : "bg-purple-500/10 text-purple-400"
                   )}>
-                    <Zap size={28} />
+                    <Zap size={24} />
                   </div>
-                  <div>
-                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>⚡ לנקות את הראש</h4>
-                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
-                      עיבוד בילטרלי (EMDR) להרגעת הצפה
-                    </p>
-                  </div>
+                  <ChevronLeft size={16} className={isLight ? "text-purple-650/50" : "text-purple-400/50"} />
                 </div>
-                <ChevronLeft size={20} className={isLight ? "text-purple-650/50" : "text-purple-400/50"} />
+                <div className="space-y-1 mt-4 z-10">
+                  <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>לנקות את הראש</h4>
+                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                    עיבוד בילטרלי להרגעת הצפה
+                  </p>
+                </div>
+              </button>
+
+              {/* Goal 4: דמיון מודרך */}
+              <button
+                onClick={() => onGoToImagery()}
+                className={cn(
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
+                  isLight 
+                    ? "bg-violet-50/75 border-violet-200/60 hover:bg-violet-100/70 hover:border-violet-350 shadow-violet-100/10" 
+                    : "bg-violet-950/20 border-violet-900/30 hover:bg-violet-950/30 hover:border-violet-500/40 text-violet-100"
+                )}
+              >
+                <div className="flex justify-between items-start w-full">
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    isLight ? "bg-white text-violet-600" : "bg-violet-500/10 text-violet-400"
+                  )}>
+                    <Sparkles size={24} />
+                  </div>
+                  <ChevronLeft size={16} className={isLight ? "text-violet-655/50" : "text-violet-400/50"} />
+                </div>
+                <div className="space-y-1 mt-4 z-10">
+                  <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>דמיון מודרך</h4>
+                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                    מסעות ויזואליים להרפיה עמוקה
+                  </p>
+                </div>
               </button>
 
             </div>
