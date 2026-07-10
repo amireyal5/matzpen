@@ -539,9 +539,9 @@ export default function HomeScreen({
     setSearchQuery("");
   };
 
-  const welcomeText = displayGender === "f" ? `במה נתרכז היום, ${displayName}?` : `במה נתמקד היום, ${displayName}?`;
-  const subActionText = displayGender === "f" ? "בחרי תחום כדי להתחיל בתרגול" : "בחר תחום כדי להתחיל בתרגול";
-  const placeholderText = displayGender === "f" ? "מה מעסיקה אותך היום?" : "מה מעסיק אותך היום?";
+  const welcomeText = displayGender === "f" ? `מה יעזור לך כרגע, ${displayName}?` : `מה יעזור לך כרגע, ${displayName}?`;
+  const subActionText = displayGender === "f" ? "בחרי כלי להקלה מהירה" : "בחר כלי להקלה מהירה";
+  const placeholderText = displayGender === "f" ? "כתבי מה את מרגישה או מה יעזור לך..." : "כתוב מה אתה מרגיש או מה יעזור לך...";
 
   return (
     <div className={cn("min-h-screen relative overflow-hidden select-none transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-[#0B0F19] text-white")}>
@@ -694,7 +694,30 @@ export default function HomeScreen({
           />
         </div>
 
-        {/* Active Action Step (Behavioral Activation) */}
+        {/* SOS Emergency and Panic-Proof Grounding Button */}
+        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
+          <CrisisHelpDialog
+            gender={displayGender}
+            theme={theme}
+            trigger={
+              <button
+                className={cn(
+                  "w-full py-5 rounded-[2rem] border-2 shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 font-black text-base relative overflow-hidden group",
+                  isLight
+                    ? "bg-rose-50 border-rose-250 text-rose-700 hover:bg-rose-100/80 shadow-rose-100/50"
+                    : "bg-rose-950/20 border-rose-900/40 text-rose-300 hover:bg-rose-950/30 shadow-rose-950/20"
+                )}
+              >
+                {/* Subtle background pulse animation */}
+                <div className="absolute inset-0 bg-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-500" />
+                <LifeBuoy size={20} className="animate-pulse text-rose-500" />
+                <span>🆘 צריכה עזרה מיידית? (תרגיל קרקוע וחירום)</span>
+              </button>
+            }
+          />
+        </div>
+
+        {/* Active Action Step (Behavioral Activation) - Archived for PTSD focus
         {activeActionJournal && (
           <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
             <div
@@ -723,8 +746,9 @@ export default function HomeScreen({
             </div>
           </div>
         )}
+        */}
 
-        {/* Clinical Assessment Bento Section */}
+        {/* Clinical Assessment Bento Section - Archived for PTSD focus
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
           <div className="grid grid-cols-2 gap-4">
             <button
@@ -770,6 +794,7 @@ export default function HomeScreen({
             </button>
           </div>
         </div>
+        */}
 
         {/* Intelligent Dialogue Section */}
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
@@ -916,7 +941,7 @@ export default function HomeScreen({
                           <button 
                             key={i}
                             onClick={() => {
-                              if (opt.categoryKey === "JOURNAL") onGoToJournal();
+                              if (opt.categoryKey === "JOURNAL") onGoToBilateral();
                               else if (opt.categoryKey === "SOUNDS" || opt.categoryKey === "MEDITATION") onGoToSounds();
                               else if (opt.categoryKey === "BREATHING") onGoToBreathing();
                               else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
@@ -1003,12 +1028,12 @@ export default function HomeScreen({
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Sparkles size={14} className="text-indigo-400" />
-              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כלים אסטרטגיים</h3>
+              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כלים מהירים להקלה</h3>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-              {/* CBT Journal */}
+              {/* CBT Journal - Archived for PTSD focus
               <button 
                 onClick={onGoToJournal}
                 className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
@@ -1024,6 +1049,7 @@ export default function HomeScreen({
                   <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">וויסות רגשי דרך שינוי דפוסי חשיבה</span>
                 </div>
               </button>
+              */}
 
               {/* Bilateral EMDR */}
               <button 
@@ -1139,7 +1165,7 @@ export default function HomeScreen({
             </div>
           ))}
 
-          {/* Categories Grid */}
+          {/* Categories Grid - Archived for PTSD focus
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Compass size={14} className="text-indigo-400" />
@@ -1159,6 +1185,7 @@ export default function HomeScreen({
               ))}
             </div>
           </div>
+          */}
 
           {/* Anchors / Favorites */}
           {favorites.length > 0 && (

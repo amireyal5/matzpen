@@ -351,6 +351,7 @@ function AppContent() {
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
+        {/* Journal screen disabled for PTSD focus - archived
         {(screen === "journal" && user) && (
           <ThoughtJournal
             gender={gender}
@@ -359,6 +360,7 @@ function AppContent() {
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
+        */}
         {(screen === "sounds" && user) && (
           <SoundsScreen
             onBack={() => {
@@ -394,6 +396,7 @@ function AppContent() {
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
+        {/* Assessment screen disabled for PTSD focus - archived
         {(screen === "assessment" && user) && (
           <ClinicalAssessment
             gender={gender}
@@ -403,6 +406,7 @@ function AppContent() {
             type={assessmentType}
           />
         )}
+        */}
       </main>
     </div>
   );
