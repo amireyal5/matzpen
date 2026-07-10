@@ -27,7 +27,7 @@ export const GUIDED_IMAGERY_JOURNEYS: GuidedImageryJourney[] = [
     description: "הליכה דמיונית רגועה בין עצים עתיקים, לחיבור מחדש עם הגוף והנשימה",
     tag: "דימיון מודרך",
     image: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=600",
-    video: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/video%2F49981-459802291_tiny.mp4?alt=media&token=1d393a2c-b538-4cef-ab23-393366c46351",
+    video: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/video%2F49981-459802291.mp4?alt=media&token=5be20eab-afc9-4c60-ae2f-a225f3cce83e",
     soundId: "mind-relaxation",
     icon: "forest",
     steps: [
