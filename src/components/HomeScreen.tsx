@@ -969,7 +969,11 @@ export default function HomeScreen({
                   <div className="relative rounded-2xl p-1 flex items-center shadow-lg overflow-hidden bg-slate-900/80 border border-white/5 focus-within:border-indigo-500/30 transition-all duration-300">
                     <input 
                       type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-                      placeholder={recommendation?.needsMoreInfo ? "הוסף/י עוד פרטים..." : "מה תרצה/י להוסיף?"} 
+                      placeholder={
+                        recommendation?.needsMoreInfo
+                          ? (displayGender === "f" ? "הוסיפי עוד פרטים..." : "הוסף עוד פרטים...")
+                          : (displayGender === "f" ? "מה תרצי להוסיף?" : "מה תרצה להוסיף?")
+                      }
                       className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-white placeholder:text-slate-500 text-sm text-right" dir="rtl"
                     />
                     <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all" aria-label="שלח">

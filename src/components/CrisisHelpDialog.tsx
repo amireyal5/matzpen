@@ -229,6 +229,7 @@ export default function CrisisHelpDialog({ gender, trigger, theme = "light" }: C
                             .replace("נסה/י", "נסי")
                             .replace("קרב/י", "קרבי")
                             .replace("התמקד/י", "התמקדי")
+                            .replace("קח/י", "קחי")
                         : currentStep.desc
                             .replace("הבט/י", "הבט")
                             .replace("מצא/י", "מצא")
@@ -236,7 +237,8 @@ export default function CrisisHelpDialog({ gender, trigger, theme = "light" }: C
                             .replace("הקשב/י", "הקשב")
                             .replace("נסה/י", "נסה")
                             .replace("קרב/י", "קרב")
-                            .replace("התמקד/י", "התמקד")}
+                            .replace("התמקד/י", "התמקד")
+                            .replace("קח/י", "קח")}
                     </p>
                   </div>
                 </div>

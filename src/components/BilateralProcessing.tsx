@@ -449,7 +449,14 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     }
   };
 
-  const handleExitEarly = () => { setIsPlaying(false); setSessionState("grounding"); };
+  const handleExitEarly = () => {
+    setIsPlaying(false);
+    if (treatmentMode === 'desensitize') {
+      setDesensitizePhase('checkin');
+    } else {
+      setSessionState("grounding");
+    }
+  };
   const handleFinishGrounding = () => {
     if (typeof window !== "undefined" && localStorage.getItem("bls_hasUsedBefore") === "true") {
       setSessionState("entrance");
@@ -553,6 +560,56 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     }
     return () => { if (blsIntervalRef.current) clearInterval(blsIntervalRef.current); };
   }, [isStimulusMoving, speed, treatmentMode]);
+
+  const getSudsColorClass = (val: number, active: boolean) => {
+    if (active) {
+      if (val <= 2) return "bg-emerald-600/95 border-emerald-400 text-white shadow-lg shadow-emerald-600/35 scale-110";
+      if (val <= 4) return "bg-teal-600/95 border-teal-400 text-white shadow-lg shadow-teal-600/35 scale-110";
+      if (val <= 6) return "bg-amber-600/95 border-amber-400 text-white shadow-lg shadow-amber-600/35 scale-110";
+      if (val <= 8) return "bg-orange-600/95 border-orange-400 text-white shadow-lg shadow-orange-600/35 scale-110";
+      return "bg-red-600/95 border-red-400 text-white shadow-lg shadow-red-600/35 scale-110";
+    }
+    return "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20";
+  };
+
+  const getSudsLabel = (val: number) => {
+    if (val <= 2) return "רגיעה מלאה / כמעט ללא מצוקה";
+    if (val <= 4) return "מצוקה קלה ומורגשת";
+    if (val <= 6) return "מצוקה בינונית, מורגשת אך נסבלת";
+    if (val <= 8) return "מצוקה גבוהה, מפריעה לריכוז";
+    return "מצוקה קשה מאוד, הצפה רגשית";
+  };
+
+  const adjustGender = (text: string) => {
+    if (gender === 'f') {
+      return text
+        .replace("התמקד/י", "התמקדי")
+        .replace("עקוב/י", "עקבי")
+        .replace("קח/י", "קחי")
+        .replace("שחרר/י", "שחררי")
+        .replace("מצא/ו", "מצאי")
+        .replace("הקשב/י", "הקשיבי")
+        .replace("שים/י", "שימי")
+        .replace("נסה/י", "נסי")
+        .replace("קרב/י", "קרבי")
+        .replace("בחר/י", "בחרי")
+        .replace("התאמ/י", "התאימי")
+        .replace("תרגל/י", "תרגלי");
+    }
+    return text
+      .replace("התמקד/י", "התמקד")
+      .replace("עקוב/י", "עקוב")
+      .replace("קח/י", "קח")
+      .replace("שחרר/י", "שחרר")
+      .replace("מצא/ו", "מצא")
+      .replace("הקשב/י", "הקשב")
+      .replace("שים/י", "שים")
+      .replace("נסה/י", "נסה")
+      .replace("קרב/י", "קרב")
+      .replace("בחר/י", "בחר")
+      .replace("התאמ/י", "התאם")
+      .replace("תרגל/י", "תרגל");
+  };
 
   const getStimulusLeft = () => blsSide === 'left' ? '0%' : blsSide === 'right' ? '100%' : '50%';
 
@@ -999,7 +1056,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 {desensitizePhase === 'focus' && (
                   <div className="text-center p-8 bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] border border-white/5 max-w-md w-full animate-in fade-in duration-500">
                     <h2 className="text-sm font-black text-indigo-400 tracking-widest uppercase mb-3">שלב התמקדות</h2>
-                    <h3 className="text-lg text-slate-300 mb-1">התמקד/י במקור המצוקה ובמקום בו היא מורגשת בגוף:</h3>
+                    <h3 className="text-lg text-slate-300 mb-1">{adjustGender("התמקד/י במקור המצוקה ובמקום בו היא מורגשת בגוף:")}</h3>
                     <p className="text-2xl font-black text-white">{customDistress || distressCategory}</p>
                     <div className="mt-6 flex items-center justify-center gap-3">
                       <Clock size={16} className="text-indigo-400 animate-pulse" />
@@ -1010,35 +1067,42 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 {desensitizePhase === 'processing' && (
                   <div className="text-center p-6 max-w-lg w-full animate-in fade-in duration-500">
                     <p className="text-slate-500 text-xs font-black tracking-widest uppercase mb-1">עיבוד בילטרלי פעיל</p>
-                    <p className="text-white/40 text-sm font-medium">עקוב/י במבטך אחר הכדור הפועם מצד לצד</p>
+                    <p className="text-white/40 text-sm font-medium">{adjustGender("עקוב/י במבטך אחר הכדור הפועם מצד לצד")}</p>
                   </div>
                 )}
                 {desensitizePhase === 'checkin' && (
                   <div className="text-center p-8 bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-500">
                     <h2 className="text-2xl font-black mb-2">נשימה והערכה</h2>
                     <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                      קח/י נשימה עמוקה... שחרר/י...<br />
+                      {adjustGender("קח/י נשימה עמוקה... שחרר/י...")}<br />
                       ומהי רמת המצוקה כעת בסולם של 1 עד 10?
                     </p>
                     
-                    <div className="flex justify-between items-center text-xs font-bold text-slate-500 px-1 mb-2">
-                      <span>1 (רגיעה)</span>
-                      <span>5 (בינוני)</span>
-                      <span>10 (מצוקה קשה)</span>
+                    <div className="grid grid-cols-5 gap-2.5 mb-5 justify-items-center">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setCurrentSuds(num)}
+                          className={cn(
+                            "w-11 h-11 rounded-full border text-sm font-black transition-all flex items-center justify-center active:scale-95",
+                            getSudsColorClass(num, currentSuds === num)
+                          )}
+                        >
+                          {num}
+                        </button>
+                      ))}
                     </div>
-                    
-                    <div className="relative py-4 mb-6">
-                      <Slider 
-                        value={[currentSuds]} 
-                        onValueChange={(vals) => setCurrentSuds(vals[0])} 
-                        min={1} 
-                        max={10} 
-                        step={1} 
-                        className="py-2 cursor-pointer" 
-                      />
-                      <div className="text-center mt-3">
-                        <span className="text-4xl font-black text-indigo-400 font-mono">{currentSuds}</span>
-                      </div>
+
+                    <div className={cn(
+                      "text-center mb-6 p-3 rounded-2xl text-[11px] font-black transition-all duration-300",
+                      currentSuds <= 2 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                      currentSuds <= 4 ? "bg-teal-500/10 text-teal-400 border border-teal-500/20" :
+                      currentSuds <= 6 ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                      currentSuds <= 8 ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" :
+                      "bg-red-500/10 text-red-400 border border-red-500/20"
+                    )}>
+                      רמה {currentSuds}: {getSudsLabel(currentSuds)}
                     </div>
 
                     <div className="flex gap-3">
@@ -1158,11 +1222,24 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                  className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shrink-0"
                   aria-label={isPlaying ? "השהה" : "נגן"}
                 >
                   {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="mr-0.5" />}
                 </button>
+
+                {treatmentMode === 'desensitize' && desensitizePhase === 'processing' && (
+                  <button
+                    onClick={() => {
+                      setDesensitizePhase('checkin');
+                      setIsPlaying(false);
+                      setPhaseTimeLeft(0);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-full text-[10px] transition-all active:scale-95 shadow-lg shadow-indigo-600/20 shrink-0"
+                  >
+                    סיום סבב
+                  </button>
+                )}
 
                 <div className="text-right">
                   <span className="text-[9px] font-black tracking-widest uppercase text-slate-500 block">זמן שנותר</span>
