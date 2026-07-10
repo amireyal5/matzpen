@@ -128,10 +128,10 @@ function SoundCard({ sound, track, play, pause, stop, toggleLoop, onOpenFullscre
             <button
               onClick={() => toggleLoop(sound.id)}
               className={cn(
-                "w-12 h-12 rounded-full border flex items-center justify-center hover:scale-105 active:scale-95 transition-all backdrop-blur-md",
+                "w-12 h-12 rounded-full border flex items-center justify-center hover:scale-105 active:scale-95 transition-all backdrop-blur-md shadow-lg",
                 track.isLoopEnabled
-                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/35"
-                  : "bg-white/5 text-slate-400 border-white/10 hover:text-white"
+                  ? "bg-emerald-500/25 text-emerald-300 border-emerald-500/40"
+                  : "bg-black/40 text-white border-white/15 hover:bg-black/55"
               )}
               title="נגינה בלולאה חוזרת"
             >
@@ -142,10 +142,10 @@ function SoundCard({ sound, track, play, pause, stop, toggleLoop, onOpenFullscre
           {/* תגית מצב */}
           <span
             className={cn(
-              "text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border",
-              isPlaying && "bg-emerald-500/20 text-emerald-400 border-emerald-500/20 animate-pulse",
-              isPaused && "bg-amber-500/20 text-amber-400 border-amber-500/20",
-              !isActive && "bg-white/5 text-slate-500 border-white/5"
+              "text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border backdrop-blur-md",
+              isPlaying && "bg-emerald-500/25 text-emerald-300 border-emerald-500/30 animate-pulse",
+              isPaused && "bg-amber-500/25 text-amber-300 border-amber-500/30",
+              !isActive && "bg-black/40 text-slate-200 border-white/15"
             )}
           >
             {isPlaying ? "מנגן" : isPaused ? "מושהה" : "כבוי"}
@@ -354,18 +354,18 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
             overlayClassName={cn("bg-gradient-to-b opacity-60", isLight ? "from-indigo-950/30 to-slate-950/80" : "from-slate-950/80 to-slate-950")}
           />
           
-          <header className="relative z-10 flex justify-between items-center w-full max-w-lg mx-auto">
+          <header className="relative z-10 flex items-start justify-between gap-2 w-full max-w-lg mx-auto">
             <button
               onClick={() => setActiveSoundId(null)}
-              className="px-4 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 hover:text-white transition-all active:scale-95 shadow-sm backdrop-blur-md"
+              className="shrink-0 px-3.5 sm:px-4 h-11 rounded-full bg-black/40 hover:bg-black/55 border border-white/15 flex items-center gap-1.5 text-white transition-all active:scale-95 shadow-lg backdrop-blur-md"
               aria-label="סגור נגן"
             >
               <X size={16} />
-              <span className="text-xs font-black">סגור נגן</span>
+              <span className="text-xs font-black hidden xs:inline">סגור נגן</span>
             </button>
-            <div className="text-right">
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">נגן צלילי מרחב</span>
-              <h3 className="font-black text-lg text-white">{activeSound.label}</h3>
+            <div className="min-w-0 flex-1 text-right px-1">
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest drop-shadow">נגן צלילי מרחב</span>
+              <h3 className="font-black text-base sm:text-lg text-white drop-shadow-lg line-clamp-1">{activeSound.label}</h3>
             </div>
           </header>
 
@@ -434,10 +434,10 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
               <button
                 onClick={() => toggleTrackLoop(activeSound.id)}
                 className={cn(
-                  "w-12 h-12 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md",
+                  "w-12 h-12 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-lg",
                   trackStates[activeSound.id].isLoopEnabled
-                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                    : "bg-white/5 text-slate-400 border-white/10"
+                    ? "bg-emerald-500/25 text-emerald-300 border-emerald-500/40"
+                    : "bg-black/40 text-white border-white/15"
                 )}
                 title="נגינה בלולאה"
               >
@@ -469,7 +469,7 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
                   stop(activeSound.id);
                   setActiveSoundId(null);
                 }}
-                className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white flex items-center justify-center active:scale-95 transition-all backdrop-blur-md"
+                className="w-12 h-12 rounded-full bg-black/40 hover:bg-black/55 border border-white/15 text-white flex items-center justify-center active:scale-95 transition-all backdrop-blur-md shadow-lg"
                 aria-label="עצור וצא"
               >
                 <span className="w-4 h-4 bg-white rounded-sm" />
@@ -485,10 +485,10 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
                     key={m}
                     onClick={() => startTimer(m)}
                     className={cn(
-                      "px-2.5 py-1 rounded-md text-[9px] font-bold border transition-all active:scale-95",
+                      "px-2.5 py-1 rounded-md text-[10px] font-bold border transition-all active:scale-95 backdrop-blur-md",
                       isSelected
                         ? "bg-emerald-500 border-emerald-500 text-slate-950 shadow-md font-black"
-                        : "bg-white/5 border-white/5 text-slate-400 hover:text-white"
+                        : "bg-black/40 border-white/15 text-white hover:bg-black/55 shadow-lg"
                     )}
                   >
                     {m === 0 ? "ללא טיימר" : `${m} דק׳`}
@@ -498,12 +498,14 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
             </div>
 
             {/* כפתור חזרה */}
-            <button
-              onClick={() => setActiveSoundId(null)}
-              className="w-full text-center text-xs font-black text-slate-400 hover:text-white transition-colors pt-2"
-            >
-              חזרה לצלילים
-            </button>
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => setActiveSoundId(null)}
+                className="text-xs font-black text-white hover:text-emerald-200 transition-colors px-4 py-2 rounded-full bg-black/40 border border-white/15 backdrop-blur-md shadow-lg"
+              >
+                חזרה לצלילים
+              </button>
+            </div>
           </div>
         </div>
       )}

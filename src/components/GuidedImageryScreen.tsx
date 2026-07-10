@@ -424,30 +424,30 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
             @keyframes imagery-breathe { 0%, 100% { transform: scale(0.92); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 0.9; } }
           ` }} />
 
-          <header className="relative z-10 flex justify-between items-center w-full max-w-lg mx-auto">
+          <header className="relative z-10 flex items-start justify-between gap-2 w-full max-w-lg mx-auto">
             <button
               onClick={exitJourney}
-              className="px-4 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-1.5 text-slate-300 hover:text-white transition-all active:scale-95 shadow-sm backdrop-blur-md"
+              className="shrink-0 px-3.5 sm:px-4 h-11 rounded-full bg-black/40 hover:bg-black/55 border border-white/15 flex items-center gap-1.5 text-white transition-all active:scale-95 shadow-lg backdrop-blur-md"
               aria-label="סגור מסע"
             >
               <X size={16} />
-              <span className="text-xs font-black">סגור מסע</span>
+              <span className="text-xs font-black hidden xs:inline">סגור מסע</span>
             </button>
-            <div className="text-right">
-              <h3 className="font-black text-lg text-white drop-shadow-lg">{activeJourney.title}</h3>
+            <div className="min-w-0 flex-1 text-center px-1">
+              <h3 className="font-black text-base sm:text-lg text-white drop-shadow-lg line-clamp-1">{activeJourney.title}</h3>
               {!isComplete && (
-                <p className="text-[10px] text-slate-300 font-bold drop-shadow">זמן נותר: {formatTime(totalTimeLeft)}</p>
+                <p className="text-[10px] text-slate-200 font-bold drop-shadow">זמן נותר: {formatTime(totalTimeLeft)}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="shrink-0 flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleNarration}
                 className={cn(
-                  "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-sm",
+                  "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-lg",
                   isNarrationMuted
-                    ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20"
-                    : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white"
+                    ? "bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30"
+                    : "bg-black/40 border-white/15 text-white hover:bg-black/55"
                 )}
                 title={isNarrationMuted ? "הפעל הקראה" : "השתק הקראה"}
               >
@@ -457,10 +457,10 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
                 type="button"
                 onClick={toggleMusic}
                 className={cn(
-                  "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-sm",
+                  "w-9 h-9 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-lg",
                   isMusicMuted
-                    ? "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20"
-                    : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white"
+                    ? "bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30"
+                    : "bg-black/40 border-white/15 text-white hover:bg-black/55"
                 )}
                 title={isMusicMuted ? "הפעל מוזיקה" : "השתק מוזיקה"}
               >
@@ -513,7 +513,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
                   </Button>
                   <button
                     onClick={exitJourney}
-                    className="text-xs font-black text-slate-300 hover:text-white transition-colors drop-shadow"
+                    className="text-xs font-black text-white hover:text-indigo-200 transition-colors px-4 py-2 rounded-full bg-black/40 border border-white/15 backdrop-blur-md shadow-lg"
                   >
                     חזרה לתפריט
                   </button>
