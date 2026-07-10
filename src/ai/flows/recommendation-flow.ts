@@ -65,7 +65,8 @@ async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> 
 // רשימת מילות מפתח לזיהוי מקרי חירום - רשת ביטחון קשיחה ולא תלויה ב-AI
 const crisisKeywords = [
   "למות", "להתאבד", "לשים קץ", "לפגוע בעצמי", "לחתוך", "אין לי למה לחיות",
-  "לא רוצה לחיות", "רוצה להעלם", "סוף לחיים", "לסיים את החיים"
+  "לא רוצה לחיות", "רוצה להעלם", "סוף לחיים", "לסיים את החיים",
+  "אין טעם", "לברוח מהכל", "מאוס עלי", "לא רוצה לקום"
 ];
 
 function getCrisisResponse(isF: boolean, displayName: string): RecommendationOutput {
@@ -75,7 +76,7 @@ function getCrisisResponse(isF: boolean, displayName: string): RecommendationOut
       : `שומע את הכאב העמוק שלך, ${displayName}. בבקשה, אל תישאר עם זה לבד. יש אנשים שמחכים ורוצים לעזור לך ברגע זה.`,
     isCrisis: true,
     needsMoreInfo: false,
-    quickReplies: ["עזרה דחופה", "מספרי חירום", "איך לפנות?"],
+    quickReplies: ["עזרה דחופה", "מספרי חירום", "תרגיל קרקוע 5-4-3-2-1"],
     options: []
   };
 }

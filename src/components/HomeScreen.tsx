@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy, Cloud } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy, Cloud, Target, Heart } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { doc } from "firebase/firestore";
+import CrisisHelpDialog from "@/components/CrisisHelpDialog";
+import { doc, query, collection, where, getDocs } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
@@ -30,6 +31,7 @@ interface HomeScreenProps {
   onGoToBreathing: (breathingId?: string) => void;
   onGoToBilateral: () => void;
   onGoToImagery: () => void;
+  onGoToAssessment: (type: "gad7" | "phq9") => void;
   onBack: () => void;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
@@ -388,6 +390,7 @@ export default function HomeScreen({
   onGoToBreathing, 
   onGoToBilateral,
   onGoToImagery,
+  onGoToAssessment,
   onBack,
   theme = "light",
   toggleTheme
@@ -402,6 +405,9 @@ export default function HomeScreen({
   const [isMinimized, setIsMinimized] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const [activeActionJournal, setActiveActionJournal] = useState<any>(null);
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -431,6 +437,60 @@ export default function HomeScreen({
       return () => clearTimeout(timer);
     }
   }, [messages, isSearching, recommendation]);
+
+  // Center scroll when chatbot opens
+  useEffect(() => {
+    if (messages.length > 1) {
+      const timer = setTimeout(() => {
+        chatContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length]);
+
+  // Center scroll on crisis detection
+  useEffect(() => {
+    if (recommendation?.isCrisis) {
+      const timer = setTimeout(() => {
+        chatContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [recommendation?.isCrisis]);
+
+  // Fetch active CBT action steps on mount
+  useEffect(() => {
+    if (!user || !firestore) return;
+    const q = query(
+      collection(firestore, "thoughtJournals"),
+      where("userId", "==", user.uid),
+      where("actionCompleted", "==", false)
+    );
+    getDocs(q).then((snapshot) => {
+      const list: any[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      if (list.length > 0) {
+        setActiveActionJournal(list[0]);
+      } else {
+        setActiveActionJournal(null);
+      }
+    }).catch(err => {
+      console.error("Failed to load active action steps:", err);
+    });
+  }, [user, firestore]);
+
+  const handleCompleteAction = () => {
+    if (!activeActionJournal || !firestore) return;
+    const docRef = doc(firestore, "thoughtJournals", activeActionJournal.id);
+    updateDocumentNonBlocking(docRef, {
+      actionCompleted: true,
+      actionCompletedAt: new Date().toISOString()
+    });
+    setActiveActionJournal(null);
+  };
 
   const favorites = profileData?.favorites || [];
   const completedCards = profileData?.completed || [];
@@ -531,6 +591,24 @@ export default function HomeScreen({
               </div>
               
               <div className="flex items-center gap-2">
+                <CrisisHelpDialog
+                  gender={displayGender}
+                  theme={theme}
+                  trigger={
+                    <button
+                      className={cn(
+                        "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                        isLight
+                          ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 shadow-sm"
+                          : "bg-rose-950/20 border-rose-900/30 text-rose-400 hover:text-rose-200 hover:border-rose-800"
+                      )}
+                      aria-label="עזרה ראשונה נפשית"
+                    >
+                      <LifeBuoy size={18} className="animate-pulse" />
+                    </button>
+                  }
+                />
+
                 <NotificationCenter isLight={isLight} />
 
                 {toggleTheme && (
@@ -616,10 +694,87 @@ export default function HomeScreen({
           />
         </div>
 
+        {/* Active Action Step (Behavioral Activation) */}
+        {activeActionJournal && (
+          <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div
+              className={cn(
+                "rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm flex items-center justify-between gap-4",
+                isLight ? "bg-indigo-50/80 border-indigo-100 text-indigo-900" : "bg-indigo-950/20 border-indigo-500/20 text-indigo-200"
+              )}
+            >
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
+                  <Target size={18} className="animate-pulse" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[9px] font-black uppercase tracking-widest leading-none text-indigo-400">ההתחייבות המעשית שלי</span>
+                  <p className="text-xs font-bold leading-relaxed truncate mt-1">
+                    "{activeActionJournal.actionStep}"
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCompleteAction}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow transition-all active:scale-95 shrink-0"
+              >
+                ביצעתי! ✓
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Clinical Assessment Bento Section */}
+        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => onGoToAssessment("gad7")}
+              className={cn(
+                "rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm text-right flex flex-col justify-between h-32 transition-all active:scale-95 group hover:border-indigo-400/50",
+                isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5"
+              )}
+            >
+              <div className="flex justify-between items-start w-full">
+                <span className={cn("text-[9px] font-black uppercase tracking-widest", isLight ? "text-indigo-600" : "text-indigo-400")}>
+                  הערכת חרדה
+                </span>
+                <Sparkles size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black">שאלון GAD-7</h4>
+                <p className={cn("text-[10px] font-bold leading-normal", isLight ? "text-slate-400" : "text-slate-500")}>
+                  בחינת רמות מתח ודאגה בשבועיים האחרונים
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onGoToAssessment("phq9")}
+              className={cn(
+                "rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm text-right flex flex-col justify-between h-32 transition-all active:scale-95 group hover:border-purple-400/50",
+                isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5"
+              )}
+            >
+              <div className="flex justify-between items-start w-full">
+                <span className={cn("text-[9px] font-black uppercase tracking-widest", isLight ? "text-purple-600" : "text-purple-400")}>
+                  מדד מצב רוח
+                </span>
+                <Heart size={16} className="text-purple-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black">שאלון PHQ-9</h4>
+                <p className={cn("text-[10px] font-bold leading-normal", isLight ? "text-slate-400" : "text-slate-500")}>
+                  בדיקת רווחה נפשית, אנרגיה ואיזון פנימי
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Intelligent Dialogue Section */}
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
           {recommendation && recommendation.isCrisis ? (
-            <div className="mt-6 p-8 bg-rose-955/40 backdrop-blur-xl rounded-[2.5rem] border-2 border-rose-500/30 shadow-2xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
+            <div ref={chatContainerRef} className="mt-6 p-8 bg-rose-955/40 backdrop-blur-xl rounded-[2.5rem] border-2 border-rose-500/30 shadow-2xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
               <div className="flex items-center gap-4 text-rose-455">
                 <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
                   <LifeBuoy size={28} />
@@ -677,7 +832,7 @@ export default function HomeScreen({
               </button>
             </div>
           ) : messages.length > 0 ? (
-            <div className="mb-6 bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-white/5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
+            <div ref={chatContainerRef} className="mb-6 bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-white/5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
               <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02] shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg">

@@ -383,8 +383,9 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
                   fill
                   className={cn(
                     "object-cover opacity-40 transition-all duration-[10000ms] ease-linear",
-                    trackStates[activeSound.id].playState === "playing" ? "rotate-180 scale-110" : ""
+                    trackStates[activeSound.id].playState === "playing" ? "scale-110" : ""
                   )}
+                  style={trackStates[activeSound.id].playState === "playing" ? { animation: "spin 20s linear infinite" } : undefined}
                 />
                 
                 <div className="relative w-16 h-16 rounded-full bg-slate-950/80 border border-white/10 flex items-center justify-center shadow-lg">

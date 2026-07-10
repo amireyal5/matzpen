@@ -69,6 +69,9 @@
             "isCrisis": { "type": "boolean" }
           }
         },
+        "actionStep": { "type": "string", "description": "פעולה התנהגותית שהמשתמש התחייב לבצע." },
+        "actionCompleted": { "type": "boolean", "description": "האם הפעולה בוצעה." },
+        "actionCompletedAt": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "event", "interpretation", "feeling", "reaction", "createdAt"]
@@ -87,6 +90,21 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "body", "read", "createdAt"]
+    },
+    "ClinicalAssessment": {
+      "title": "ClinicalAssessment",
+      "type": "object",
+      "description": "תוצאות שאלון הערכה עצמית קליני (GAD-7 / PHQ-9).",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["gad7", "phq9"] },
+        "answers": { "type": "array", "items": { "type": "number" } },
+        "totalScore": { "type": "number" },
+        "interpretation": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "answers", "totalScore", "createdAt"]
     }
   },
   "auth": {
@@ -116,6 +134,13 @@
         "$ref": "#/backend/entities/AppNotification"
       },
       "description": "אחסון התראות למשתמשים."
+    },
+    "clinicalAssessments": {
+      "path": "/clinicalAssessments/{assessmentId}",
+      "schema": {
+        "$ref": "#/backend/entities/ClinicalAssessment"
+      },
+      "description": "אחסון תוצאות הערכות קליניות."
     }
   }
 }

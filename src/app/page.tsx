@@ -14,13 +14,14 @@ import SoundsScreen from "@/components/SoundsScreen";
 import BreathingScreen from "@/components/BreathingScreen";
 import GuidedImageryScreen from "@/components/GuidedImageryScreen";
 import BilateralProcessing from "@/components/BilateralProcessing";
+import ClinicalAssessment from "@/components/ClinicalAssessment";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { onMessageListener } from "@/firebase/messaging";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery" | "assessment";
 
 interface HistoryState {
   screen: Screen;
@@ -30,6 +31,7 @@ interface HistoryState {
   breathingParams?: {
     initialBreathingId?: string;
   };
+  assessmentType?: "gad7" | "phq9";
 }
 
 function AppContent() {
@@ -42,6 +44,7 @@ function AppContent() {
   const [breathingParams, setBreathingParams] = useState<{
     initialBreathingId?: string;
   }>({});
+  const [assessmentType, setAssessmentType] = useState<"gad7" | "phq9">("gad7");
 
   const ambientMixer = useAmbientMixer();
   const { stopAll } = ambientMixer;
@@ -54,12 +57,14 @@ function AppContent() {
       catKey?: string;
       practiceIdx?: number;
       breathingParams?: { initialBreathingId?: string };
+      assessmentType?: "gad7" | "phq9";
     },
     replace = false
   ) => {
     if (params?.catKey !== undefined) setActiveCatKey(params.catKey);
     if (params?.practiceIdx !== undefined) setActivePracticeIdx(params.practiceIdx);
     if (params?.breathingParams !== undefined) setBreathingParams(params.breathingParams);
+    if (params?.assessmentType !== undefined) setAssessmentType(params.assessmentType);
     setScreen(newScreen);
 
     if (typeof window === "undefined") return;
@@ -71,6 +76,7 @@ function AppContent() {
       catKey: params?.catKey !== undefined ? params.catKey : (newScreen === "deck" || newScreen === "guided" ? activeCatKey : undefined),
       practiceIdx: params?.practiceIdx !== undefined ? params.practiceIdx : (newScreen === "guided" ? activePracticeIdx : undefined),
       breathingParams: params?.breathingParams !== undefined ? params.breathingParams : (newScreen === "breathing" ? breathingParams : undefined),
+      assessmentType: params?.assessmentType !== undefined ? params.assessmentType : (newScreen === "assessment" ? assessmentType : undefined)
     };
 
     if (replace) {
@@ -100,6 +106,7 @@ function AppContent() {
         if (state.catKey !== undefined) setActiveCatKey(state.catKey);
         if (state.practiceIdx !== undefined) setActivePracticeIdx(state.practiceIdx);
         if (state.breathingParams !== undefined) setBreathingParams(state.breathingParams);
+        if (state.assessmentType !== undefined) setAssessmentType(state.assessmentType);
         setScreen(state.screen);
       }
     };
@@ -142,10 +149,11 @@ function AppContent() {
       let initialPracticeIdx = undefined;
       let initialBreathingParams = undefined;
 
-      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery"].includes(storedScreen)) {
+      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery", "assessment"].includes(storedScreen)) {
         const storedCatKey = localStorage.getItem("matzpen_catKey");
         const storedPracticeIdx = localStorage.getItem("matzpen_practiceIdx");
         const storedBreathingParams = localStorage.getItem("matzpen_breathingParams");
+        const storedAssessmentType = localStorage.getItem("matzpen_assessmentType") as "gad7" | "phq9" | null;
 
         if (storedCatKey) {
           setActiveCatKey(storedCatKey);
@@ -161,6 +169,9 @@ function AppContent() {
             setBreathingParams(parsed);
             initialBreathingParams = parsed;
           } catch (e) {}
+        }
+        if (storedAssessmentType) {
+          setAssessmentType(storedAssessmentType);
         }
         setScreen(storedScreen);
       } else {
@@ -186,8 +197,9 @@ function AppContent() {
       localStorage.setItem("matzpen_catKey", activeCatKey);
       localStorage.setItem("matzpen_practiceIdx", String(activePracticeIdx));
       localStorage.setItem("matzpen_breathingParams", JSON.stringify(breathingParams));
+      localStorage.setItem("matzpen_assessmentType", assessmentType);
     }
-  }, [screen, theme, activeCatKey, activePracticeIdx, breathingParams, isHydrated]);
+  }, [screen, theme, activeCatKey, activePracticeIdx, breathingParams, assessmentType, isHydrated]);
 
   // Splash screen show/skip logic
   useEffect(() => {
@@ -314,6 +326,7 @@ function AppContent() {
             }}
             onGoToBilateral={() => navigateTo("bilateral")}
             onGoToImagery={() => navigateTo("imagery")}
+            onGoToAssessment={(type) => navigateTo("assessment", { assessmentType: type })}
             onBack={() => handleBack("landing")} 
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
@@ -379,6 +392,15 @@ function AppContent() {
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
+        {(screen === "assessment" && user) && (
+          <ClinicalAssessment
+            gender={gender}
+            onBack={() => handleBack("home")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+            type={assessmentType}
           />
         )}
       </main>

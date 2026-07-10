@@ -17,13 +17,20 @@ import {
   AlertTriangle, 
   UserPlus, 
   ChevronLeft,
+  ChevronRight,
   Check,
   Info,
   Play,
   Pause,
   Sun,
   Moon,
-  User as UserIcon
+  User as UserIcon,
+  Eye,
+  Headphones,
+  Hand,
+  Compass,
+  Heart,
+  Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,13 +41,51 @@ import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { analyzeJournal, JournalAnalysisOutput } from "@/ai/flows/journal-analysis-flow";
-import { useUser, useFirestore, addDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+const GROUNDING_STEPS = [
+  {
+    step: 5,
+    title: "5 דברים שניתן לראות",
+    desc: "הבט/י סביבך ומצא/י 5 חפצים או פרטים שונים בחדר או בחוץ.",
+    icon: Eye,
+    color: "text-blue-500 bg-blue-500/10",
+  },
+  {
+    step: 4,
+    title: "4 דברים שניתן לגעת בהם",
+    desc: "שים/י לב למגע של הבגדים על העור, הרצפה מתחת לרגליים או חפץ פיזי קרוב.",
+    icon: Hand,
+    color: "text-emerald-500 bg-emerald-500/10",
+  },
+  {
+    step: 3,
+    title: "3 דברים שניתן לשמוע",
+    desc: "הקשב/י לקולות סביבך: רעש רקע של מכשירים, ציפורים או נשימה.",
+    icon: Headphones,
+    color: "text-indigo-500 bg-indigo-500/10",
+  },
+  {
+    step: 2,
+    title: "2 דברים שניתן להריח",
+    desc: "נסה/י לזהות ריח כלשהו באוויר, או קרב/י בגד או חפץ להרחה עמוקה.",
+    icon: Compass,
+    color: "text-amber-500 bg-amber-500/10",
+  },
+  {
+    step: 1,
+    title: "1 דבר שניתן לטעום",
+    desc: "שים/י לב לטעם הנוכחי בפה, או קח/י לגימת מים קטנה והתמקד/י בטעם.",
+    icon: Heart,
+    color: "text-rose-500 bg-rose-500/10",
+  },
+];
 
 interface ThoughtJournalProps {
   gender: "m" | "f";
@@ -87,6 +132,12 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
   const [moodIntensity, setMoodIntensity] = useState<number>(50);
   const [additionalFeelingText, setAdditionalFeelingText] = useState("");
+  const [groundingStep, setGroundingStep] = useState<number | null>(null);
+
+  // Behavioral Activation states
+  const [docRef, setDocRef] = useState<any>(null);
+  const [actionStepText, setActionStepText] = useState("");
+  const [actionCommitted, setActionCommitted] = useState(false);
 
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -366,11 +417,14 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
         
         if (user && firestore) {
           const journalsRef = collection(firestore, "thoughtJournals");
-          addDocumentNonBlocking(journalsRef, {
+          const promise = addDocumentNonBlocking(journalsRef, {
             userId: user.uid,
             ...data,
             analysis: result,
             createdAt: new Date().toISOString()
+          });
+          promise.then((ref) => {
+            if (ref) setDocRef(ref);
           });
         }
 
@@ -382,6 +436,15 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
         setStep("finish");
       }
     }
+  };
+
+  const handleCommitAction = () => {
+    if (!docRef || !actionStepText.trim()) return;
+    updateDocumentNonBlocking(docRef, {
+      actionStep: actionStepText.trim(),
+      actionCompleted: false
+    });
+    setActionCommitted(true);
   };
 
   const handleTagClick = (tag: string) => {
@@ -534,43 +597,143 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                 {analysis.summary}
               </p>
 
-              <div className="grid gap-4">
-                <a href="tel:1201" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר לערן">
-                  <div className="flex items-center gap-4 text-right">
-                    <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone size={20} />
-                    </div>
-                    <div>
-                      <span className="block font-black text-rose-300">ער"ן - עזרה ראשונה נפשית</span>
-                      <span className="block text-xs text-slate-400">חיוג חינם: 1201</span>
+              {groundingStep === null ? (
+                <div className="space-y-6">
+                  <div className="grid gap-4">
+                    <a href="tel:1201" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר לערן">
+                      <div className="flex items-center gap-4 text-right">
+                        <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Phone size={20} />
+                        </div>
+                        <div>
+                          <span className="block font-black text-rose-300">ער"ן - עזרה ראשונה נפשית</span>
+                          <span className="block text-xs text-slate-400">חיוג חינם לשיחה דיסקרטית: 1201</span>
+                        </div>
+                      </div>
+                      <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
+                    </a>
+
+                    <a href="https://sahar.org.il/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="אתר סהר">
+                      <div className="flex items-center gap-4 text-right">
+                        <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Heart size={20} />
+                        </div>
+                        <div>
+                          <span className="block font-black text-indigo-300">סה"ר - סיוע והקשבה ברשת</span>
+                          <span className="block text-xs text-slate-400">תמיכה בצ'אט מקוון בכתב</span>
+                        </div>
+                      </div>
+                      <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
+                    </a>
+
+                    <a href="tel:101" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר למדא">
+                      <div className="flex items-center gap-4 text-right">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Phone size={20} />
+                        </div>
+                        <div>
+                          <span className="block font-black text-emerald-300">מד"א - חירום רפואי</span>
+                          <span className="block text-xs text-slate-400">חיוג חירום: 101</span>
+                        </div>
+                      </div>
+                      <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
+                    </a>
+
+                    <div className="p-6 bg-indigo-950/20 border border-indigo-500/20 rounded-2xl flex items-center gap-4 text-right">
+                      <UserPlus className="text-indigo-400 shrink-0" size={24} aria-hidden="true" />
+                      <p className="text-sm font-bold text-indigo-200 leading-relaxed">
+                        {g(
+                          "בבקשה, פנה עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.",
+                          "בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישארי לבד."
+                        )}
+                      </p>
                     </div>
                   </div>
-                  <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
-                </a>
 
-                <a href="tel:101" className="flex items-center justify-between p-5 bg-slate-900/80 border border-rose-500/20 rounded-2xl hover:bg-rose-950/30 transition-all group" aria-label="התקשר למדא">
-                  <div className="flex items-center gap-4 text-right">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone size={20} />
-                    </div>
-                    <div>
-                      <span className="block font-black text-emerald-300">מד"א - חירום רפואי</span>
-                      <span className="block text-xs text-slate-400">חיוג חירום: 101</span>
-                    </div>
+                  <div className="p-5 bg-indigo-950/10 border border-indigo-500/20 rounded-2xl flex flex-col items-center gap-3 text-center">
+                    <p className="text-xs font-bold leading-relaxed text-indigo-300">
+                      {g("חווה עומס נפשי כרגע? תוכל להתחיל תרגיל קצר לקרקוע חושי והרגעה.", "חווה עומס נפשי כרגע? תוכל להתחיל תרגיל קצר לקרקוע חושי והרגעה.")}
+                    </p>
+                    <Button
+                      onClick={() => setGroundingStep(0)}
+                      className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5"
+                    >
+                      התחל תרגיל קרקוע 5-4-3-2-1
+                    </Button>
                   </div>
-                  <ChevronLeft size={20} className="text-rose-400/50 rotate-180" />
-                </a>
-
-                <div className="p-6 bg-indigo-950/20 border border-indigo-500/20 rounded-2xl flex items-center gap-4 text-right">
-                  <UserPlus className="text-indigo-400 shrink-0" size={24} aria-hidden="true" />
-                  <p className="text-sm font-bold text-indigo-200 leading-relaxed">
-                    {g(
-                      "בבקשה, פנה עכשיו לחבר קרוב או בן משפחה. אל תישאר לבד.",
-                      "בבקשה, פני עכשיו לחבר קרוב או בן משפחה. אל תישארי לבד."
-                    )}
-                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  {(() => {
+                    const currentStep = GROUNDING_STEPS[groundingStep];
+                    const Icon = currentStep.icon;
+                    return (
+                      <div className="flex flex-col items-center text-center space-y-4 py-4">
+                        <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner", currentStep.color)}>
+                          <Icon size={32} />
+                        </div>
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest leading-none">
+                            שלב {groundingStep + 1} מתוך 5
+                          </span>
+                          <h4 className="text-lg font-black text-white">{currentStep.title}</h4>
+                          <p className="text-sm leading-relaxed max-w-xs text-rose-100">
+                            {gender === "f"
+                              ? currentStep.desc
+                                  .replace("הבט/י", "הביטי")
+                                  .replace("מצא/י", "מצאי")
+                                  .replace("שים/י", "שימי")
+                                  .replace("הקשב/י", "הקשיבי")
+                                  .replace("נסה/י", "נסי")
+                                  .replace("קרב/י", "קרבי")
+                                  .replace("התמקד/י", "התמקדי")
+                              : currentStep.desc
+                                  .replace("הבט/י", "הבט")
+                                  .replace("מצא/י", "מצא")
+                                  .replace("שים/י", "שים")
+                                  .replace("הקשב/י", "הקשב")
+                                  .replace("נסה/י", "נסה")
+                                  .replace("קרב/י", "קרב")
+                                  .replace("התמקד/י", "התמקד")}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        if (groundingStep > 0) {
+                          setGroundingStep(prev => (prev !== null ? prev - 1 : null));
+                        } else {
+                          setGroundingStep(null);
+                        }
+                      }}
+                      className="rounded-xl text-xs font-bold gap-1.5 text-rose-300 hover:bg-white/5 hover:text-white"
+                    >
+                      <ChevronRight size={14} />
+                      <span>חזור</span>
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (groundingStep < GROUNDING_STEPS.length - 1) {
+                          setGroundingStep(prev => (prev !== null ? prev + 1 : 0));
+                        } else {
+                          setGroundingStep(null);
+                        }
+                      }}
+                      className="rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5"
+                    >
+                      <span>
+                        {groundingStep === GROUNDING_STEPS.length - 1 ? "סיום" : "המשך"}
+                      </span>
+                      <ChevronLeft size={14} />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -697,6 +860,84 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                     <p className={cn("leading-relaxed text-base", isLight ? "text-slate-600" : "text-slate-300")}>
                       {analysis.summary}
                     </p>
+                  </div>
+
+                  {/* Action Step Commitment Card */}
+                  <div className={cn("space-y-4 border rounded-3xl p-6 lg:col-span-2", isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5")}>
+                    <div className="flex items-center gap-2 pr-1 mb-2">
+                      <Target size={18} className="text-indigo-500 animate-pulse" />
+                      <h3 className={cn("text-xs font-black uppercase tracking-widest", isLight ? "text-slate-500" : "text-slate-400")}>הצעד המעשי שלי (CBT אקטיבציה התנהגותית)</h3>
+                    </div>
+                    
+                    {!actionCommitted ? (
+                      <div className="space-y-4">
+                        <p className={cn("text-sm leading-relaxed", isLight ? "text-slate-600" : "text-slate-350")}>
+                          {g(
+                            "כדי להטמיע את הזווית הבריאה במציאות, בחר פעולה אחת קטנה ומעשית שאתה מתחייב לבצע מחר:",
+                            "כדי להטמיע את הזווית הבריאה במציאות, בחרי פעולה אחת קטנה ומעשית שאת מתחייבת לבצע מחר:"
+                          )}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "לדבר עם מישהו קרוב על מה שקרה",
+                            "לרשום לעצמי תזכורת חיובית בטלפון",
+                            "לעשות 10 דקות של הליכה או מנוחה",
+                            "לנסות את הדבר שנמנעתי ממנו"
+                          ].map((suggested, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setActionStepText(suggested)}
+                              className={cn(
+                                "px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
+                                actionStepText === suggested
+                                  ? "bg-indigo-600 border-indigo-500 text-white"
+                                  : isLight
+                                    ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                                    : "bg-white/5 border-white/5 text-slate-400 hover:bg-white/10"
+                              )}
+                            >
+                              {suggested}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={actionStepText}
+                            onChange={(e) => setActionStepText(e.target.value)}
+                            placeholder="מה הפעולה המעשית שלך?"
+                            className={cn(
+                              "flex-1 rounded-xl p-3 text-xs font-bold outline-none border focus:border-indigo-500/50",
+                              isLight
+                                ? "bg-slate-50 border-slate-200 text-slate-900"
+                                : "bg-slate-950 border-white/5 text-white"
+                            )}
+                          />
+                          <Button
+                            onClick={handleCommitAction}
+                            disabled={!actionStepText.trim() || !docRef}
+                            className="rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-5"
+                          >
+                            אני מתחייב/ת
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4 py-2 animate-in fade-in duration-500">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                          <CheckCircle2 size={20} />
+                        </div>
+                        <div>
+                          <h4 className={cn("text-sm font-black", isLight ? "text-slate-900" : "text-white")}>ההתחייבות שלך נשמרה</h4>
+                          <p className={cn("text-xs leading-normal italic mt-1 font-medium", isLight ? "text-slate-600" : "text-slate-350")}>
+                            "{actionStepText}"
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

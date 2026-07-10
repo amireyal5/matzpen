@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { generateSpeech } from "@/ai/flows/tts-flow";
 import { useWakeLock } from "@/hooks/use-wake-lock";
+import { useBilateralAudio } from "@/hooks/use-bilateral-audio";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
@@ -196,6 +197,12 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+
+  // Setup tabs and Bilateral Audio state
+  const [setupTab, setSetupTab] = useState<'focus' | 'settings'>('focus');
+  const [bilateralAudioEnabled, setBilateralAudioEnabled] = useState(true);
+  const [bilateralToneType, setBilateralToneType] = useState<'click' | 'tone' | 'bowl'>('click');
+  const [bilateralVolume, setBilateralVolume] = useState(0.5);
 
   useWakeLock(isPlaying);
 
@@ -409,6 +416,13 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     (treatmentMode === 'resource' && resourcePhase === 'install')
   );
 
+  useBilateralAudio({
+    enabled: bilateralAudioEnabled && isStimulusMoving,
+    side: blsSide,
+    volume: bilateralVolume,
+    toneType: bilateralToneType,
+  });
+
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     if (isPlaying && sessionState === "active" && phaseTimeLeft > 0) {
@@ -535,131 +549,218 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
             </div>
           </header>
 
-          <main className="max-w-xl lg:max-w-3xl mx-auto w-full pt-8 pb-24 px-6 space-y-8">
+          <main className="max-w-xl lg:max-w-3xl mx-auto w-full pt-8 pb-24 px-6 space-y-6">
             <div className="space-y-2">
               <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">כיול הגדרות הטיפול</h1>
               <p className={cn("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>בחרו את מצב הטיפול הדו-צדדי והתאימו את ההגדרות למצבכם כרגע.</p>
             </div>
 
-            <div className="space-y-3">
-              <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>סוג התרגול הבילטרלי</span>
-              <div className={cn("grid grid-cols-2 gap-2 p-1.5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
-                <button
-                  onClick={() => setTreatmentMode('desensitize')}
-                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'desensitize' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
-                >
-                  פריקה והפחתת מצוקה
-                </button>
-                <button
-                  onClick={() => setTreatmentMode('resource')}
-                  className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'resource' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
-                >
-                  חיזוק והטמעת משאבים
-                </button>
-              </div>
+            {/* Segmented Tab Selectors for Mobile Ergonomics */}
+            <div className={cn("grid grid-cols-2 gap-2 p-1 rounded-2xl border", isLight ? "bg-slate-100 border-slate-200" : "bg-white/5 border-white/5")}>
+              <button
+                type="button"
+                onClick={() => setSetupTab('focus')}
+                className={cn(
+                  "py-2.5 rounded-xl text-center text-xs font-black transition-all",
+                  setupTab === 'focus'
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                )}
+              >
+                1. מיקוד וקושי
+              </button>
+              <button
+                type="button"
+                onClick={() => setSetupTab('settings')}
+                className={cn(
+                  "py-2.5 rounded-xl text-center text-xs font-black transition-all",
+                  setupTab === 'settings'
+                    ? "bg-indigo-600 text-white shadow-md"
+                    : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white"
+                )}
+              >
+                2. עיצוב וצליל
+              </button>
             </div>
 
-            <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0 space-y-8">
-            {treatmentMode === 'desensitize' ? (
-              <>
+            {setupTab === 'focus' ? (
+              /* TAB 1: FOCUS & TARGETS */
+              <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="space-y-3">
-                  <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>1. מה מקור המצוקה כרגע?</span>
-                  <div className="flex flex-wrap gap-2">
-                    {["חרדה", "כעס", "הצפה", "זיכרון כואב", "מתח פיזי"].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => { setDistressCategory(cat); setCustomDistress(""); }}
-                        className={cn("py-2.5 px-4 rounded-xl border text-xs font-bold transition-all", distressCategory === cat && !customDistress ? "bg-indigo-600/20 border-indigo-500 text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    value={customDistress}
-                    onChange={(e) => { setCustomDistress(e.target.value); setDistressCategory(""); }}
-                    placeholder="או תארו משהו אחר במילים שלכם..."
-                    className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-white/5 border-white/5 text-white placeholder:text-slate-600")}
-                  />
-                </div>
-
-                <div className={cn("space-y-4 p-6 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
-                  <div className="flex justify-between items-center">
-                    <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>2. דרגו את עוצמת המצוקה כעת:</span>
-                    <span className={cn("text-sm font-mono font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds} מתוך 10</span>
-                  </div>
-                  <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>1. בחרו נתיב מיקוד חיובי</span>
-                <div className="grid gap-3">
-                  {CATEGORIES.map((cat) => (
+                  <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>סוג התרגול הבילטרלי</span>
+                  <div className={cn("grid grid-cols-2 gap-2 p-1.5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                     <button
-                      key={cat.id}
-                      onClick={() => setSelectedCat(cat)}
-                      className={cn("p-5 rounded-3xl border text-right flex items-center justify-between transition-all duration-300", selectedCat.id === cat.id ? "bg-indigo-600/15 border-indigo-500 shadow-lg shadow-indigo-500/5 text-slate-900 dark:text-white" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
+                      onClick={() => setTreatmentMode('desensitize')}
+                      className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'desensitize' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-400")}><cat.icon size={20} /></div>
-                        <div>
-                          <h3 className={cn("font-bold text-sm", isLight ? "text-slate-900" : "text-white")}>{cat.title}</h3>
-                          <p className={cn("text-[10px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
-                        </div>
+                      פריקה והפחתת מצוקה
+                    </button>
+                    <button
+                      onClick={() => setTreatmentMode('resource')}
+                      className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'resource' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
+                    >
+                      חיזוק והטמעת משאבים
+                    </button>
+                  </div>
+                </div>
+
+                {treatmentMode === 'desensitize' ? (
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מה מקור המצוקה כרגע?</span>
+                      <div className="flex flex-wrap gap-2">
+                        {["חרדה", "כעס", "הצפה", "זיכרון כואב", "מתח פיזי"].map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => { setDistressCategory(cat); setCustomDistress(""); }}
+                            className={cn("py-2 px-3.5 rounded-xl border text-xs font-bold transition-all", distressCategory === cat && !customDistress ? "bg-indigo-600/20 border-indigo-500 text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
+                          >
+                            {cat}
+                          </button>
+                        ))}
                       </div>
-                      {selectedCat.id === cat.id && <Check size={18} className={isLight ? "text-indigo-600" : "text-indigo-400"} />}
-                    </button>
-                  ))}
+                      <input
+                        type="text"
+                        value={customDistress}
+                        onChange={(e) => { setCustomDistress(e.target.value); setDistressCategory(""); }}
+                        placeholder="או תארו משהו אחר במילים שלכם..."
+                        className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-white/5 border-white/5 text-white placeholder:text-slate-600")}
+                      />
+                    </div>
+
+                    <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                      <div className="flex justify-between items-center">
+                        <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>דרגו את עוצמת המצוקה כעת:</span>
+                        <span className={cn("text-sm font-mono font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds} מתוך 10</span>
+                      </div>
+                      <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>בחרו נתיב מיקוד חיובי</span>
+                    <div className="grid gap-2">
+                      {CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelectedCat(cat)}
+                          className={cn("p-4 rounded-3xl border text-right flex items-center justify-between transition-all duration-300", selectedCat.id === cat.id ? "bg-indigo-600/15 border-indigo-500 shadow-lg text-slate-900 dark:text-white" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-400")}><cat.icon size={18} /></div>
+                            <div>
+                              <h3 className={cn("font-bold text-xs", isLight ? "text-slate-900" : "text-white")}>{cat.title}</h3>
+                              <p className={cn("text-[9px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
+                            </div>
+                          </div>
+                          {selectedCat.id === cat.id && <Check size={16} className={isLight ? "text-indigo-600" : "text-indigo-400"} />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* TAB 2: ANIMATION, SPEEDS, SOUNDS */
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Visual Stimulus Settings */}
+                <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                  <div className={cn("flex items-center gap-2 text-xs font-black border-b pb-3 mb-2", isLight ? "border-slate-200" : "border-white/5")}><Paintbrush size={14} className={isLight ? "text-indigo-600" : "text-indigo-400"} /><span>עיצוב הגירוי הויזואלי</span></div>
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-black text-slate-500 block">סוג האנימציה</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {STIMULUS_SHAPES.map((sh) => (
+                        <button key={sh.id} onClick={() => setStimulusShape(sh.id as any)} className={cn("py-2 px-3 rounded-xl border text-xs font-bold transition-all", stimulusShape === sh.id ? (isLight ? "bg-slate-100 border-slate-300 text-slate-900" : "bg-white/10 border-white/20 text-white") : isLight ? "bg-transparent border-slate-200 text-slate-500" : "bg-transparent border-white/5 text-slate-400")}>{sh.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[9px] font-black text-slate-500 block font-bold">צבע הכדור / האלמנט</span>
+                    <div className="flex gap-3">
+                      {STIMULUS_COLORS.map((col) => (
+                        <button key={col.id} onClick={() => setStimulusColor(col.id as any)} className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-all", stimulusColor === col.id ? cn("ring-2 ring-offset-2 scale-110", isLight ? "ring-slate-900 ring-offset-white" : "ring-white ring-offset-slate-950") : "opacity-80 hover:opacity-100")} style={{ backgroundColor: col.hex }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pacing Speed */}
+                {treatmentMode === 'resource' && (
+                  <div className="space-y-3">
+                    <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>קצב הגירוי להטמעה (מהירות)</span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {SPEEDS.map((sp) => (
+                        <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-2.5 rounded-2xl border text-center flex flex-col gap-1 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-slate-900 dark:text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
+                          <span className="text-xs font-bold block">{sp.label}</span>
+                          <span className="text-[8px] text-slate-500 font-mono block">{sp.desc} למחזור</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Background Ambient Music */}
+                <div className="space-y-2">
+                  <label className={cn("text-xs font-black tracking-widest uppercase block pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מוזיקת רקע מרגיעה</label>
+                  <select value={selectedSoundId} onChange={(e) => setSelectedSoundId(e.target.value)} className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900" : "bg-white/5 border-white/5 text-white")}>
+                    <option value="none" className="bg-slate-900 text-slate-400">ללא מוזיקה</option>
+                    {AMBIENT_SOUNDS.map((s) => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.label}</option>)}
+                  </select>
+                </div>
+
+                {/* Dynamic Bilateral Audio (Stereo Panning) Settings */}
+                <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                  <div className="flex justify-between items-center border-b pb-3 mb-2 border-slate-200 dark:border-white/5">
+                    <span className="text-xs font-black uppercase text-indigo-400">צליל בילטרלי (שמע באוזניות)</span>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={bilateralAudioEnabled}
+                        onChange={(e) => setBilateralAudioEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </div>
+
+                  {bilateralAudioEnabled && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="space-y-2">
+                        <span className="text-[9px] font-black text-slate-500 block">סוג הצליל הדו-צדדי</span>
+                        <select
+                          value={bilateralToneType}
+                          onChange={(e) => setBilateralToneType(e.target.value as any)}
+                          className={cn("w-full rounded-xl p-3 text-xs font-bold outline-none border", isLight ? "bg-white border-slate-200 text-slate-900" : "bg-slate-950 border-white/5 text-white")}
+                        >
+                          <option value="click" className="bg-slate-900 text-white">נקישה עדינה (עבור פוקוס)</option>
+                          <option value="tone" className="bg-slate-900 text-white">טון סינוס מרגיע (396Hz)</option>
+                          <option value="bowl" className="bg-slate-900 text-white">קערה טיבטית מהדהדת</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-slate-500 block">עוצמת צליל בילטרלי</span>
+                          <span className="text-[10px] font-mono text-indigo-400">{Math.round(bilateralVolume * 100)}%</span>
+                        </div>
+                        <Slider
+                          value={[bilateralVolume * 100]}
+                          max={100}
+                          onValueChange={(vals) => setBilateralVolume(vals[0] / 100)}
+                          className="py-2 cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="text-[9px] font-bold text-indigo-400 bg-indigo-500/5 p-2.5 rounded-xl border border-indigo-500/10 text-center">
+                        💡 מומלץ להרכיב אוזניות סטריאו כדי לחוות את אפקט תנועת השמע הדו-צדדית.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            <div className={cn("space-y-4 p-6 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
-              <div className={cn("flex items-center gap-2 text-sm font-bold border-b pb-3 mb-2", isLight ? "border-slate-200" : "border-white/5")}><Paintbrush size={16} className={isLight ? "text-indigo-600" : "text-indigo-400"} /><span>עיצוב הגירוי הויזואלי</span></div>
-              <div className="space-y-2">
-                <span className="text-[10px] font-black text-slate-500 block">סוג האנימציה</span>
-                <div className="grid grid-cols-3 gap-2">
-                  {STIMULUS_SHAPES.map((sh) => (
-                    <button key={sh.id} onClick={() => setStimulusShape(sh.id as any)} className={cn("py-2 px-3 rounded-xl border text-xs font-bold transition-all", stimulusShape === sh.id ? (isLight ? "bg-slate-100 border-slate-300 text-slate-900" : "bg-white/10 border-white/20 text-white") : isLight ? "bg-transparent border-slate-200 text-slate-500" : "bg-transparent border-white/5 text-slate-400")}>{sh.label}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2 pt-2">
-                <span className="text-[10px] font-black text-slate-500 block font-bold">צבע הכדור / האלמנט</span>
-                <div className="flex gap-3">
-                  {STIMULUS_COLORS.map((col) => (
-                    <button key={col.id} onClick={() => setStimulusColor(col.id as any)} className={cn("w-9 h-9 rounded-full flex items-center justify-center transition-all", stimulusColor === col.id ? cn("ring-2 ring-offset-2 scale-110", isLight ? "ring-slate-900 ring-offset-white" : "ring-white ring-offset-slate-950") : "opacity-80 hover:opacity-100")} style={{ backgroundColor: col.hex }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {treatmentMode === 'resource' && (
-              <div className="space-y-3">
-                <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>קצב הגירוי להטמעה (מהירות)</span>
-                <div className="grid grid-cols-3 gap-2">
-                  {SPEEDS.map((sp) => (
-                    <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-3.5 rounded-2xl border text-center flex flex-col gap-1.5 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-slate-900 dark:text-white shadow-md" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
-                      <span className="text-xs font-bold block">{sp.label}</span>
-                      <span className="text-[9px] text-slate-500 font-mono block">{sp.desc} למחזור</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className={cn("text-[10px] font-black tracking-widest uppercase block pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מוזיקת רקע דו-צדדית (פנינג סטריאו)</label>
-              <select value={selectedSoundId} onChange={(e) => setSelectedSoundId(e.target.value)} className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900" : "bg-white/5 border-white/5 text-white")}>
-                <option value="none" className="bg-slate-900 text-slate-400">ללא מוזיקה</option>
-                {AMBIENT_SOUNDS.map((s) => <option key={s.id} value={s.id} className="bg-slate-900 text-white">{s.label}</option>)}
-              </select>
-            </div>
-            </div>
-
-            <Button onClick={handleStartSession} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-8 rounded-[2rem] text-xl shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-3">
+            <Button onClick={handleStartSession} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2rem] text-lg shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-3">
               <span>התחל תרגול עיבוד</span> <Play className="h-5 w-5 fill-white" />
             </Button>
           </main>
