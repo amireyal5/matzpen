@@ -711,7 +711,7 @@ export default function HomeScreen({
                 {/* Subtle background pulse animation */}
                 <div className="absolute inset-0 bg-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-500" />
                 <LifeBuoy size={20} className="animate-pulse text-rose-500" />
-                <span>🆘 צריכה עזרה מיידית? (תרגיל קרקוע וחירום)</span>
+                <span>{displayGender === "f" ? "🆘 צריכה עזרה מיידית? (תרגיל קרקוע וחירום)" : "🆘 צריך עזרה מיידית? (תרגיל קרקוע וחירום)"}</span>
               </button>
             }
           />
@@ -1024,124 +1024,100 @@ export default function HomeScreen({
         {/* Main Section */}
         <div className="max-w-xl lg:max-w-5xl mx-auto px-6 lg:px-8 mt-10 space-y-10 lg:space-y-14 pb-20">
           
-          {/* Strategic Tools Bento Grid */}
+          {/* Strategic Tools Bento Grid - Replaced with 3 main goal actions for active PTSD / Panic Relief */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
               <Sparkles size={14} className="text-indigo-400" />
-              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כלים מהירים להקלה</h3>
+              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>איך אפשר לעזור לך כרגע?</h3>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-              {/* CBT Journal - Archived for PTSD focus
-              <button 
-                onClick={onGoToJournal}
-                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
-                aria-label="יומן מחשבות CBT"
-              >
-                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                  <BookText size={20} />
-                </div>
-                <div className="space-y-1 mt-4 z-10">
-                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>יומן מחשבות</span>
-                  <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">CBT • אפר"ת</span>
-                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">וויסות רגשי דרך שינוי דפוסי חשיבה</span>
-                </div>
-              </button>
-              */}
-
-              {/* Bilateral EMDR */}
-              <button 
-                onClick={onGoToBilateral}
-                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
-                aria-label="עיבוד בילטרלי EMDR"
-              >
-                {/* Visual back and forth tracking orb decoration in background */}
-                <div className="absolute top-[35%] left-0 right-0 h-[1px] bg-indigo-500/5 pointer-events-none" />
-                <div className="absolute top-[35%] left-0 right-0 -translate-y-1/2 h-4 pointer-events-none opacity-30">
-                  <div className="absolute w-2 h-2 rounded-full bg-indigo-400 blur-[1px] animate-bls-bento" style={{ animation: 'bento-bls 3.5s infinite ease-in-out' }} />
-                </div>
-                
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(99,102,241,0.4)]">
-                  <Zap size={20} className="fill-current" />
-                </div>
-                <div className="space-y-1 mt-4 z-10">
-                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עיבוד בילטרלי</span>
-                  <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">EMDR Style</span>
-                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נטרול רגשות קשים והטמעת משאבים</span>
-                </div>
-              </button>
-
-              {/* Breathing Exercises */}
-              <button 
-                onClick={() => onGoToBreathing()}
-                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-emerald-400/50 hover:shadow-emerald-100/50" : "bg-slate-900/40 border-white/5 hover:border-emerald-500/30 hover:bg-slate-900/60")}
-                aria-label="תרגולי נשימה מווסתים"
-              >
-                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-emerald-500/5 blur-2xl group-hover:bg-emerald-500/10 transition-colors pointer-events-none" />
-                <div className="absolute left-4 top-4 w-12 h-12 rounded-full border border-emerald-500/10 pointer-events-none flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/5 border border-emerald-500/20" style={{ animation: 'bento-breath 4s infinite ease-in-out' }} />
-                </div>
-                
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                  <Wind size={20} />
-                </div>
-                <div className="space-y-1 mt-4 z-10">
-                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>תרגולי נשימה</span>
-                  <span className="block text-[10px] text-emerald-400 font-black tracking-widest uppercase">ויסות והרגעה</span>
-                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">קצב ויזואלי מונחה עם פעמון עדין</span>
-                </div>
-              </button>
-
-              {/* Ambient Sounds */}
-              <button 
-                onClick={() => onGoToSounds()}
-                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-indigo-400/50 hover:shadow-indigo-100/50" : "bg-slate-900/40 border-white/5 hover:border-indigo-500/30 hover:bg-slate-900/60")}
-                aria-label="צלילי מרחב לשלווה"
-              >
-                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl group-hover:bg-indigo-500/10 transition-colors pointer-events-none" />
-                <div className="absolute left-4 top-4 flex items-end gap-0.5 h-6 w-8 pointer-events-none opacity-25">
-                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-1" style={{ height: "40%" }} />
-                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-2" style={{ height: "80%" }} />
-                  <span className="w-1 bg-indigo-400 rounded-full eq-bar-3" style={{ height: "50%" }} />
-                </div>
-
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                  <Music size={20} />
-                </div>
-                <div className="space-y-1 mt-4 z-10">
-                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>צלילי מרחב</span>
-                  <span className="block text-[10px] text-indigo-400 font-black tracking-widest uppercase">מוזיקה מרגיעה</span>
-                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">נעימות סביבתיות וקערות טיבטיות</span>
-                </div>
-              </button>
-
-              {/* Guided Imagery */}
+              {/* Goal 1: עזרה להירגע */}
               <button
-                onClick={onGoToImagery}
-                className={cn("col-span-1 p-5 rounded-[2rem] backdrop-blur-xl border shadow-lg flex flex-col justify-between items-start text-right min-h-[160px] active:scale-95 transition-all group overflow-hidden relative", isLight ? "bg-white/70 border-slate-200 hover:border-violet-400/50 hover:shadow-violet-100/50" : "bg-slate-900/40 border-white/5 hover:border-violet-500/30 hover:bg-slate-900/60")}
-                aria-label="דימיון מודרך"
+                onClick={() => onGoToBreathing("ptsd-grounding")}
+                className={cn(
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  isLight 
+                    ? "bg-emerald-50/75 border-emerald-200/60 hover:bg-emerald-100/70 hover:border-emerald-350 shadow-emerald-100/10" 
+                    : "bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-950/30 hover:border-emerald-500/40 text-emerald-100"
+                )}
               >
-                <div className="absolute top-[-30%] right-[-30%] w-24 h-24 rounded-full bg-violet-500/5 blur-2xl group-hover:bg-violet-500/10 transition-colors pointer-events-none" />
-                <div className="absolute left-4 top-4 w-10 h-10 pointer-events-none opacity-25" style={{ animation: 'bento-breath 6s infinite ease-in-out' }}>
-                  <Cloud size={32} className="text-violet-400" />
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    isLight ? "bg-white text-emerald-600" : "bg-emerald-500/10 text-emerald-400"
+                  )}>
+                    <Wind size={28} />
+                  </div>
+                  <div>
+                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>🌬️ עזרה להירגע</h4>
+                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
+                      נשימה מודרכת להאטת דופק מהירה
+                    </p>
+                  </div>
                 </div>
+                <ChevronLeft size={20} className={isLight ? "text-emerald-650/50" : "text-emerald-400/50"} />
+              </button>
 
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
-                  <Sparkles size={20} />
+              {/* Goal 2: עזרה בשינה */}
+              <button
+                onClick={() => onGoToSounds("dreamscape")}
+                className={cn(
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  isLight 
+                    ? "bg-indigo-50/75 border-indigo-200/60 hover:bg-indigo-100/70 hover:border-indigo-350 shadow-indigo-100/10" 
+                    : "bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-950/30 hover:border-indigo-500/40 text-indigo-100"
+                )}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    isLight ? "bg-white text-indigo-600" : "bg-indigo-500/10 text-indigo-400"
+                  )}>
+                    <Moon size={28} />
+                  </div>
+                  <div>
+                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>🎵 עזרה בשינה</h4>
+                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
+                      צלילי סביבה ונעימות להרדמות מהירה
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1 mt-4 z-10">
-                  <span className={cn("block text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>דימיון מודרך</span>
-                  <span className="block text-[10px] text-violet-400 font-black tracking-widest uppercase">מסעות ויזואליים</span>
-                  <span className="block text-[9px] text-slate-400 font-bold leading-normal mt-1 opacity-80">וידאו, מוזיקה והכוונה כתובה להרפיה עמוקה</span>
+                <ChevronLeft size={20} className={isLight ? "text-indigo-650/50" : "text-indigo-400/50"} />
+              </button>
+
+              {/* Goal 3: לנקות את הראש */}
+              <button
+                onClick={() => onGoToBilateral()}
+                className={cn(
+                  "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-between text-right active:scale-95 group relative overflow-hidden min-h-[100px]",
+                  isLight 
+                    ? "bg-purple-50/75 border-purple-200/60 hover:bg-purple-100/70 hover:border-purple-350 shadow-purple-100/10" 
+                    : "bg-purple-950/20 border-purple-900/30 hover:bg-purple-950/30 hover:border-purple-500/40 text-purple-100"
+                )}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
+                    isLight ? "bg-white text-purple-600" : "bg-purple-500/10 text-purple-400"
+                  )}>
+                    <Zap size={28} />
+                  </div>
+                  <div>
+                    <h4 className={cn("text-lg font-black leading-snug", isLight ? "text-slate-900" : "text-white")}>⚡ לנקות את הראש</h4>
+                    <p className={cn("text-xs font-bold leading-normal mt-0.5 opacity-90", isLight ? "text-slate-550" : "text-slate-400")}>
+                      עיבוד בילטרלי (EMDR) להרגעת הצפה
+                    </p>
+                  </div>
                 </div>
+                <ChevronLeft size={20} className={isLight ? "text-purple-650/50" : "text-purple-400/50"} />
               </button>
 
             </div>
           </div>
 
-          {/* Topic Sections */}
+          {/* Topic Sections - Archived for PTSD focus
           {TOPIC_SECTIONS.map((section) => (
             <div key={section.id} className="space-y-4">
               <div className="flex items-center gap-2 px-2">
@@ -1164,6 +1140,7 @@ export default function HomeScreen({
               </div>
             </div>
           ))}
+          */}
 
           {/* Categories Grid - Archived for PTSD focus
           <div className="space-y-4">
@@ -1187,7 +1164,7 @@ export default function HomeScreen({
           </div>
           */}
 
-          {/* Anchors / Favorites */}
+          {/* Anchors / Favorites - Archived for PTSD focus
           {favorites.length > 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right duration-700">
               <div className="flex items-center gap-2 px-2">
@@ -1213,6 +1190,7 @@ export default function HomeScreen({
               </div>
             </div>
           )}
+          */}
 
           {/* Footer */}
           <footer className={cn("text-center py-16 border-t space-y-6", isLight ? "border-slate-200" : "border-white/5")}>

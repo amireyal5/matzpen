@@ -88,48 +88,13 @@ export default function GuidedSession({ catKey, practiceIdx, gender, onBack, the
   const activeStepRef = useRef<number>(0);
   
   useEffect(() => {
-    let active = true;
-    activeStepRef.current = stepIdx;
-    const currentStepId = stepIdx;
-
-    const autoPlay = async () => {
-      if (!active || activeStepRef.current !== currentStepId || isFinished) return;
-
-      setIsLoadingAudio(true);
-      try {
-        const { audioUri } = await generateSpeech({ text: steps[currentStepId].text, gender });
-        if (!active || activeStepRef.current !== currentStepId || isFinished) return;
-
-        const audio = new Audio(audioUri);
-        audio.onplay = () => setIsPlaying(true);
-        audio.onpause = () => setIsPlaying(false);
-        audio.onended = () => setIsPlaying(false);
-        audio.onerror = () => {
-          setIsPlaying(false);
-          setIsLoadingAudio(false);
-          if (active) audioRef.current = null;
-        };
-        audioRef.current = audio;
-        await audio.play();
-      } catch (error) {
-        console.warn("Speech auto-play skipped:", error);
-      } finally {
-        if (active) setIsLoadingAudio(false);
-      }
-    };
-
-    autoPlay();
-
-    return () => {
-      active = false;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      setIsPlaying(false);
-      setIsLoadingAudio(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Cleanup any playing audio on step change
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+    setIsLoadingAudio(false);
   }, [stepIdx, isFinished]);
 
   const handlePlayAudio = async () => {
