@@ -665,6 +665,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
         .replace("בחר/י", "בחרי")
         .replace("התאמ/י", "התאימי")
         .replace("התכונן/י", "התכונני")
+        .replace("הרכב/י", "הרכיבי")
         .replace("תרגל/י", "תרגלי");
     }
     return text
@@ -680,6 +681,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       .replace("בחר/י", "בחר")
       .replace("התאמ/י", "התאם")
       .replace("התכונן/י", "התכונן")
+      .replace("הרכב/י", "הרכב")
       .replace("תרגל/י", "תרגל");
   };
 
@@ -699,9 +701,9 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               💡 מה מומלץ לעשות כעת?
             </p>
             <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
-              <li>{isFemale ? "שתי" : "שתו"} כוס מים קרים כדי לסייע לגוף להתקרקע.</li>
-              <li>{isFemale ? "עשי" : "עשו"} פעילות קלה ומסיחת דעת (כמו שמיעת מוזיקה או הליכה קצרה).</li>
-              <li>{isFemale ? "תוכלי" : "תוכלו"} לחזור למסך הבית להמשך שגרה רגועה.</li>
+              <li>{isFemale ? "שתי" : "שתה"} כוס מים קרים כדי לסייע לגוף להתקרקע.</li>
+              <li>{isFemale ? "עשי" : "עשה"} פעילות קלה ומסיחת דעת (כמו שמיעת מוזיקה או הליכה קצרה).</li>
+              <li>{isFemale ? "תוכלי" : "תוכל"} לחזור למסך הבית להמשך שגרה רגועה.</li>
             </ul>
           </div>
         );
@@ -717,8 +719,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               💡 מה מומלץ לעשות כעת?
             </p>
             <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
-              <li>{isFemale ? "תוכלי" : "תוכלו"} להשתמש בכלי "עזרה בשינה" או "מוזיקה מרגיעה" כדי להמשיך להזין את תחושת השלווה.</li>
-              <li>{isFemale ? "חזרי" : "חזרו"} למסך הבית מתי {isFemale ? "שתרצי" : "שתרצו"}.</li>
+              <li>{isFemale ? "תוכלי" : "תוכל"} להשתמש בכלי "עזרה בשינה" או "מוזיקה מרגיעה" כדי להמשיך להזין את תחושת השלווה.</li>
+              <li>{isFemale ? "חזרי" : "חזור"} למסך הבית מתי {isFemale ? "שתרצי" : "שתרצה"}.</li>
             </ul>
           </div>
         );
@@ -737,8 +739,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               💡 מה מומלץ לעשות כעת?
             </p>
             <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
-              <li><strong>מומלץ לבצע סבב נוסף:</strong> {isFemale ? "לחצי" : "לחצו"} על "התחל תרגול חדש" ועשו עוד 1-2 סבבים כדי להמשיך להמיס את שארית המצוקה.</li>
-              <li>אם {isFemale ? "את מרגישה" : "אתם מרגישים"} עייפות פיזית, {isFemale ? "עצרי" : "עצרו"} כאן, {isFemale ? "שתי" : "שתו"} מים, ותנו לחוויה להתאזן בגוף באופן טבעי.</li>
+              <li><strong>מומלץ לבצע סבב נוסף:</strong> {isFemale ? "לחצי" : "לחץ"} על "התחל תרגול חדש" ו{isFemale ? "עשי" : "עשה"} עוד 1-2 סבבים כדי להמשיך להמיס את שארית המצוקה.</li>
+              <li>אם {isFemale ? "את מרגישה" : "אתה מרגיש"} עייפות פיזית, {isFemale ? "עצרי" : "עצור"} כאן, {isFemale ? "שתי" : "שתה"} מים, ו{isFemale ? "תני" : "תן"} לחוויה להתאזן בגוף באופן טבעי.</li>
             </ul>
           </div>
         );
@@ -754,9 +756,9 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               💡 מה מומלץ לעשות כעת?
             </p>
             <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
-              <li><strong>בצעו סבב נוסף של פריקה:</strong> {isFemale ? "לחצי" : "לחצו"} על "התחל תרגול חדש" והקפידו לעקוב אחרי הכדור במבט רציף.</li>
-              <li><strong>שינוי מהירות/שמע:</strong> אם המהירות הנוכחית מהירה מדי, {isFemale ? "היכנסי" : "היכנסו"} להגדרות והנמיכו את המהירות ל-"בינוני" או "אטי".</li>
-              <li>אם {isFemale ? "את מרגישה" : "אתם מרגישים"} הצפה מוחלטת, {isFemale ? "עברי" : "עברו"} למסך הבית והפעילו את כלי **"עזרה ראשונה - תרגילי קרקוע (5-4-3-2-1)"** למטה כדי לחזור לגוף.</li>
+              <li><strong>בצעו סבב נוסף של פריקה:</strong> {isFemale ? "לחצי" : "לחץ"} על "התחל תרגול חדש" ו{isFemale ? "הקפידי" : "הקפד"} לעקוב אחרי הכדור במבט רציף.</li>
+              <li><strong>שינוי מהירות/שמע:</strong> אם המהירות הנוכחית מהירה מדי, {isFemale ? "היכנסי" : "היכנס"} להגדרות והנמיכו את המהירות ל-"בינוני" או "אטי".</li>
+              <li>אם {isFemale ? "את מרגישה" : "אתה מרגיש"} הצפה מוחלטת, {isFemale ? "עברי" : "עבור"} למסך הבית ו{isFemale ? "הפעילי" : "הפעל"} את כלי **"עזרה ראשונה - תרגילי קרקוע (5-4-3-2-1)"** למטה כדי לחזור לגוף.</li>
             </ul>
           </div>
         );
@@ -813,7 +815,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               </div>
               <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">לנקות את הראש</h1>
               <p className={cn("text-xs font-bold leading-relaxed max-w-sm mx-auto", isLight ? "text-slate-500" : "text-slate-400")}>
-                תרגול גירוי דו-צדדי (EMDR) המותאם עבורך. מצאו תנוחה נוחה, הרכיבו אוזניות ועקבו אחר הכדור כדי להרגיע את מערכת העצבים.
+                {adjustGender("תרגול גירוי דו-צדדי (EMDR) המותאם עבורך. מצא/ו תנוחה נוחה, הרכב/י אוזניות ועקוב/י אחר הכדור כדי להרגיע את מערכת העצבים.")}
               </p>
             </div>
 
