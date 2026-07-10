@@ -389,7 +389,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
           <div className="text-center space-y-3">
             <h2 className={cn("text-3xl font-black tracking-tight leading-tight transition-colors", isLight ? "text-slate-900" : "text-white")}>מסעות דימיון מודרך</h2>
             <p className={cn("font-bold leading-relaxed max-w-md mx-auto text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
-              חוויה ויזואלית עם וידאו נוף, מוזיקה רגועה והקראה נשית רכה שמלווה אותך בין הפסקאות. בחר מסע, עצום עיניים, הקשב לקול ולמוזיקה, והרשה לדמיון לעבוד.
+              חוויה ויזואלית עם וידאו נוף, מוזיקה רגועה והקראה מלווה שמלווה אותך בין הפסקאות. בחר מסע, עצום עיניים, הקשב לקול ולמוזיקה, והרשה לדמיון לעבוד.
             </p>
           </div>
 

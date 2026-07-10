@@ -595,8 +595,16 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       }
     } else {
       if (resourcePhase === 'install') {
-        setResourcePhase('breath');
-        setIsPlaying(false);
+        // nextAffIndexRef כבר קודם למשפט הבא בתוך triggerStep() כשהמשפט הנוכחי הושמע.
+        // אם הוא לא חזר ל-0, עדיין נותרו משפטים בסבב הנוכחי - להמשיך אוטומטית למשפט הבא
+        // בלי לעצור ולדרוש מהמשתמש/ת ללחוץ בכל פעם מחדש.
+        if (nextAffIndexRef.current !== 0) {
+          setResourcePhase('speak');
+          triggerStep();
+        } else {
+          setResourcePhase('breath');
+          setIsPlaying(false);
+        }
       }
     }
   };
@@ -1413,19 +1421,20 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     <div className="space-y-2">
                       <h2 className="text-2xl font-black text-white">קחו נשימה עמוקה</h2>
                       <p className="text-slate-400 text-sm leading-relaxed">
-                        שאפו אוויר נקי, והרגישו את תחושת המשאב מתפשטת ומעמיקה בכל הגוף.
+                        סיימתם סבב מלא על כל המשפטים. שאפו אוויר נקי, והרגישו את תחושת המשאב מתפשטת ומעמיקה בכל הגוף.
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <Button 
+                      <Button
                         onClick={() => {
                           setResourcePhase('speak');
                           setIsPlaying(true);
+                          nextAffIndexRef.current = 0;
                           triggerStep();
                         }}
                         className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-xs"
                       >
-                        המשך למשפט הבא
+                        עוד סבב הטמעה
                       </Button>
                       <Button 
                         variant="outline"
