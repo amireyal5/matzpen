@@ -21,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Mail, Lock, ArrowRight, Loader2, CheckCircle2, User as UserIcon, Check, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/Logo";
+import CrisisHelpDialog from "@/components/CrisisHelpDialog";
 import {
   Tooltip,
   TooltipContent,
@@ -136,6 +137,25 @@ export default function AuthScreen({ onSuccess, onBack, localProfile, theme = "l
   if (verificationSent) {
     return (
       <div className={cn("min-h-screen flex items-center justify-center p-6 text-right transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100" : "bg-slate-950")} dir="rtl">
+        <div className="fixed top-6 right-6 z-20">
+          <CrisisHelpDialog
+            gender={gender}
+            theme={theme}
+            trigger={
+              <button
+                className={cn(
+                  "h-10 px-4 rounded-full border flex items-center justify-center gap-1.5 transition-all active:scale-95 font-black text-xs shadow-sm",
+                  isLight
+                    ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 hover:border-rose-700"
+                    : "bg-rose-950/40 border-rose-900/50 text-rose-300 hover:bg-rose-900/40 hover:text-white"
+                )}
+                aria-label="עזרה ראשונה נפשית (SOS) - זמין ללא התחברות"
+              >
+                <span className="animate-pulse">SOS</span>
+              </button>
+            }
+          />
+        </div>
         <Card className={cn("w-full max-w-md p-8 text-center space-y-6 rounded-[2.5rem]", isLight ? "bg-white border-slate-200 text-slate-900 shadow-xl" : "bg-slate-900 border-slate-800 text-slate-50")}>
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500">
@@ -188,6 +208,27 @@ export default function AuthScreen({ onSuccess, onBack, localProfile, theme = "l
           </Tooltip>
         </div>
       )}
+
+      {/* עזרה ראשונה נפשית זמינה גם באמצע תהליך ההתחברות - לפני שהמייל אומת */}
+      <div className="fixed top-6 right-6 z-20">
+        <CrisisHelpDialog
+          gender={gender}
+          theme={theme}
+          trigger={
+            <button
+              className={cn(
+                "h-10 px-4 rounded-full border flex items-center justify-center gap-1.5 transition-all active:scale-95 font-black text-xs shadow-sm",
+                isLight
+                  ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 hover:border-rose-700"
+                  : "bg-rose-950/40 border-rose-900/50 text-rose-300 hover:bg-rose-900/40 hover:text-white"
+              )}
+              aria-label="עזרה ראשונה נפשית (SOS) - זמין ללא התחברות"
+            >
+              <span className="animate-pulse">SOS</span>
+            </button>
+          }
+        />
+      </div>
       <Card className={cn("w-full max-w-md lg:max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border-indigo-500/5", isLight ? "bg-white border-slate-200 text-slate-900" : "bg-slate-900 border-slate-800 text-slate-50")}>
         <CardHeader className="space-y-4 pt-12 pb-6 flex flex-col items-center">
           <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden mb-2 p-2", isLight ? "bg-slate-100 border border-slate-200" : "bg-white/5")}>

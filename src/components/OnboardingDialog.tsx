@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sunrise, Sun as SunIcon, Sunset, BellOff } from "lucide-react";
+import { Sunrise, Sun as SunIcon, Sunset, BellOff, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -57,12 +57,21 @@ export default function OnboardingDialog({ isOpen, profileRef, gender, onComplet
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    // גם משתמש שנמצא במצוקה חייב יכולת לצאת מיד מהדיאלוג הזה (למשל כדי להגיע לכפתור ה-SOS מאחוריו)
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleSkip(); }}>
       <DialogContent className="sm:max-w-lg w-full rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden" dir="rtl">
         <DialogHeader className="sr-only">
           <DialogTitle>ברוכים הבאים למצפן הרגשי</DialogTitle>
           <DialogDescription>כמה שאלות קצרות שיעזרו לנו להתאים את החוויה אליך</DialogDescription>
         </DialogHeader>
+
+        <button
+          onClick={handleSkip}
+          className="absolute top-5 left-5 z-10 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-all active:scale-90"
+          aria-label="דלג וסגור"
+        >
+          <X size={16} />
+        </button>
 
         <div className="p-8 space-y-8">
           <div className="flex justify-center">

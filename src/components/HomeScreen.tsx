@@ -406,6 +406,7 @@ export default function HomeScreen({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastModelMsgRef = useRef<HTMLDivElement>(null);
 
   const [activeActionJournal, setActiveActionJournal] = useState<any>(null);
   const [showIosPrompt, setShowIosPrompt] = useState(false);
@@ -447,12 +448,18 @@ export default function HomeScreen({
   }, []);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      const timer = setTimeout(() => {
+    if (messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+    const timer = setTimeout(() => {
+      if (isSearching || lastMsg.role === 'user') {
+        // הודעה שנשלחה / טעינה בתהליך - גלילה לתחתית כדי להראות את ההודעה החדשה ומחוון הטעינה
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+      } else {
+        // תשובה חדשה מהעוזר - להראות את תחילת התשובה, לא לקפוץ לתחתית אחרי כפתורי ההצעות
+        lastModelMsgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, isSearching, recommendation]);
 
   // Center scroll when chatbot opens
@@ -558,7 +565,7 @@ export default function HomeScreen({
 
   const welcomeText = displayGender === "f" ? `מה יעזור לך כרגע, ${displayName}?` : `מה יעזור לך כרגע, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי כלי להקלה מהירה" : "בחר כלי להקלה מהירה";
-  const placeholderText = displayGender === "f" ? "כתבי מה את מרגישה או מה יעזור לך..." : "כתוב מה אתה מרגיש או מה יעזור לך...";
+  const placeholderText = displayGender === "f" ? "רוצה לספר לי עוד במילים שלך?" : "רוצה לספר לי עוד במילים שלך?";
 
   return (
     <div className={cn("min-h-screen relative overflow-hidden select-none transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-[#0B0F19] text-white")}>
@@ -904,7 +911,7 @@ export default function HomeScreen({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">הדיאלוג החכם</span>
-                    <span className="text-[9px] font-bold text-slate-500 uppercase">מלווה אותך צעד אחר צעד</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">מלווה אותך צעד אחר צעד</span>
                   </div>
                 </div>
                 <button onClick={handleResetChat} className="text-[10px] font-black text-slate-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-1.5 rounded-full hover:bg-white/5">
@@ -917,10 +924,14 @@ export default function HomeScreen({
                 className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar scroll-smooth"
               >
                 {messages.map((msg, i) => (
-                  <div key={i} className={cn(
-                    "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
-                    msg.role === 'user' ? "flex-row-reverse" : "flex-row"
-                  )}>
+                  <div
+                    key={i}
+                    ref={i === messages.length - 1 && msg.role === 'model' ? lastModelMsgRef : undefined}
+                    className={cn(
+                      "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                      msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                    )}
+                  >
                     <div className={cn(
                       "w-9 h-9 rounded-full shrink-0 flex items-center justify-center overflow-hidden border shadow-sm",
                       msg.role === 'user' ? "border-white/10 bg-slate-800" : "border-indigo-500/20 bg-indigo-600"
@@ -1070,8 +1081,8 @@ export default function HomeScreen({
           {/* Strategic Tools Bento Grid - Replaced with 3 main goal actions for active PTSD / Panic Relief */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
-              <Sparkles size={14} className="text-indigo-400" />
-              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>איך אפשר לעזור לך כרגע?</h3>
+              <Compass size={14} className="text-indigo-400" />
+              <h3 className={cn("text-[10px] font-black tracking-widest uppercase text-right", isLight ? "text-slate-500" : "text-slate-400")}>כלים מהירים</h3>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1097,7 +1108,7 @@ export default function HomeScreen({
                 </div>
                 <div className="space-y-1 mt-4 z-10">
                   <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עזרה להירגע</h4>
-                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                  <p className={cn("text-[10px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
                     נשימה מודרכת להאטת דופק מהירה
                   </p>
                 </div>
@@ -1124,7 +1135,7 @@ export default function HomeScreen({
                 </div>
                 <div className="space-y-1 mt-4 z-10">
                   <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עזרה בשינה</h4>
-                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                  <p className={cn("text-[10px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
                     צלילי סביבה ונעימות להרדמות
                   </p>
                 </div>
@@ -1135,23 +1146,23 @@ export default function HomeScreen({
                 onClick={() => onGoToBilateral()}
                 className={cn(
                   "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
-                  isLight 
-                    ? "bg-purple-50/75 border-purple-200/60 hover:bg-purple-100/70 hover:border-purple-350 shadow-purple-100/10" 
-                    : "bg-purple-950/20 border-purple-900/30 hover:bg-purple-950/30 hover:border-purple-500/40 text-purple-100"
+                  isLight
+                    ? "bg-cyan-50/75 border-cyan-200/60 hover:bg-cyan-100/70 hover:border-cyan-350 shadow-cyan-100/10"
+                    : "bg-cyan-950/20 border-cyan-900/30 hover:bg-cyan-950/30 hover:border-cyan-500/40 text-cyan-100"
                 )}
               >
                 <div className="flex justify-between items-start w-full">
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300",
-                    isLight ? "bg-white text-purple-600" : "bg-purple-500/10 text-purple-400"
+                    isLight ? "bg-white text-cyan-600" : "bg-cyan-500/10 text-cyan-400"
                   )}>
                     <Zap size={24} />
                   </div>
-                  <ChevronLeft size={16} className={isLight ? "text-purple-650/50" : "text-purple-400/50"} />
+                  <ChevronLeft size={16} className={isLight ? "text-cyan-600/50" : "text-cyan-400/50"} />
                 </div>
                 <div className="space-y-1 mt-4 z-10">
                   <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>לנקות את הראש</h4>
-                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                  <p className={cn("text-[10px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
                     עיבוד בילטרלי להרגעת הצפה
                   </p>
                 </div>
@@ -1178,7 +1189,7 @@ export default function HomeScreen({
                 </div>
                 <div className="space-y-1 mt-4 z-10">
                   <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>דמיון מודרך</h4>
-                  <p className={cn("text-[9px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
+                  <p className={cn("text-[10px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
                     מסעות ויזואליים להרפיה עמוקה
                   </p>
                 </div>

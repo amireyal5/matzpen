@@ -87,7 +87,7 @@ export default function MoodCheckIn({ profileData, profileRef, gender, isLight, 
               aria-label={option.label}
             >
               <span className="text-2xl">{option.emoji}</span>
-              <span className={cn("text-[9px] font-bold leading-none", isLight ? "text-slate-500" : "text-slate-400")}>{option.label}</span>
+              <span className={cn("text-[10px] font-bold leading-none", isLight ? "text-slate-500" : "text-slate-400")}>{option.label}</span>
             </button>
           ))}
         </div>

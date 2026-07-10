@@ -43,6 +43,7 @@ import {
 import { AMBIENT_SOUNDS } from "@/lib/ambient-sound-engine";
 import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
 import AmbientVideoBackground from "@/components/AmbientVideoBackground";
+import CrisisHelpDialog from "@/components/CrisisHelpDialog";
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
 
@@ -248,6 +249,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       if (savedDistress) setDistressCategory(savedDistress);
       const savedSuds = localStorage.getItem("bls_initialSuds");
       if (savedSuds) setInitialSuds(parseInt(savedSuds, 10));
+      const consented = localStorage.getItem("bls_desensitizeConsented");
+      if (consented === "true") setHasConsentedDesensitize(true);
 
       const hasUsed = localStorage.getItem("bls_hasUsedBefore");
       if (hasUsed === "true") {
@@ -263,7 +266,11 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   const [blsSide, setBlsSide] = useState<'left' | 'right' | 'center'>('center');
   const [isLoading, setIsLoading] = useState(false);
   
-  const [treatmentMode, setTreatmentMode] = useState<'desensitize' | 'resource'>('desensitize');
+  // ברירת מחדל בטוחה: משתמשים חדשים מתחילים בהטמעת משאבים, לא בעיבוד ישיר.
+  // localStorage.bls_treatmentMode (למטה) דורס את זה עבור משתמשים חוזרים.
+  const [treatmentMode, setTreatmentMode] = useState<'desensitize' | 'resource'>('resource');
+  const [hasConsentedDesensitize, setHasConsentedDesensitize] = useState(false);
+  const [desensitizeConsentChecked, setDesensitizeConsentChecked] = useState(false);
   const [speed, setSpeed] = useState<'slow' | 'medium' | 'fast'>('medium');
   const [stimulusShape, setStimulusShape] = useState<'orb' | 'flower' | 'ring'>('orb');
   const [stimulusColor, setStimulusColor] = useState<'cyan' | 'green' | 'amber' | 'indigo'>('cyan');
@@ -483,6 +490,11 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   };
 
   const handleStartSession = () => {
+    // מסך "עיבוד" ראשון-אי-פעם דורש אישור מודע לפני שהוא נפתח (ראו checkbox בטאב המיקוד)
+    if (treatmentMode === 'desensitize' && !hasConsentedDesensitize && !desensitizeConsentChecked) {
+      return;
+    }
+
     // שמירת הגדרות ב-localStorage
     if (typeof window !== "undefined") {
       localStorage.setItem("bls_treatmentMode", treatmentMode);
@@ -496,6 +508,10 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       localStorage.setItem("bls_distressCategory", distressCategory);
       localStorage.setItem("bls_initialSuds", initialSuds.toString());
       localStorage.setItem("bls_hasUsedBefore", "true");
+      if (treatmentMode === 'desensitize') {
+        localStorage.setItem("bls_desensitizeConsented", "true");
+        setHasConsentedDesensitize(true);
+      }
     }
 
     setSessionState("active");
@@ -978,6 +994,25 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                       </div>
                       <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
                     </div>
+
+                    {!hasConsentedDesensitize && (
+                      <label
+                        className={cn(
+                          "flex items-start gap-3 p-5 rounded-3xl border cursor-pointer transition-all",
+                          isLight ? "bg-amber-50 border-amber-200" : "bg-amber-950/10 border-amber-500/20"
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={desensitizeConsentChecked}
+                          onChange={(e) => setDesensitizeConsentChecked(e.target.checked)}
+                          className="mt-1 w-5 h-5 shrink-0 accent-indigo-600 cursor-pointer"
+                        />
+                        <span className={cn("text-xs leading-relaxed font-bold", isLight ? "text-amber-900" : "text-amber-200")}>
+                          {adjustGender("אני מבין/ה שמצב \"עיבוד\" מיועד לחומר שכבר עלה בטיפול. אני מעבד/ת כאן נושא שכבר דיברתי עליו עם המטפל/ת שלי, ומרגיש/ה מוכן/ה להתמודד איתו לבד כעת. אם המצוקה גבוהה מדי — עדיף להתחיל ב\"חיזוק והטמעת משאבים\" או לפנות לעזרה מיידית.")}
+                        </span>
+                      </label>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -993,7 +1028,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-400")}><cat.icon size={18} /></div>
                             <div>
                               <h3 className={cn("font-bold text-xs", isLight ? "text-slate-900" : "text-white")}>{cat.title}</h3>
-                              <p className={cn("text-[9px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
+                              <p className={cn("text-[10px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
                             </div>
                           </div>
                           {selectedCat.id === cat.id && <Check size={16} className={isLight ? "text-indigo-600" : "text-indigo-400"} />}
@@ -1010,7 +1045,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                   <div className={cn("flex items-center gap-2 text-xs font-black border-b pb-3 mb-2", isLight ? "border-slate-200" : "border-white/5")}><Paintbrush size={14} className={isLight ? "text-indigo-600" : "text-indigo-400"} /><span>עיצוב הגירוי הויזואלי</span></div>
                   <div className="space-y-2">
-                    <span className="text-[9px] font-black text-slate-500 block">סוג האנימציה</span>
+                    <span className="text-[10px] font-black text-slate-500 block">סוג האנימציה</span>
                     <div className="grid grid-cols-3 gap-2">
                       {STIMULUS_SHAPES.map((sh) => (
                         <button key={sh.id} onClick={() => setStimulusShape(sh.id as any)} className={cn("py-2 px-3 rounded-xl border text-xs font-bold transition-all", stimulusShape === sh.id ? (isLight ? "bg-slate-100 border-slate-300 text-slate-900" : "bg-white/10 border-white/20 text-white") : isLight ? "bg-transparent border-slate-200 text-slate-500" : "bg-transparent border-white/5 text-slate-400")}>{sh.label}</button>
@@ -1018,7 +1053,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     </div>
                   </div>
                   <div className="space-y-2 pt-2">
-                    <span className="text-[9px] font-black text-slate-500 block font-bold">צבע הכדור / האלמנט</span>
+                    <span className="text-[10px] font-black text-slate-500 block font-bold">צבע הכדור / האלמנט</span>
                     <div className="flex gap-3">
                       {STIMULUS_COLORS.map((col) => (
                         <button key={col.id} onClick={() => setStimulusColor(col.id as any)} className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-all", stimulusColor === col.id ? cn("ring-2 ring-offset-2 scale-110", isLight ? "ring-slate-900 ring-offset-white" : "ring-white ring-offset-slate-950") : "opacity-80 hover:opacity-100")} style={{ backgroundColor: col.hex }} />
@@ -1069,7 +1104,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                   {bilateralAudioEnabled && (
                     <div className="space-y-4 animate-in fade-in duration-300">
                       <div className="space-y-2">
-                        <span className="text-[9px] font-black text-slate-500 block">סוג הצליל הדו-צדדי</span>
+                        <span className="text-[10px] font-black text-slate-500 block">סוג הצליל הדו-צדדי</span>
                         <select
                           value={bilateralToneType}
                           onChange={(e) => setBilateralToneType(e.target.value as any)}
@@ -1083,7 +1118,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-[9px] font-black text-slate-500 block">עוצמת צליל בילטרלי</span>
+                          <span className="text-[10px] font-black text-slate-500 block">עוצמת צליל בילטרלי</span>
                           <span className="text-[10px] font-mono text-indigo-400">{Math.round(bilateralVolume * 100)}%</span>
                         </div>
                         <Slider
@@ -1094,7 +1129,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                         />
                       </div>
 
-                      <div className="text-[9px] font-bold text-indigo-400 bg-indigo-500/5 p-2.5 rounded-xl border border-indigo-500/10 text-center">
+                      <div className="text-[10px] font-bold text-indigo-400 bg-indigo-500/5 p-2.5 rounded-xl border border-indigo-500/10 text-center">
                         💡 מומלץ להרכיב אוזניות סטריאו כדי לחוות את אפקט תנועת השמע הדו-צדדית.
                       </div>
                     </div>
@@ -1103,9 +1138,24 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               </div>
             )}
 
-            <Button onClick={handleStartSession} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2rem] text-lg shadow-xl shadow-indigo-600/10 active:scale-95 transition-all flex items-center justify-center gap-3">
-              <span>התחל תרגול עיבוד</span> <Play className="h-5 w-5 fill-white" />
-            </Button>
+            {(() => {
+              const isGated = treatmentMode === 'desensitize' && !hasConsentedDesensitize && !desensitizeConsentChecked;
+              return (
+                <Button
+                  onClick={handleStartSession}
+                  disabled={isGated}
+                  className={cn(
+                    "w-full text-white font-black py-6 rounded-[2rem] text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3",
+                    isGated
+                      ? "bg-slate-400 hover:bg-slate-400 shadow-none cursor-not-allowed opacity-60"
+                      : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10"
+                  )}
+                >
+                  <span>{isGated ? "סמנו את האישור כדי להמשיך" : treatmentMode === 'desensitize' ? "התחל תרגול עיבוד" : "התחל תרגול הטמעה"}</span>
+                  {!isGated && <Play className="h-5 w-5 fill-white" />}
+                </Button>
+              );
+            })()}
           </main>
         </div>
       )}
@@ -1140,9 +1190,9 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
             </button>
             <div className="flex flex-col items-center text-center bg-black/40 backdrop-blur-3xl border border-white/5 rounded-full px-5 py-2">
               {treatmentMode === 'desensitize' ? (
-                <><span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">סט {activeSet} • פריקה והפחתת מצוקה</span><span className="text-xs font-bold text-white">{desensitizePhase === 'focus' ? "שלב התמקדות" : desensitizePhase === 'processing' ? "עיבוד בילטרלי" : "בדיקת SUDs"}</span></>
+                <><span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">סט {activeSet} • פריקה והפחתת מצוקה</span><span className="text-xs font-bold text-white">{desensitizePhase === 'focus' ? "שלב התמקדות" : desensitizePhase === 'processing' ? "עיבוד בילטרלי" : "בדיקת SUDs"}</span></>
               ) : (
-                <><span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">הטמעת משאבים • {selectedCat.title}</span><span className="text-xs font-bold text-white">משפט {nextAffIndexRef.current === 0 ? selectedCat.affirmations.length : nextAffIndexRef.current} מתוך {selectedCat.affirmations.length}</span></>
+                <><span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">הטמעת משאבים • {selectedCat.title}</span><span className="text-xs font-bold text-white">משפט {nextAffIndexRef.current === 0 ? selectedCat.affirmations.length : nextAffIndexRef.current} מתוך {selectedCat.affirmations.length}</span></>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -1230,7 +1280,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     </p>
 
                     <div className="p-5 rounded-3xl border mb-5 space-y-2 bg-indigo-950/20 border-indigo-500/10">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-400">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-400">
                         {customDistress || distressCategory || "מצוקה"}
                       </span>
                       <p className="text-sm font-bold text-white leading-relaxed pt-1">
@@ -1436,7 +1486,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 )}
 
                 <div className="text-right">
-                  <span className="text-[9px] font-black tracking-widest uppercase text-slate-500 block">זמן שנותר</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase text-slate-500 block">זמן שנותר</span>
                   <span className="text-xs font-bold font-mono text-white block">
                     {phaseTimeLeft > 0 ? `${phaseTimeLeft} שניות` : (isSpeaking ? "הקראה..." : "ממתין...")}
                   </span>
@@ -1571,7 +1621,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                         <div key={idx} className="flex flex-col items-center z-10" style={{ width: `${100 / sudsHistory.length}%` }}>
                           <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border mb-1 font-mono", isLight ? "text-slate-900 bg-white border-slate-200" : "text-white bg-slate-900 border-white/10")}>{suds}</span>
                           <div className={cn("w-2.5 h-2.5 rounded-full bg-indigo-500 border", isLight ? "border-white" : "border-white")} />
-                          <span className="text-[9px] text-slate-500 font-black mt-1">סבב {idx === 0 ? "התחלה" : idx}</span>
+                          <span className="text-[10px] text-slate-500 font-black mt-1">סבב {idx === 0 ? "התחלה" : idx}</span>
                         </div>
                       ))}
                     </div>
@@ -1632,6 +1682,24 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
             {/* Action Buttons */}
             <div className="space-y-3 lg:max-w-md lg:mx-auto lg:w-full">
+              {treatmentMode === 'desensitize' && currentSuds > 6 && (
+                <CrisisHelpDialog
+                  gender={gender}
+                  theme={theme}
+                  trigger={
+                    <button
+                      className={cn(
+                        "w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm border-2 transition-all active:scale-95",
+                        isLight ? "bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100" : "bg-rose-950/30 border-rose-500/40 text-rose-300 hover:bg-rose-950/50"
+                      )}
+                    >
+                      <Info size={16} />
+                      {adjustGender("המצוקה עדיין גבוהה — רוצה/ה לדבר עם מישהו עכשיו?")}
+                    </button>
+                  }
+                />
+              )}
+
               <Button
                 onClick={handleFinishGrounding}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-sm"

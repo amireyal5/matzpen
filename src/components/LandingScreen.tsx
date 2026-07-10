@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sun, Moon } from "lucide-react";
 import { LegalDialog } from "@/components/LegalDialogs";
+import CrisisHelpDialog from "@/components/CrisisHelpDialog";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import {
@@ -55,6 +56,27 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
           </Tooltip>
         </div>
       )}
+
+      {/* עזרה ראשונה נפשית זמינה תמיד, גם לפני התחברות - לא כל מי שזקוק לקרקוע מיידי הספיק/יכול להירשם */}
+      <div className="fixed top-6 right-6 z-20">
+        <CrisisHelpDialog
+          gender="m"
+          theme={theme}
+          trigger={
+            <button
+              className={cn(
+                "h-10 px-4 rounded-full border flex items-center justify-center gap-1.5 transition-all active:scale-95 font-black text-xs shadow-sm",
+                isLight
+                  ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 hover:border-rose-700"
+                  : "bg-rose-950/40 border-rose-900/50 text-rose-300 hover:bg-rose-900/40 hover:text-white"
+              )}
+              aria-label="עזרה ראשונה נפשית (SOS) - זמין ללא התחברות"
+            >
+              <span className="animate-pulse">SOS</span>
+            </button>
+          }
+        />
+      </div>
 
       <div className="w-full max-w-md lg:max-w-lg relative z-10 flex flex-col py-12 animate-fade-in-up flex-1">
 
