@@ -163,11 +163,42 @@ interface BilateralProcessingProps {
   toggleTheme?: () => void;
 }
 
-type SessionState = "setup" | "active" | "grounding";
+type SessionState = "entrance" | "setup" | "active" | "grounding";
 
 export default function BilateralProcessing({ gender, onBack, theme = "light", toggleTheme }: BilateralProcessingProps) {
   const isLight = theme === "light";
   const [sessionState, setSessionState] = useState<SessionState>("setup");
+
+  // טעינת הגדרות שמורות ב-localStorage בעת כניסה
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("bls_treatmentMode");
+      if (savedMode) setTreatmentMode(savedMode as any);
+      const savedSpeed = localStorage.getItem("bls_speed");
+      if (savedSpeed) setSpeed(savedSpeed as any);
+      const savedShape = localStorage.getItem("bls_stimulusShape");
+      if (savedShape) setStimulusShape(savedShape as any);
+      const savedColor = localStorage.getItem("bls_stimulusColor");
+      if (savedColor) setStimulusColor(savedColor as any);
+      const savedSound = localStorage.getItem("bls_selectedSoundId");
+      if (savedSound) setSelectedSoundId(savedSound);
+      const savedAudioEnabled = localStorage.getItem("bls_bilateralAudioEnabled");
+      if (savedAudioEnabled) setBilateralAudioEnabled(savedAudioEnabled === "true");
+      const savedToneType = localStorage.getItem("bls_bilateralToneType");
+      if (savedToneType) setBilateralToneType(savedToneType as any);
+      const savedVolume = localStorage.getItem("bls_bilateralVolume");
+      if (savedVolume) setBilateralVolume(parseFloat(savedVolume));
+      const savedDistress = localStorage.getItem("bls_distressCategory");
+      if (savedDistress) setDistressCategory(savedDistress);
+      const savedSuds = localStorage.getItem("bls_initialSuds");
+      if (savedSuds) setInitialSuds(parseInt(savedSuds, 10));
+
+      const hasUsed = localStorage.getItem("bls_hasUsedBefore");
+      if (hasUsed === "true") {
+        setSessionState("entrance");
+      }
+    }
+  }, []);
   const [selectedCat, setSelectedCat] = useState<Category>(CATEGORIES[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAffText, setCurrentAffText] = useState("");
@@ -387,6 +418,21 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   };
 
   const handleStartSession = () => {
+    // שמירת הגדרות ב-localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bls_treatmentMode", treatmentMode);
+      localStorage.setItem("bls_speed", speed);
+      localStorage.setItem("bls_stimulusShape", stimulusShape);
+      localStorage.setItem("bls_stimulusColor", stimulusColor);
+      localStorage.setItem("bls_selectedSoundId", selectedSoundId);
+      localStorage.setItem("bls_bilateralAudioEnabled", bilateralAudioEnabled ? "true" : "false");
+      localStorage.setItem("bls_bilateralToneType", bilateralToneType);
+      localStorage.setItem("bls_bilateralVolume", bilateralVolume.toString());
+      localStorage.setItem("bls_distressCategory", distressCategory);
+      localStorage.setItem("bls_initialSuds", initialSuds.toString());
+      localStorage.setItem("bls_hasUsedBefore", "true");
+    }
+
     setSessionState("active");
     setIsPlaying(true);
     if (treatmentMode === 'desensitize') {
@@ -404,7 +450,13 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   };
 
   const handleExitEarly = () => { setIsPlaying(false); setSessionState("grounding"); };
-  const handleFinishGrounding = () => { setSessionState("setup"); };
+  const handleFinishGrounding = () => {
+    if (typeof window !== "undefined" && localStorage.getItem("bls_hasUsedBefore") === "true") {
+      setSessionState("entrance");
+    } else {
+      setSessionState("setup");
+    }
+  };
   const formatTimer = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const remSecs = secs % 60;
@@ -505,7 +557,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   const getStimulusLeft = () => blsSide === 'left' ? '0%' : blsSide === 'right' ? '100%' : '50%';
 
   return (
-    <div className={cn("min-h-screen font-sans text-right overflow-hidden select-none transition-colors duration-500", sessionState === "setup" || sessionState === "grounding" ? (isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white") : "bg-slate-950 text-white")} dir="rtl">
+    <div className={cn("min-h-screen font-sans text-right overflow-hidden select-none transition-colors duration-500", sessionState === "setup" || sessionState === "grounding" || sessionState === "entrance" ? (isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white") : "bg-slate-950 text-white")} dir="rtl">
       {sessionState === "active" && (
         <AmbientVideoBackground
           src={AMBIENT_VIDEOS[1]}
@@ -513,6 +565,72 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
           overlayClassName="transition-all duration-[3000ms]"
           overlayStyle={{ background: `linear-gradient(to bottom right, ${activeColorHex}40, black)`, opacity: 0.55 }}
         />
+      )}
+
+      {sessionState === "entrance" && (
+        <div className="min-h-screen flex flex-col relative z-10 overflow-y-auto animate-in fade-in duration-300">
+          <header className={cn("p-6 lg:px-12 flex items-center justify-between border-b backdrop-blur-md sticky top-0 z-20", isLight ? "border-slate-200 bg-white/70" : "border-white/5 bg-slate-900/50")}>
+            <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
+              <ArrowRight size={18} /> חזרה למסך הבית
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <span className={cn("text-[10px] font-black uppercase tracking-widest leading-none mb-0.5", isLight ? "text-indigo-600" : "text-indigo-400")}>המצפן הרגשי</span>
+              <span className="text-sm font-bold">עיבוד בילטרלי EMDR</span>
+            </div>
+            {toggleTheme ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleTheme}
+                    className={cn(
+                      "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95",
+                      isLight ? "bg-white border-slate-200 text-slate-500 hover:text-slate-900 shadow-sm" : "bg-white/5 border-white/10 text-white/60 hover:text-white"
+                    )}
+                    aria-label={isLight ? "מעבר לתצוגה כהה" : "מעבר לתצוגה בהירה"}
+                  >
+                    {isLight ? <Moon size={18} /> : <Sun size={18} />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{isLight ? "תצוגה כהה" : "תצוגה בהירה"}</TooltipContent>
+              </Tooltip>
+            ) : <div className="w-10 h-10" />}
+          </header>
+
+          <main className="max-w-xl mx-auto w-full flex-1 flex flex-col items-center justify-center pt-8 pb-24 px-6 text-center space-y-12">
+            <div className="space-y-4">
+              <div className="relative inline-flex p-5 rounded-full bg-indigo-500/10 text-indigo-500 mb-2 border border-indigo-500/20 shadow-2xl">
+                <Zap size={44} className="animate-pulse" />
+              </div>
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tighter">לנקות את הראש</h1>
+              <p className={cn("text-xs font-bold leading-relaxed max-w-sm mx-auto", isLight ? "text-slate-500" : "text-slate-400")}>
+                תרגול גירוי דו-צדדי (EMDR) המותאם עבורך. מצאו תנוחה נוחה, הרכיבו אוזניות ועקבו אחר הכדור כדי להרגיע את מערכת העצבים.
+              </p>
+            </div>
+
+            <div className="w-full space-y-4">
+              <Button 
+                onClick={handleStartSession} 
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2rem] text-lg shadow-xl shadow-indigo-600/15 active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                <span>התחל תרגול</span>
+                <Play className="h-5 w-5 fill-white" />
+              </Button>
+
+              <Button 
+                variant="outline"
+                onClick={() => setSessionState("setup")} 
+                className={cn(
+                  "w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest bg-transparent border-2 transition-all active:scale-95",
+                  isLight 
+                    ? "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900" 
+                    : "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <span>⚙️ הגדרות תרגול</span>
+              </Button>
+            </div>
+          </main>
+        </div>
       )}
 
       {sessionState === "setup" && (
