@@ -94,7 +94,7 @@ interface ThoughtJournalProps {
   toggleTheme?: () => void;
 }
 
-type EfratStep = "event" | "interpretation" | "feeling" | "reaction" | "analyzing" | "finish";
+type EfratStep = "event" | "interpretation" | "feeling" | "feeling_intensity" | "feeling_details" | "reaction" | "analyzing" | "finish";
 
 const DISTORTIONS_HELP = {
   "הכל או כלום": "ראיית דברים בשחור-לבן. אם משהו אינו מושלם, הוא נחשב כישלון מוחלט (למשל: 'אם איחרתי בחמש דקות, כל הפגישה הרוסה').",
@@ -150,7 +150,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
       const storedIntensity = localStorage.getItem("matzpen_journal_intensity");
       const storedAdditional = localStorage.getItem("matzpen_journal_additional");
       
-      if (storedStep && ["event", "interpretation", "feeling", "reaction", "analyzing", "finish"].includes(storedStep)) {
+      if (storedStep && ["event", "interpretation", "feeling", "feeling_intensity", "feeling_details", "reaction", "analyzing", "finish"].includes(storedStep)) {
         if (storedStep !== "analyzing" && storedStep !== "finish") {
           setStep(storedStep);
         }
@@ -218,8 +218,18 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
     },
     feeling: {
       title: "ר - רגש",
-      prompt: g("מה הרגשת באותו רגע? בחר או תאר את הרגש ועוצמתו.", "מה הרגשת באותו רגע? בחרי או תארי את הרגש ועוצמתו."),
+      prompt: g("מה הרגשת באותו רגע? בחר את הרגש המתאים ביותר.", "מה הרגשת באותו רגע? בחרי את הרגש המתאים ביותר."),
       placeholder: g("איך זה הרגיש?", "איך זה הרגיש?")
+    },
+    feeling_intensity: {
+      title: "ר - רגש",
+      prompt: g("מה הייתה עוצמת הרגש שחווית?", "מה הייתה עוצמת הרגש שחווית?"),
+      placeholder: ""
+    },
+    feeling_details: {
+      title: "ר - רגש",
+      prompt: g("איך זה מרגיש בגוף ובלב? תאר במילים שלך.", "איך זה מרגיש בגוף ובלב? תארי במילים שלך."),
+      placeholder: g("תאר במילים שלך...", "תארי במילים שלך...")
     },
     reaction: {
       title: "ת - תגובה",
@@ -397,6 +407,11 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
     }
   };
 
+  const getStepDataKey = (s: EfratStep) => {
+    if (s === "feeling_intensity" || s === "feeling_details") return "feeling";
+    return s as "event" | "interpretation" | "feeling" | "reaction";
+  };
+
   const handleNext = async () => {
     if (isRecording) {
       setIsRecording(false);
@@ -404,7 +419,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
       await new Promise(resolve => setTimeout(resolve, 600));
     }
 
-    const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
+    const sequence: EfratStep[] = ["event", "interpretation", "feeling", "feeling_intensity", "feeling_details", "reaction"];
     const currentIdx = sequence.indexOf(step as any);
     
     if (currentIdx < sequence.length - 1) {
@@ -449,9 +464,10 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
 
   const handleTagClick = (tag: string) => {
     setData(prev => {
-      const currentVal = prev[step as keyof typeof data] || "";
+      const key = getStepDataKey(step);
+      const currentVal = prev[key] || "";
       const newVal = currentVal ? `${currentVal} ${tag}` : tag;
-      return { ...prev, [step]: newVal };
+      return { ...prev, [key]: newVal };
     });
   };
 
@@ -462,11 +478,18 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const currentVal = data[step as keyof typeof data] || "";
-  const isFeelingStepValid = selectedMoods.length > 0 || additionalFeelingText.trim() !== "";
+  const currentVal = data[getStepDataKey(step)] || "";
+  const isFeelingStepValid = selectedMoods.length > 0;
+  const isFeelingIntensityValid = true;
+  const isFeelingDetailsValid = additionalFeelingText.trim() !== "" || isRecording;
+
   const isCurrentStepValid = step === "feeling" 
     ? isFeelingStepValid 
-    : (currentVal.trim() !== "" || isRecording);
+    : step === "feeling_intensity"
+      ? isFeelingIntensityValid
+      : step === "feeling_details"
+        ? isFeelingDetailsValid
+        : (currentVal.trim() !== "" || isRecording);
 
   // Stepper component
   const Stepper = () => {
@@ -477,12 +500,17 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
       { key: "reaction", label: "ת", name: "תגובה" }
     ];
     
-    const currentIdx = stepsList.findIndex(s => s.key === step);
+    const getMappedStepKey = (s: EfratStep) => {
+      if (s === "feeling_intensity" || s === "feeling_details") return "feeling";
+      return s;
+    };
+    
+    const currentIdx = stepsList.findIndex(s => s.key === getMappedStepKey(step));
     
     return (
       <div className="w-full flex items-center justify-between px-2 select-none" dir="rtl">
         {stepsList.map((s, idx) => {
-          const isActive = s.key === step;
+          const isActive = s.key === getMappedStepKey(step);
           const isCompleted = currentIdx > idx;
           
           return (
@@ -1045,7 +1073,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
         {/* Dynamic Inputs depending on current Step */}
         <div className="w-full relative">
           
-          {step === "feeling" ? (
+          {step === "feeling" && (
             <div className="w-full space-y-6 animate-in fade-in duration-500">
               {/* Mood Selector Grid */}
               <div className="space-y-3">
@@ -1075,7 +1103,11 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                   })}
                 </div>
               </div>
-              
+            </div>
+          )}
+
+          {step === "feeling_intensity" && (
+            <div className="w-full space-y-6 animate-in fade-in duration-500">
               {/* Intensity Slider */}
               <div className={cn("space-y-3 p-5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                 <div className="flex items-center justify-between">
@@ -1096,7 +1128,11 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                   <span>עוצמתי מאוד</span>
                 </div>
               </div>
+            </div>
+          )}
 
+          {step === "feeling_details" && (
+            <div className="w-full space-y-6 animate-in fade-in duration-500">
               {/* Additional Feeling Textbox */}
               <div className="space-y-2 relative">
                 <span className="text-xs font-black text-slate-500 block pr-1">פרטים נוספים או מחשבות נלוות:</span>
@@ -1104,7 +1140,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                   value={additionalFeelingText}
                   onChange={(e) => setAdditionalFeelingText(e.target.value)}
                   placeholder="תאר/י במילים שלך את מה שאת/ה מרגיש/ה..."
-                  className={cn("min-h-[120px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
+                  className={cn("min-h-[160px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
                   aria-label="תיאור נוסף של הרגש"
                 />
 
@@ -1142,11 +1178,13 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
                 </div>
               </div>
             </div>
-          ) : (
+          )}
+
+          {(step !== "feeling" && step !== "feeling_intensity" && step !== "feeling_details") && (
             <div className="w-full space-y-4 animate-in fade-in duration-500 relative">
               <Textarea
                 value={currentVal}
-                onChange={(e) => setData(prev => ({ ...prev, [step]: e.target.value }))}
+                onChange={(e) => setData(prev => ({ ...prev, [getStepDataKey(step)]: e.target.value }))}
                 placeholder={currentConfig.placeholder}
                 className={cn("min-h-[220px] rounded-[2rem] p-6 focus:border-indigo-500/50 transition-all text-lg resize-none", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-slate-900 border-white/10 text-white")}
                 aria-label={currentConfig.title}
@@ -1237,7 +1275,7 @@ export default function ThoughtJournal({ gender, onBack, theme = "light", toggle
           type="button"
           variant="outline"
           onClick={() => {
-            const sequence: EfratStep[] = ["event", "interpretation", "feeling", "reaction"];
+            const sequence: EfratStep[] = ["event", "interpretation", "feeling", "feeling_intensity", "feeling_details", "reaction"];
             const currentIdx = sequence.indexOf(step as any);
             if (currentIdx > 0) setStep(sequence[currentIdx - 1]);
           }}
