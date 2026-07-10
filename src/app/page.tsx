@@ -138,6 +138,12 @@ function AppContent() {
     onMessageListener();
 
     if (typeof window !== "undefined") {
+      // Register service worker for PWA installability
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/firebase-messaging-sw.js")
+          .then((reg) => console.log("PWA Service Worker registered:", reg.scope))
+          .catch((err) => console.error("PWA Service Worker registration failed:", err));
+      }
       const storedTheme = localStorage.getItem("matzpen_theme") as "light" | "dark" | null;
       if (storedTheme === "light" || storedTheme === "dark") {
         setTheme(storedTheme);

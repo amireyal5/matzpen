@@ -408,6 +408,23 @@ export default function HomeScreen({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const [activeActionJournal, setActiveActionJournal] = useState<any>(null);
+  const [showIosPrompt, setShowIosPrompt] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+      const hasDismissed = localStorage.getItem("matzpen_ios_prompt_dismissed") === "true";
+      if (isIOS && !isStandalone && !hasDismissed) {
+        setShowIosPrompt(true);
+      }
+    }
+  }, []);
+
+  const handleDismissIosPrompt = () => {
+    localStorage.setItem("matzpen_ios_prompt_dismissed", "true");
+    setShowIosPrompt(false);
+  };
   
   const { user } = useUser();
   const firestore = useFirestore();
@@ -580,6 +597,50 @@ export default function HomeScreen({
 
       {/* Content wrapper */}
       <div className="relative z-10">
+        {showIosPrompt && (
+          <div className="max-w-xl lg:max-w-4xl mx-auto px-6 pt-4 relative z-25">
+            <div className={cn(
+              "rounded-[2rem] p-5 border-2 shadow-2xl relative overflow-hidden animate-in slide-in-from-top duration-500",
+              isLight 
+                ? "bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-100/50 border-indigo-200 text-slate-800" 
+                : "bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-indigo-950/20 border-indigo-900/50 text-slate-200"
+            )}>
+              <button 
+                onClick={handleDismissIosPrompt}
+                className={cn("absolute top-4 left-4 p-1.5 rounded-full border transition-all active:scale-90",
+                  isLight ? "bg-white border-slate-200 hover:bg-slate-50 text-slate-500" : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-400"
+                )}
+                aria-label="סגור הנחיה"
+              >
+                <X size={14} />
+              </button>
+
+              <div className="flex gap-4 items-start pl-8 text-right" dir="rtl">
+                <div className="p-3.5 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
+                  <span>📱</span>
+                </div>
+                
+                <div className="space-y-1.5 min-w-0">
+                  <h3 className="text-sm font-black tracking-tight text-indigo-650 dark:text-indigo-400">התקנת אפליקציה באייפון</h3>
+                  <p className="text-xs leading-relaxed opacity-90 font-bold">
+                    כדי להשתמש באפליקציה במסך מלא, עם ביצועים מהירים יותר וגישה ישירה ממסך הבית:
+                  </p>
+                  <ul className="text-xs space-y-1.5 pt-2 text-slate-600 dark:text-slate-300 pr-1">
+                    <li className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] font-black shrink-0">1</span>
+                      <span>לחצו על כפתור השיתוף בספארי (ריבוע עם חץ למעלה 📤)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] font-black shrink-0">2</span>
+                      <span>גללו מטה ובחרו ב-<strong>'הוסף למסך הבית'</strong> (Add to Home Screen 📱)</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <header className="bg-transparent pt-8 pb-6 px-6">
           <div className="max-w-xl lg:max-w-4xl mx-auto flex flex-col items-center text-center gap-6">
             <div className="w-full flex justify-between items-center mb-2">
@@ -597,14 +658,14 @@ export default function HomeScreen({
                   trigger={
                     <button
                       className={cn(
-                        "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90",
+                        "w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-90 font-black text-xs shadow-sm",
                         isLight
-                          ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100 shadow-sm"
-                          : "bg-rose-950/20 border-rose-900/30 text-rose-400 hover:text-rose-200 hover:border-rose-800"
+                          ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 hover:border-rose-700"
+                          : "bg-rose-950/40 border-rose-900/50 text-rose-300 hover:bg-rose-900/40 hover:text-white"
                       )}
-                      aria-label="עזרה ראשונה נפשית"
+                      aria-label="עזרה ראשונה נפשית (SOS)"
                     >
-                      <LifeBuoy size={18} className="animate-pulse" />
+                      <span className="animate-pulse">SOS</span>
                     </button>
                   }
                 />
@@ -694,28 +755,6 @@ export default function HomeScreen({
           />
         </div>
 
-        {/* SOS Emergency and Panic-Proof Grounding Button */}
-        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
-          <CrisisHelpDialog
-            gender={displayGender}
-            theme={theme}
-            trigger={
-              <button
-                className={cn(
-                  "w-full py-5 rounded-[2rem] border-2 shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 font-black text-base relative overflow-hidden group",
-                  isLight
-                    ? "bg-rose-50 border-rose-250 text-rose-700 hover:bg-rose-100/80 shadow-rose-100/50"
-                    : "bg-rose-950/20 border-rose-900/40 text-rose-300 hover:bg-rose-950/30 shadow-rose-950/20"
-                )}
-              >
-                {/* Subtle background pulse animation */}
-                <div className="absolute inset-0 bg-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none duration-500" />
-                <LifeBuoy size={20} className="animate-pulse text-rose-500" />
-                <span>{displayGender === "f" ? "🆘 צריכה עזרה מיידית? (תרגיל קרקוע וחירום)" : "🆘 צריך עזרה מיידית? (תרגיל קרקוע וחירום)"}</span>
-              </button>
-            }
-          />
-        </div>
 
         {/* Active Action Step (Behavioral Activation) - Archived for PTSD focus
         {activeActionJournal && (

@@ -149,12 +149,68 @@ const SPEEDS = [
   { id: 'fast', label: 'מהיר (להפחתת רגישות)', desc: '1.2 שניות' }
 ];
 
+const FOCUS_PHASE_DURATION = 12;
+
 const TIMERS = [
   { id: 60, label: 'דקה אחת' },
   { id: 180, label: '3 דקות' },
   { id: 300, label: '5 דקות' },
   { id: 0, label: 'ללא הגבלה' }
 ];
+
+interface DistressPreset {
+  color: 'cyan' | 'green' | 'amber' | 'indigo';
+  speed: 'slow' | 'medium' | 'fast';
+  soundId: string;
+  focusInstructions: string;
+  explanation: string;
+}
+
+const DISTRESS_PRESETS: Record<string, DistressPreset> = {
+  "חרדה": {
+    color: "cyan",
+    speed: "medium",
+    soundId: "ambient-calm",
+    focusInstructions: "התמקד/י בחרדה ובמקום בו היא מכווצת את הגוף (כמו הבטן או החזה). נשום/נשמי רך ועמוק.",
+    explanation: "כיול מותאם לחרדה: צבע כחול-ציאן מרגיע, קצב ויסות בינוני וצליל גלי ים מקרקעים."
+  },
+  "כעס": {
+    color: "indigo",
+    speed: "fast",
+    soundId: "none",
+    focusInstructions: "התמקד/י בכעס, בתחושת החום או המתיחות (בלסת, באגרופים). אפשר/י לאנרגיה של הכעס לזרום החוצה במעקב מהיר.",
+    explanation: "כיול מותאם לכעס: צבע אינדיגו עמוק לקירור, קצב מהיר לפריקת האנרגיה הגבוהה וצליל שקט."
+  },
+  "הצפה": {
+    color: "green",
+    speed: "slow",
+    soundId: "ambient-calm",
+    focusInstructions: "התמקד/י בתחושת הבלבול או ההצפה, בדומה לענן סמיך. אפשר/י לעיניים להינעל על הכדור האטי ולהתקרקע.",
+    explanation: "כיול מותאם להצפה: צבע ירוק מרפא, קצב אטי להאטת המחשבות ומוזיקת רקע שלווה."
+  },
+  "זיכרון כואב": {
+    color: "indigo",
+    speed: "medium",
+    soundId: "ambient-calm",
+    focusInstructions: "התמקד/י בתמונת הזיכרון ובתחושה שהיא מעוררת כעת. עקוב/י אחר הכדור ואפשר/י למוח לעבד את התמונה מחדש.",
+    explanation: "כיול מותאם לזיכרון כואב: צבע אינדיגו מעודד עיבוד עמוק, קצב בינוני וצליל קערה מהדהד."
+  },
+  "מתח פיזי": {
+    color: "green",
+    speed: "slow",
+    soundId: "ambient-calm",
+    focusInstructions: "התמקד/י באזור המתוח בגוף (צוואר, שכמות, גב). נשום/נשמי אל המקום המתוח תוך מעקב אטי אחר התנועה.",
+    explanation: "כיול מותאם למתח פיזי: צבע ירוק-טבע מרגיע, קצב אטי להרפיית שרירים ושמע עמוק."
+  }
+};
+
+const DEFAULT_PRESET: DistressPreset = {
+  color: "cyan",
+  speed: "medium",
+  soundId: "ambient-calm",
+  focusInstructions: "התמקד/י במצוקה ובמקום בו היא מורגשת בגוף. נשום/נשמי אליה בעדינות.",
+  explanation: "כיול כללי: צבע כחול-ציאן מנקה, קצב ויסות בינוני ומוזיקת רקע מרגיעה."
+};
 
 interface BilateralProcessingProps {
   gender: "m" | "f";
@@ -417,6 +473,15 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     }
   };
 
+  const handleSelectDistressCategory = (cat: string) => {
+    setDistressCategory(cat);
+    setCustomDistress("");
+    const preset = DISTRESS_PRESETS[cat] || DEFAULT_PRESET;
+    setStimulusColor(preset.color);
+    setSpeed(preset.speed);
+    setSelectedSoundId(preset.soundId);
+  };
+
   const handleStartSession = () => {
     // שמירת הגדרות ב-localStorage
     if (typeof window !== "undefined") {
@@ -437,7 +502,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     setIsPlaying(true);
     if (treatmentMode === 'desensitize') {
       setDesensitizePhase('focus');
-      setPhaseTimeLeft(5);
+      setPhaseTimeLeft(FOCUS_PHASE_DURATION);
       setSudsHistory([initialSuds]);
       setCurrentSuds(initialSuds);
       setActiveSet(1);
@@ -456,6 +521,11 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
     } else {
       setSessionState("grounding");
     }
+  };
+
+  const handleSkipFocus = () => {
+    setDesensitizePhase('processing');
+    setPhaseTimeLeft(35);
   };
   const handleFinishGrounding = () => {
     if (typeof window !== "undefined" && localStorage.getItem("bls_hasUsedBefore") === "true") {
@@ -594,6 +664,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
         .replace("קרב/י", "קרבי")
         .replace("בחר/י", "בחרי")
         .replace("התאמ/י", "התאימי")
+        .replace("התכונן/י", "התכונני")
         .replace("תרגל/י", "תרגלי");
     }
     return text
@@ -608,7 +679,89 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
       .replace("קרב/י", "קרב")
       .replace("בחר/י", "בחר")
       .replace("התאמ/י", "התאם")
+      .replace("התכונן/י", "התכונן")
       .replace("תרגל/י", "תרגל");
+  };
+
+  const getSudsNextStepExplanation = () => {
+    const diff = initialSuds - currentSuds;
+    const isFemale = gender === 'f';
+    if (currentSuds <= 3) {
+      if (diff > 0) {
+        return (
+          <div className="space-y-2 text-right" dir="rtl">
+            <h4 className="font-black text-sm text-emerald-500 flex items-center gap-1.5 justify-start">🌈 רגיעה טובה ומוצלחת</h4>
+            <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              הצלחת להפחית את רמת המצוקה לרמה נמוכה של {currentSuds} מתוך 10! 
+              מערכת העצבים שלך כעת במצב בטוח ורגוע יותר.
+            </p>
+            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 pt-1">
+              💡 מה מומלץ לעשות כעת?
+            </p>
+            <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
+              <li>{isFemale ? "שתי" : "שתו"} כוס מים קרים כדי לסייע לגוף להתקרקע.</li>
+              <li>{isFemale ? "עשי" : "עשו"} פעילות קלה ומסיחת דעת (כמו שמיעת מוזיקה או הליכה קצרה).</li>
+              <li>{isFemale ? "תוכלי" : "תוכלו"} לחזור למסך הבית להמשך שגרה רגועה.</li>
+            </ul>
+          </div>
+        );
+      } else {
+        return (
+          <div className="space-y-2 text-right" dir="rtl">
+            <h4 className="font-black text-sm text-emerald-500 flex items-center gap-1.5 justify-start">🌸 רגיעה ויציבות</h4>
+            <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              רמת המצוקה שלך נמוכה ויציבה ({currentSuds} מתוך 10). 
+              הגוף והנפש נמצאים כעת במצב של יציבות.
+            </p>
+            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 pt-1">
+              💡 מה מומלץ לעשות כעת?
+            </p>
+            <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
+              <li>{isFemale ? "תוכלי" : "תוכלו"} להשתמש בכלי "עזרה בשינה" או "מוזיקה מרגיעה" כדי להמשיך להזין את תחושת השלווה.</li>
+              <li>{isFemale ? "חזרי" : "חזרו"} למסך הבית מתי {isFemale ? "שתרצי" : "שתרצו"}.</li>
+            </ul>
+          </div>
+        );
+      }
+    } else {
+      // currentSuds > 3 (still experiencing distress)
+      if (diff > 0) {
+        return (
+          <div className="space-y-2 text-right" dir="rtl">
+            <h4 className="font-black text-sm text-amber-500 flex items-center gap-1.5 justify-start">⚡ התקדמות בעיבוד (מצוקה מתונה)</h4>
+            <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              הצלחת להפחית את המצוקה מ-{initialSuds} ל-{currentSuds}, אך עדיין קיימת תחושת אי-נוחות מסוימת בגוף. 
+              זהו תהליך טבעי של עיבוד זיכרון או רגש מציף.
+            </p>
+            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 pt-1">
+              💡 מה מומלץ לעשות כעת?
+            </p>
+            <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
+              <li><strong>מומלץ לבצע סבב נוסף:</strong> {isFemale ? "לחצי" : "לחצו"} על "התחל תרגול חדש" ועשו עוד 1-2 סבבים כדי להמשיך להמיס את שארית המצוקה.</li>
+              <li>אם {isFemale ? "את מרגישה" : "אתם מרגישים"} עייפות פיזית, {isFemale ? "עצרי" : "עצרו"} כאן, {isFemale ? "שתי" : "שתו"} מים, ותנו לחוויה להתאזן בגוף באופן טבעי.</li>
+            </ul>
+          </div>
+        );
+      } else {
+        return (
+          <div className="space-y-2 text-right" dir="rtl">
+            <h4 className="font-black text-sm text-red-500 flex items-center gap-1.5 justify-start">⚠️ המצוקה עדיין פעילה</h4>
+            <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+              רמת המצוקה נותרה גבוהה ({currentSuds} מתוך 10). 
+              במקרים של הצפה חזקה, המוח זקוק לזמן נוסף וקצב איטי/עקבי כדי לפרק את הזיכרון או הרגש.
+            </p>
+            <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 pt-1">
+              💡 מה מומלץ לעשות כעת?
+            </p>
+            <ul className="list-disc list-inside text-xs space-y-1 text-slate-600 dark:text-slate-400 pr-1">
+              <li><strong>בצעו סבב נוסף של פריקה:</strong> {isFemale ? "לחצי" : "לחצו"} על "התחל תרגול חדש" והקפידו לעקוב אחרי הכדור במבט רציף.</li>
+              <li><strong>שינוי מהירות/שמע:</strong> אם המהירות הנוכחית מהירה מדי, {isFemale ? "היכנסי" : "היכנסו"} להגדרות והנמיכו את המהירות ל-"בינוני" או "אטי".</li>
+              <li>אם {isFemale ? "את מרגישה" : "אתם מרגישים"} הצפה מוחלטת, {isFemale ? "עברי" : "עברו"} למסך הבית והפעילו את כלי **"עזרה ראשונה - תרגילי קרקוע (5-4-3-2-1)"** למטה כדי לחזור לגוף.</li>
+            </ul>
+          </div>
+        );
+      }
+    }
   };
 
   const getStimulusLeft = () => blsSide === 'left' ? '0%' : blsSide === 'right' ? '100%' : '50%';
@@ -664,27 +817,62 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
               </p>
             </div>
 
-            <div className="w-full space-y-4">
-              <Button 
-                onClick={handleStartSession} 
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2rem] text-lg shadow-xl shadow-indigo-600/15 active:scale-95 transition-all flex items-center justify-center gap-3"
-              >
-                <span>התחל תרגול</span>
-                <Play className="h-5 w-5 fill-white" />
-              </Button>
-
-              <Button 
-                variant="outline"
-                onClick={() => setSessionState("setup")} 
-                className={cn(
-                  "w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest bg-transparent border-2 transition-all active:scale-95",
-                  isLight 
-                    ? "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900" 
-                    : "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+            <div className="w-full space-y-6">
+              <div className="space-y-3 text-right" dir="rtl">
+                <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מה מקור המצוקה כעת?</span>
+                <div className="flex flex-wrap gap-2 justify-start">
+                  {["חרדה", "כעס", "הצפה", "זיכרון כואב", "מתח פיזי"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => handleSelectDistressCategory(cat)}
+                      className={cn("py-2 px-3.5 rounded-xl border text-xs font-bold transition-all active:scale-95", 
+                        distressCategory === cat && !customDistress 
+                          ? "bg-indigo-600/20 border-indigo-500 text-indigo-600 dark:text-white shadow-sm" 
+                          : isLight 
+                            ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" 
+                            : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10"
+                      )}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {distressCategory && DISTRESS_PRESETS[distressCategory] && (
+                  <div className={cn("p-3.5 rounded-2xl text-[10px] font-bold leading-relaxed border transition-all duration-300 animate-in fade-in text-right", isLight ? "bg-indigo-50/50 border-indigo-100 text-indigo-700" : "bg-indigo-950/10 border-indigo-500/10 text-indigo-300")}>
+                    💡 {DISTRESS_PRESETS[distressCategory].explanation}
+                  </div>
                 )}
-              >
-                <span>⚙️ הגדרות תרגול</span>
-              </Button>
+                <input
+                  type="text"
+                  value={customDistress}
+                  onChange={(e) => { setCustomDistress(e.target.value); setDistressCategory(""); }}
+                  placeholder="או תארו משהו אחר במילים שלכם..."
+                  className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-white/5 border-white/5 text-white placeholder:text-slate-650")}
+                />
+              </div>
+
+              <div className="w-full space-y-4">
+                <Button 
+                  onClick={handleStartSession} 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-[2rem] text-lg shadow-xl shadow-indigo-600/15 active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  <span>התחל תרגול</span>
+                  <Play className="h-5 w-5 fill-white" />
+                </Button>
+
+                <Button 
+                  variant="outline"
+                  onClick={() => setSessionState("setup")} 
+                  className={cn(
+                    "w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest bg-transparent border-2 transition-all active:scale-95",
+                    isLight 
+                      ? "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-900" 
+                      : "border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  <span>⚙️ הגדרות תרגול</span>
+                </Button>
+              </div>
             </div>
           </main>
         </div>
@@ -781,28 +969,6 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
 
                 {treatmentMode === 'desensitize' ? (
                   <div className="space-y-6">
-                    <div className="space-y-3">
-                      <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>מה מקור המצוקה כרגע?</span>
-                      <div className="flex flex-wrap gap-2">
-                        {["חרדה", "כעס", "הצפה", "זיכרון כואב", "מתח פיזי"].map((cat) => (
-                          <button
-                            key={cat}
-                            onClick={() => { setDistressCategory(cat); setCustomDistress(""); }}
-                            className={cn("py-2 px-3.5 rounded-xl border text-xs font-bold transition-all", distressCategory === cat && !customDistress ? "bg-indigo-600/20 border-indigo-500 text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
-                          >
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                      <input
-                        type="text"
-                        value={customDistress}
-                        onChange={(e) => { setCustomDistress(e.target.value); setDistressCategory(""); }}
-                        placeholder="או תארו משהו אחר במילים שלכם..."
-                        className={cn("w-full rounded-2xl p-4 text-xs font-bold focus:border-indigo-500/50 outline-none border", isLight ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" : "bg-white/5 border-white/5 text-white placeholder:text-slate-600")}
-                      />
-                    </div>
-
                     <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
                       <div className="flex justify-between items-center">
                         <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>דרגו את עוצמת המצוקה כעת:</span>
@@ -1054,13 +1220,39 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
             {treatmentMode === 'desensitize' && (
               <>
                 {desensitizePhase === 'focus' && (
-                  <div className="text-center p-8 bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] border border-white/5 max-w-md w-full animate-in fade-in duration-500">
-                    <h2 className="text-sm font-black text-indigo-400 tracking-widest uppercase mb-3">שלב התמקדות</h2>
-                    <h3 className="text-lg text-slate-300 mb-1">{adjustGender("התמקד/י במקור המצוקה ובמקום בו היא מורגשת בגוף:")}</h3>
-                    <p className="text-2xl font-black text-white">{customDistress || distressCategory}</p>
-                    <div className="mt-6 flex items-center justify-center gap-3">
+                  <div className="text-center p-8 bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-white/10 max-w-md w-full animate-in fade-in duration-500 shadow-2xl text-right" dir="rtl">
+                    <h2 className="text-xs font-black text-indigo-400 tracking-widest uppercase mb-4 text-center">שלב התמקדות גופנית</h2>
+                    
+                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                      {adjustGender("המפתח לעיבוד בילטרלי אפקטיבי הוא חיבור לתחושה הפיזית. שים/י לב היכן הרגש מורגש בגוף ברגע זה.")}
+                    </p>
+
+                    <div className="p-5 rounded-3xl border mb-5 space-y-2 bg-indigo-950/20 border-indigo-500/10">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-400">
+                        {customDistress || distressCategory || "מצוקה"}
+                      </span>
+                      <p className="text-sm font-bold text-white leading-relaxed pt-1">
+                        {(() => {
+                          const preset = DISTRESS_PRESETS[distressCategory] || DEFAULT_PRESET;
+                          return adjustGender(preset.focusInstructions);
+                        })()}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/5">
                       <Clock size={16} className="text-indigo-400 animate-pulse" />
-                      <span className="text-sm font-mono font-bold text-indigo-300">{phaseTimeLeft} שניות עד לתחילת העיבוד</span>
+                      <span className="text-xs font-mono font-bold text-indigo-300">
+                        {phaseTimeLeft} {adjustGender("שניות עד לתחילת העיבוד... התכונן/י")}
+                      </span>
+                    </div>
+
+                    <div className="mt-5">
+                      <Button 
+                        onClick={handleSkipFocus}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl text-xs shadow-lg active:scale-95 transition-all"
+                      >
+                        התחל בעיבוד כעת (דלג)
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -1111,7 +1303,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                           setSudsHistory(prev => [...prev, currentSuds]); 
                           setActiveSet(prev => prev + 1); 
                           setDesensitizePhase('focus'); 
-                          setPhaseTimeLeft(5); 
+                          setPhaseTimeLeft(FOCUS_PHASE_DURATION); 
                           setIsPlaying(true); 
                         }}
                         className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-xs"
@@ -1341,18 +1533,18 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                       </div>
 
                       {/* SVG line representation */}
-                      <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
+                      <svg className="absolute inset-0 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <polyline
                           fill="none"
                           stroke="#6366F1"
                           strokeWidth="3"
                           strokeLinecap="round"
                           strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
                           points={sudsHistory.map((suds, index) => {
                             const x = (index / (sudsHistory.length - 1)) * 100;
-                            // scale 1-10 to SVG coordinates (10 is top/0% padding, 1 is bottom/100% padding)
                             const y = 100 - ((suds - 1) / 9) * 80 - 10;
-                            return `${x}%,${y}%`;
+                            return `${x},${y}`;
                           }).join(" ")}
                         />
                         {/* Area gradient under the line */}
@@ -1362,7 +1554,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                           d={`M 0,100 ${sudsHistory.map((suds, index) => {
                             const x = (index / (sudsHistory.length - 1)) * 100;
                             const y = 100 - ((suds - 1) / 9) * 80 - 10;
-                            return `L ${x}%,${y}%`;
+                            return `L ${x},${y}`;
                           }).join(" ")} L 100,100 Z`}
                         />
                         <defs>
@@ -1408,6 +1600,18 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {treatmentMode === 'desensitize' && (
+              <div className={cn("p-6 rounded-3xl border space-y-3 shadow-md",
+                currentSuds <= 3 
+                  ? (isLight ? "bg-emerald-500/5 border-emerald-500/20 text-slate-800" : "bg-emerald-950/10 border-emerald-500/10 text-slate-200")
+                  : currentSuds <= 6
+                    ? (isLight ? "bg-amber-500/5 border-amber-500/20 text-slate-800" : "bg-amber-950/10 border-amber-500/10 text-slate-200")
+                    : (isLight ? "bg-rose-500/5 border-rose-500/20 text-slate-800" : "bg-rose-950/10 border-rose-500/10 text-slate-200")
+              )}>
+                {getSudsNextStepExplanation()}
               </div>
             )}
 
