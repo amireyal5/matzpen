@@ -337,7 +337,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
   return (
     <div className={cn("min-h-screen flex flex-col transition-colors duration-500", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-white")}>
       <header className={cn("p-6 flex items-center justify-between border-b backdrop-blur-md z-10 transition-colors duration-500", isLight ? "border-slate-200 bg-white/60" : "border-white/5 bg-slate-900/50")}>
-        <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-colors", isLight ? "text-slate-400 hover:text-slate-900" : "text-slate-500 hover:text-white")}>
+        <button onClick={onBack} className={cn("flex items-center gap-2 text-xs font-black transition-all px-3.5 py-1.5 rounded-full border shadow-sm backdrop-blur-md", isLight ? "text-slate-700 hover:text-slate-950 bg-slate-100/60 border-slate-200/50 hover:bg-slate-200/60" : "text-slate-200 hover:text-white bg-white/5 border-white/10 hover:bg-white/10")}>
           <ArrowRight size={18} />
           חזרה למסך הבית
         </button>
@@ -427,7 +427,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
           <header className="relative z-10 flex items-start justify-between gap-2 w-full max-w-lg mx-auto">
             <button
               onClick={exitJourney}
-              className="shrink-0 px-3.5 sm:px-4 h-11 rounded-full bg-black/40 hover:bg-black/55 border border-white/15 flex items-center gap-1.5 text-white transition-all active:scale-95 shadow-lg backdrop-blur-md"
+              className="shrink-0 px-3.5 sm:px-4 h-11 rounded-full bg-black/70 hover:bg-black/85 border border-white/20 flex items-center gap-1.5 text-white transition-all active:scale-95 shadow-lg backdrop-blur-md"
               aria-label="סגור מסע"
             >
               <X size={16} />
@@ -513,7 +513,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
                   </Button>
                   <button
                     onClick={exitJourney}
-                    className="text-xs font-black text-white hover:text-indigo-200 transition-colors px-4 py-2 rounded-full bg-black/40 border border-white/15 backdrop-blur-md shadow-lg"
+                    className="text-xs font-black text-white hover:text-indigo-200 transition-all px-4 py-2 rounded-full bg-black/70 hover:bg-black/85 border border-white/20 backdrop-blur-md shadow-lg"
                   >
                     חזרה לתפריט
                   </button>
