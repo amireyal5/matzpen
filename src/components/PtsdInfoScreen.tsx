@@ -554,10 +554,10 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
                     <div>
                       <span className={cn("block text-[11px] font-black uppercase tracking-wider mb-2", isLight ? "text-slate-400" : "text-slate-500")}>להרחבת מידע</span>
                       <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-1 gap-2">
-                        {page.relatedTopics.map((topicId, index) => {
+                        {page.relatedTopics.map((topicId, index, arr) => {
                           const t = subTopics[topicId];
                           if (!t) return null;
-                          const isLastOdd = index === page.relatedTopics.length - 1 && page.relatedTopics.length % 2 !== 0;
+                          const isLastOdd = index === arr.length - 1 && arr.length % 2 !== 0;
                           return (
                             <button
                               key={topicId}
