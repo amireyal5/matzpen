@@ -229,8 +229,8 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   // טעינת הגדרות שמורות ב-localStorage בעת כניסה
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedMode = localStorage.getItem("bls_treatmentMode");
-      if (savedMode) setTreatmentMode(savedMode as any);
+      // Force desensitize mode
+      setTreatmentMode('desensitize');
       const savedSpeed = localStorage.getItem("bls_speed");
       if (savedSpeed) setSpeed(savedSpeed as any);
       const savedShape = localStorage.getItem("bls_stimulusShape");
@@ -268,7 +268,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   
   // ברירת מחדל בטוחה: משתמשים חדשים מתחילים בהטמעת משאבים, לא בעיבוד ישיר.
   // localStorage.bls_treatmentMode (למטה) דורס את זה עבור משתמשים חוזרים.
-  const [treatmentMode, setTreatmentMode] = useState<'desensitize' | 'resource'>('resource');
+  const [treatmentMode, setTreatmentMode] = useState<'desensitize' | 'resource'>('desensitize');
   const [hasConsentedDesensitize, setHasConsentedDesensitize] = useState(false);
   const [desensitizeConsentChecked, setDesensitizeConsentChecked] = useState(false);
   const [speed, setSpeed] = useState<'slow' | 'medium' | 'fast'>('medium');
@@ -993,77 +993,34 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
             {setupTab === 'focus' ? (
               /* TAB 1: FOCUS & TARGETS */
               <div className="space-y-6 animate-in fade-in duration-300">
-                <div className="space-y-3">
-                  <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>סוג התרגול הבילטרלי</span>
-                  <div className={cn("grid grid-cols-2 gap-2 p-1.5 rounded-2xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
-                    <button
-                      onClick={() => setTreatmentMode('desensitize')}
-                      className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'desensitize' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
-                    >
-                      פריקה והפחתת מצוקה
-                    </button>
-                    <button
-                      onClick={() => setTreatmentMode('resource')}
-                      className={cn("py-3 rounded-xl text-center text-xs font-black transition-all active:scale-95", treatmentMode === 'resource' ? "bg-indigo-600 text-white shadow-lg" : isLight ? "text-slate-500 hover:text-slate-900" : "text-slate-400 hover:text-white")}
-                    >
-                      חיזוק והטמעת משאבים
-                    </button>
-                  </div>
-                </div>
-
-                {treatmentMode === 'desensitize' ? (
-                  <div className="space-y-6">
-                    <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
-                      <div className="flex justify-between items-center">
-                        <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>דרגו את עוצמת המצוקה כעת:</span>
-                        <span className={cn("text-sm font-mono font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds} מתוך 10</span>
-                      </div>
-                      <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
+                <div className="space-y-6">
+                  <div className={cn("space-y-4 p-5 rounded-3xl border", isLight ? "bg-white/70 border-slate-200" : "bg-white/5 border-white/5")}>
+                    <div className="flex justify-between items-center">
+                      <span className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-indigo-600" : "text-indigo-400")}>דרגו את עוצמת המצוקה כעת:</span>
+                      <span className={cn("text-sm font-mono font-bold bg-indigo-500/10 px-2.5 py-0.5 rounded-full", isLight ? "text-indigo-600" : "text-indigo-400")}>{initialSuds} מתוך 10</span>
                     </div>
+                    <Slider value={[initialSuds]} onValueChange={(vals) => setInitialSuds(vals[0])} min={1} max={10} step={1} className="py-2 cursor-pointer" />
+                  </div>
 
-                    {!hasConsentedDesensitize && (
-                      <label
-                        className={cn(
-                          "flex items-start gap-3 p-5 rounded-3xl border cursor-pointer transition-all",
-                          isLight ? "bg-amber-50 border-amber-200" : "bg-amber-950/10 border-amber-500/20"
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={desensitizeConsentChecked}
-                          onChange={(e) => setDesensitizeConsentChecked(e.target.checked)}
-                          className="mt-1 w-5 h-5 shrink-0 accent-indigo-600 cursor-pointer"
-                        />
-                        <span className={cn("text-xs leading-relaxed font-bold", isLight ? "text-amber-900" : "text-amber-200")}>
-                          {adjustGender("אני מבין/ה שמצב \"עיבוד\" מיועד לחומר שכבר עלה בטיפול. אני מעבד/ת כאן נושא שכבר דיברתי עליו עם המטפל/ת שלי, ומרגיש/ה מוכן/ה להתמודד איתו לבד כעת. אם המצוקה גבוהה מדי — עדיף להתחיל ב\"חיזוק והטמעת משאבים\" או לפנות לעזרה מיידית.")}
-                        </span>
-                      </label>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>בחרו נתיב מיקוד חיובי</span>
-                    <div className="grid gap-2">
-                      {CATEGORIES.map((cat) => (
-                        <button
-                          key={cat.id}
-                          onClick={() => setSelectedCat(cat)}
-                          className={cn("p-4 rounded-3xl border text-right flex items-center justify-between transition-all duration-300", selectedCat.id === cat.id ? "bg-indigo-600/15 border-indigo-500 shadow-lg text-slate-900 dark:text-white" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-colors", selectedCat.id === cat.id ? "bg-indigo-500 text-white" : isLight ? "bg-slate-100 text-slate-400" : "bg-white/5 text-slate-400")}><cat.icon size={18} /></div>
-                            <div>
-                              <h3 className={cn("font-bold text-xs", isLight ? "text-slate-900" : "text-white")}>{cat.title}</h3>
-                              <p className={cn("text-[10px]", isLight ? "text-slate-500" : "text-slate-400")}>{cat.subtitle}</p>
-                            </div>
-                          </div>
-                          {selectedCat.id === cat.id && <Check size={16} className={isLight ? "text-indigo-600" : "text-indigo-400"} />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  {!hasConsentedDesensitize && (
+                    <label
+                      className={cn(
+                        "flex items-start gap-3 p-5 rounded-3xl border cursor-pointer transition-all",
+                        isLight ? "bg-amber-50 border-amber-200" : "bg-amber-950/10 border-amber-500/20"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={desensitizeConsentChecked}
+                        onChange={(e) => setDesensitizeConsentChecked(e.target.checked)}
+                        className="mt-1 w-5 h-5 shrink-0 accent-indigo-600 cursor-pointer"
+                      />
+                      <span className={cn("text-xs leading-relaxed font-bold", isLight ? "text-amber-900" : "text-amber-200")}>
+                        {adjustGender("אני מבין/ה שמצב \"עיבוד\" מיועד לחומר שכבר עלה בטיפול. אני מעבד/ת כאן נושא שכבר דיברתי עליו עם המטפל/ת שלי, ומרגיש/ה מוכן/ה להתמודד איתו לבד כעת. אם המצוקה גבוהה מדי — מומלץ לפנות לעזרה מיידית.")}
+                      </span>
+                    </label>
+                  )}
+                </div>              </div>
             ) : (
               /* TAB 2: ANIMATION, SPEEDS, SOUNDS */
               <div className="space-y-6 animate-in fade-in duration-300">
@@ -1089,19 +1046,17 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                 </div>
 
                 {/* Pacing Speed */}
-                {treatmentMode === 'resource' && (
-                  <div className="space-y-3">
-                    <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>קצב הגירוי להטמעה (מהירות)</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {SPEEDS.map((sp) => (
-                        <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-2.5 rounded-2xl border text-center flex flex-col gap-1 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-slate-900 dark:text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
-                          <span className="text-xs font-bold block">{sp.label}</span>
-                          <span className="text-[8px] text-slate-500 font-mono block">{sp.desc} למחזור</span>
-                        </button>
-                      ))}
-                    </div>
+                <div className="space-y-3">
+                  <span className={cn("text-xs font-black tracking-widest uppercase pr-1", isLight ? "text-indigo-600" : "text-indigo-400")}>קצב הגירוי הבילטרלי (מהירות)</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {SPEEDS.map((sp) => (
+                      <button key={sp.id} onClick={() => setSpeed(sp.id as any)} className={cn("p-2.5 rounded-2xl border text-center flex flex-col gap-1 transition-all duration-300", speed === sp.id ? "bg-indigo-600/15 border-indigo-500 text-slate-900 dark:text-white shadow-sm" : isLight ? "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300" : "bg-white/5 border-white/5 text-slate-400 hover:border-white/10")}>
+                        <span className="text-xs font-bold block">{sp.label}</span>
+                        <span className="text-[8px] text-slate-500 font-mono block">{sp.desc} למחזור</span>
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
 
                 {/* Background Ambient Music */}
                 <div className="space-y-2">

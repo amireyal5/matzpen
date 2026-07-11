@@ -47,6 +47,8 @@ function AppContent() {
     initialBreathingId?: string;
   }>({});
   const [assessmentType, setAssessmentType] = useState<"gad7" | "phq9">("gad7");
+  const [localName, setLocalName] = useState<string>("");
+  const [localGender, setLocalGender] = useState<"m" | "f">("m");
 
   const ambientMixer = useAmbientMixer();
   const { stopAll } = ambientMixer;
@@ -151,6 +153,11 @@ function AppContent() {
         setTheme(storedTheme);
       }
 
+      const storedName = localStorage.getItem("matzpen_localName") || "";
+      const storedGender = (localStorage.getItem("matzpen_localGender") || "m") as "m" | "f";
+      setLocalName(storedName);
+      setLocalGender(storedGender);
+
       const storedScreen = localStorage.getItem("matzpen_screen") as Screen | null;
       let initialScreen = storedScreen;
       let initialCatKey = undefined;
@@ -225,37 +232,8 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  const profileRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, "userProfiles", user.uid);
-  }, [user, firestore]);
-
-  const { data: profileData } = useDoc(profileRef);
-
-  useEffect(() => {
-    if (user && !isUserLoading) {
-      const isVerified = user.emailVerified || user.providerData.some(p => p.providerId === 'google.com');
-      
-      if (isVerified) {
-        if (screen === "landing" || screen === "auth") {
-          navigateTo("home", undefined, true);
-        }
-      } else {
-        if (screen === "home" || screen === "deck" || screen === "guided" || screen === "journal" || screen === "sounds" || screen === "breathing" || screen === "bilateral" || screen === "imagery") {
-          navigateTo("auth", undefined, true);
-        }
-      }
-    }
-  }, [profileData, user, isUserLoading, screen]);
-
-  useEffect(() => {
-    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about" && screen !== "ptsd-info") {
-      navigateTo("landing", undefined, true);
-    }
-  }, [user, isUserLoading, isHydrated, screen]);
-
   const handleGoToAuth = () => {
-    navigateTo("auth");
+    navigateTo("home");
   };
 
   const handleAuthSuccess = () => {
@@ -290,9 +268,6 @@ function AppContent() {
     return <SplashScreen />;
   }
 
-  const name = profileData?.name || user?.displayName || "";
-  const gender = (profileData?.gender || "m") as "m" | "f";
-
   return (
     <div className={theme === "light" ? "light" : "dark"}>
       <main className={`min-h-screen transition-colors duration-500 ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-white"}`}>
@@ -321,10 +296,16 @@ function AppContent() {
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {(screen === "home" && user) && (
+        {screen === "home" && (
           <HomeScreen 
-            name={name} 
-            gender={gender}
+            name={localName} 
+            gender={localGender}
+            onUpdateProfile={(newName, newGender) => {
+              setLocalName(newName);
+              setLocalGender(newGender);
+              localStorage.setItem("matzpen_localName", newName);
+              localStorage.setItem("matzpen_localGender", newGender);
+            }}
             onSelectCategory={handleSelectCategory} 
             onStartGuided={handleStartGuided}
             onGoToJournal={() => navigateTo("journal")}
@@ -347,36 +328,26 @@ function AppContent() {
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {(screen === "deck" && user) && (
+        {screen === "deck" && (
           <DeckScreen
             catKey={activeCatKey}
-            gender={gender}
+            gender={localGender}
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {(screen === "guided" && user) && (
+        {screen === "guided" && (
           <GuidedSession
             catKey={activeCatKey}
             practiceIdx={activePracticeIdx}
-            gender={gender}
+            gender={localGender}
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {/* Journal screen disabled for PTSD focus - archived
-        {(screen === "journal" && user) && (
-          <ThoughtJournal
-            gender={gender}
-            onBack={() => handleBack("home")}
-            theme={theme}
-            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-          />
-        )}
-        */}
-        {(screen === "sounds" && user) && (
+        {screen === "sounds" && (
           <SoundsScreen
             onBack={() => {
               handleBack("home");
@@ -386,34 +357,34 @@ function AppContent() {
             mixer={ambientMixer}
           />
         )}
-        {(screen === "breathing" && user) && (
+        {screen === "breathing" && (
           <BreathingScreen
             onBack={() => {
               handleBack("home");
             }}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-            gender={gender}
+            gender={localGender}
             {...breathingParams}
           />
         )}
-        {(screen === "bilateral" && user) && (
+        {screen === "bilateral" && (
           <BilateralProcessing
-            gender={gender}
+            gender={localGender}
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {(screen === "imagery" && user) && (
+        {screen === "imagery" && (
           <GuidedImageryScreen
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-            gender={gender}
+            gender={localGender}
           />
         )}
-        {(screen === "calming-hub" && user) && (
+        {screen === "calming-hub" && (
           <CalmingHubScreen
             onBack={() => handleBack("home")}
             onGoToBreathing={(breathingId) => {
@@ -425,26 +396,15 @@ function AppContent() {
               navigateTo("sounds");
             }}
             onGoToBilateral={() => navigateTo("bilateral")}
-            name={name}
-            gender={gender}
+            name={localName}
+            gender={localGender}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
-        {/* Assessment screen disabled for PTSD focus - archived
-        {(screen === "assessment" && user) && (
-          <ClinicalAssessment
-            gender={gender}
-            onBack={() => handleBack("home")}
-            theme={theme}
-            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-            type={assessmentType}
-          />
-        )}
-        */}
         {screen === "ptsd-info" && (
           <PtsdInfoScreen
-            onBack={() => handleBack(user ? "home" : "landing")}
+            onBack={() => handleBack(localName ? "home" : "landing")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />

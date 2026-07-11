@@ -12,7 +12,7 @@ import { doc, query, collection, where, getDocs } from "firebase/firestore";
 import { LegalDialog } from "@/components/LegalDialogs";
 import ProfileDialog from "@/components/ProfileDialog";
 import CategoryCard from "@/components/CategoryCard";
-import NotificationCenter from "@/components/NotificationCenter";
+
 import MoodCheckIn from "@/components/MoodCheckIn";
 import OnboardingDialog from "@/components/OnboardingDialog";
 import Logo from "@/components/Logo";
@@ -35,6 +35,7 @@ interface HomeScreenProps {
   onGoToAssessment: (type: "gad7" | "phq9") => void;
   onGoToPtsdInfo: () => void;
   onBack: () => void;
+  onUpdateProfile: (name: string, gender: "m" | "f") => void;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
 }
@@ -396,23 +397,13 @@ export default function HomeScreen({
   onGoToAssessment,
   onGoToPtsdInfo,
   onBack,
+  onUpdateProfile,
   theme = "light",
   toggleTheme
 }: HomeScreenProps) {
   const isLight = theme === "light";
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [recommendation, setRecommendation] = useState<RecommendationOutput | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(true);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const lastModelMsgRef = useRef<HTMLDivElement>(null);
-
-  const [activeActionJournal, setActiveActionJournal] = useState<any>(null);
   const [showIosPrompt, setShowIosPrompt] = useState(false);
 
   useEffect(() => {
@@ -430,142 +421,28 @@ export default function HomeScreen({
     localStorage.setItem("matzpen_ios_prompt_dismissed", "true");
     setShowIosPrompt(false);
   };
-  
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const profileRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, "userProfiles", user.uid);
-  }, [user, firestore]);
-
-  const { data: profileData, isLoading: isProfileLoading } = useDoc(profileRef);
-
-  const showOnboarding = !isProfileLoading && !!profileData && !profileData.onboardingCompleted;
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
-    const timer = setTimeout(() => {
-      setIsMinimized(true);
-    }, 5000);
-    return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
-    const timer = setTimeout(() => {
-      if (isSearching || lastMsg.role === 'user') {
-        // הודעה שנשלחה / טעינה בתהליך - גלילה לתחתית כדי להראות את ההודעה החדשה ומחוון הטעינה
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } else {
-        // תשובה חדשה מהעוזר - להראות את תחילת התשובה, לא לקפוץ לתחתית אחרי כפתורי ההצעות
-        lastModelMsgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [messages, isSearching, recommendation]);
+  const favorites: any[] = [];
+  const completedCards: any[] = [];
+  const displayName = initialName || "משתמש";
+  const displayGender = initialGender as "m" | "f";
 
-  // Center scroll when chatbot opens
-  useEffect(() => {
-    if (messages.length > 1) {
-      const timer = setTimeout(() => {
-        chatContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
-      return () => clearTimeout(timer);
+  const { user } = useUser();
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("matzpen_onboardingCompleted") === "true";
     }
-  }, [messages.length]);
+    return false;
+  });
+  const showOnboarding = !onboardingCompleted;
 
-  // Center scroll on crisis detection
-  useEffect(() => {
-    if (recommendation?.isCrisis) {
-      const timer = setTimeout(() => {
-        chatContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [recommendation?.isCrisis]);
-
-  // Fetch active CBT action steps on mount
-  useEffect(() => {
-    if (!user || !firestore) return;
-    const q = query(
-      collection(firestore, "thoughtJournals"),
-      where("userId", "==", user.uid),
-      where("actionCompleted", "==", false)
-    );
-    getDocs(q).then((snapshot) => {
-      const list: any[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() });
-      });
-      list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      if (list.length > 0) {
-        setActiveActionJournal(list[0]);
-      } else {
-        setActiveActionJournal(null);
-      }
-    }).catch(err => {
-      console.error("Failed to load active action steps:", err);
-    });
-  }, [user, firestore]);
-
-  const handleCompleteAction = () => {
-    if (!activeActionJournal || !firestore) return;
-    const docRef = doc(firestore, "thoughtJournals", activeActionJournal.id);
-    updateDocumentNonBlocking(docRef, {
-      actionCompleted: true,
-      actionCompletedAt: new Date().toISOString()
-    });
-    setActiveActionJournal(null);
-  };
-
-  const favorites = profileData?.favorites || [];
-  const completedCards = profileData?.completed || [];
-  const displayName = profileData?.name || initialName || "משתמש";
-  const displayGender = (profileData?.gender || initialGender) as "m" | "f";
-
-  const sendQuery = async (query: string) => {
-    if (!query) return;
-    
-    const newUserMessage: Message = { role: 'user', content: query };
-    const updatedMessages = [...messages, newUserMessage];
-    
-    setMessages(updatedMessages);
-    setSearchQuery("");
-    setIsSearching(true);
-    
-    try {
-      const currentName = profileData?.name || displayName;
-      
-      const res = await getRecommendation({ 
-        feeling: query, 
-        gender: displayGender,
-        name: currentName,
-        history: messages 
-      });
-      
-      setRecommendation(res);
-      setMessages([...updatedMessages, { role: 'model', content: res.explanation }]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    if (!query) return;
-    await sendQuery(query);
-  };
-
-  const handleResetChat = () => {
-    setRecommendation(null);
-    setMessages([]);
-    setSearchQuery("");
-  };
+  const profileData = { name: displayName, gender: displayGender };
+  const profileRef = null;
+  const isMinimized = false;
 
   const welcomeText = displayGender === "f" ? `מה יעזור לך כרגע, ${displayName}?` : `מה יעזור לך כרגע, ${displayName}?`;
   const subActionText = displayGender === "f" ? "בחרי כלי להקלה מהירה" : "בחר כלי להקלה מהירה";
@@ -681,7 +558,7 @@ export default function HomeScreen({
                   }
                 />
 
-                <NotificationCenter isLight={isLight} />
+
 
                 {toggleTheme && (
                   <Tooltip>
@@ -754,17 +631,7 @@ export default function HomeScreen({
           </div>
         </header>
 
-        {/* Daily Mood Check-in */}
-        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
-          <MoodCheckIn
-            profileData={profileData}
-            profileRef={profileRef}
-            gender={displayGender}
-            isLight={isLight}
-            onSelectCategory={onSelectCategory}
-            onGoToBreathing={onGoToBreathing}
-          />
-        </div>
+        {/* Daily Mood Check-in removed */}
 
 
         {/* Active Action Step (Behavioral Activation) - Archived for PTSD focus
@@ -866,263 +733,6 @@ export default function HomeScreen({
           </div>
         </div>
         */}
-
-        {/* PTSD Information Row */}
-        <div className="max-w-md mx-auto px-6 relative z-20 mb-6">
-          <button
-            onClick={onGoToPtsdInfo}
-            className={cn(
-              "w-full rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm text-right flex items-center justify-between transition-all active:scale-95 group hover:border-indigo-500/50",
-              isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5"
-            )}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                <BookText size={24} />
-              </div>
-              <div className="text-right">
-                <h4 className="text-sm font-black text-slate-800 dark:text-slate-200">להבין פוסט-טראומה (PTSD)</h4>
-                <p className={cn("text-[10px] font-bold leading-normal", isLight ? "text-slate-500" : "text-slate-400")}>
-                  מידע, סימפטומים נפוצים ודרכי התמודדות
-                </p>
-              </div>
-            </div>
-            <ChevronLeft size={20} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
-          </button>
-        </div>
-
-        {/* Intelligent Dialogue Section */}
-        <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
-          {recommendation && recommendation.isCrisis ? (
-            <div ref={chatContainerRef} className="mt-6 p-8 bg-rose-955/40 backdrop-blur-xl rounded-[2.5rem] border-2 border-rose-500/30 shadow-2xl animate-in fade-in zoom-in duration-500 space-y-8" dir="rtl">
-              <div className="flex items-center gap-4 text-rose-455">
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                  <LifeBuoy size={28} />
-                </div>
-                <h3 className="text-xl font-black">סיוע ותמיכה מיידית</h3>
-              </div>
-              
-              <p className="text-rose-100 leading-relaxed font-bold text-base whitespace-pre-line">
-                {recommendation.explanation}
-              </p>
-
-              <div className="grid gap-4">
-                <a href="tel:1201" className="flex items-center justify-between p-5 bg-slate-900/60 hover:bg-slate-900 border border-rose-500/20 rounded-2xl transition-all group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone size={18} />
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-black text-rose-200">ער"ן - עזרה ראשונה נפשית</span>
-                      <span className="block text-xs text-rose-400 font-mono">חיוג חינם ומיידי: 1201</span>
-                    </div>
-                  </div>
-                  <ChevronLeft size={20} className="text-rose-400/50" />
-                </a>
-
-                <a href="tel:101" className="flex items-center justify-between p-5 bg-slate-900/60 hover:bg-slate-900 border border-rose-500/20 rounded-2xl transition-all group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone size={18} />
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-black text-emerald-200">מד"א - מצבי חירום רפואיים</span>
-                      <span className="block text-xs text-emerald-400 font-mono">חיוג חירום: 101</span>
-                    </div>
-                  </div>
-                  <ChevronLeft size={20} className="text-rose-400/50" />
-                </a>
-
-                <div className="p-6 bg-indigo-950/20 border border-indigo-500/20 rounded-2xl flex items-center gap-4 text-right">
-                  <UserPlus className="text-indigo-400 shrink-0" size={24} />
-                  <p className="text-xs font-bold text-indigo-200 leading-relaxed">
-                    {displayGender === "f" 
-                      ? `${displayName}, בבקשה פני עכשיו לחבר קרוב, בן משפחה או אדם שאת סומכת עליו. אל תישארי לבד עם התחושות האלה.`
-                      : `${displayName}, בבקשה פנה עכשיו לחבר קרוב, בן משפחה או אדם שאתה סומך עליו. אל תישאר לבד עם התחושות האלה.`
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleResetChat}
-                className="w-full py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-400 transition-colors"
-              >
-                סגור וחזור לכלים הרגילים
-              </button>
-            </div>
-          ) : messages.length > 0 ? (
-            <div ref={chatContainerRef} className="mb-6 bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] border border-white/5 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 flex flex-col overflow-hidden h-[550px] relative" dir="rtl">
-              <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02] shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg">
-                    <MessageCircle size={16} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">הדיאלוג החכם</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">מלווה אותך צעד אחר צעד</span>
-                  </div>
-                </div>
-                <button onClick={handleResetChat} className="text-[10px] font-black text-slate-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-1.5 rounded-full hover:bg-white/5">
-                  <X size={12} /> איפוס שיחה
-                </button>
-              </div>
-              
-              <div 
-                ref={scrollContainerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar scroll-smooth"
-              >
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    ref={i === messages.length - 1 && msg.role === 'model' ? lastModelMsgRef : undefined}
-                    className={cn(
-                      "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500",
-                      msg.role === 'user' ? "flex-row-reverse" : "flex-row"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-9 h-9 rounded-full shrink-0 flex items-center justify-center overflow-hidden border shadow-sm",
-                      msg.role === 'user' ? "border-white/10 bg-slate-800" : "border-indigo-500/20 bg-indigo-600"
-                    )}>
-                      {msg.role === 'user' ? (
-                        user?.photoURL ? (
-                          <Image src={user.photoURL} alt={displayName} width={36} height={36} className="w-full h-full object-cover" />
-                        ) : (
-                          <UserIcon size={16} className="text-slate-400" />
-                        )
-                      ) : (
-                        <div className="p-1.5 w-full h-full flex items-center justify-center">
-                          <Logo variant="icon" className="w-full h-full" />
-                        </div>
-                      )}
-                    </div>
-                    <div className={cn(
-                      "p-4 rounded-2xl text-sm leading-relaxed max-w-[85%] shadow-sm",
-                      msg.role === 'user' 
-                        ? "bg-slate-800/60 text-slate-200 border border-white/5 rounded-tr-none" 
-                        : "bg-indigo-950/40 text-indigo-200 border border-indigo-500/15 rounded-tl-none font-bold"
-                    )}>
-                      {msg.content}
-                    </div>
-                  </div>
-                ))}
-                
-                {isSearching && (
-                  <div className="flex gap-3 animate-pulse">
-                    <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center p-1.5 border border-indigo-500/20">
-                      <Logo variant="icon" />
-                    </div>
-                    <div className="bg-indigo-950/30 border border-indigo-500/10 h-12 w-32 rounded-2xl rounded-tl-none" />
-                  </div>
-                )}
-
-                {!isSearching && recommendation && (
-                  <div className="space-y-4 pt-2">
-                    {recommendation.quickReplies && recommendation.quickReplies.length > 0 && (
-                      <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-700">
-                        {recommendation.quickReplies.map((reply, i) => (
-                          <button 
-                            key={i}
-                            onClick={() => sendQuery(reply)}
-                            className="px-4 py-2 bg-slate-800/80 border border-white/5 hover:border-indigo-500/30 rounded-full text-xs font-bold text-indigo-300 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 shadow-sm"
-                          >
-                            {reply}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {recommendation.options && recommendation.options.length > 0 && (
-                      <div className="grid gap-3 pt-2 animate-in fade-in duration-1000">
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest pr-2">{displayName}, הנה כמה דרכים שיכולות לעזור עכשיו:</span>
-                        {recommendation.options.map((opt, i) => (
-                          <button 
-                            key={i}
-                            onClick={() => {
-                              if (opt.categoryKey === "JOURNAL") onGoToJournal();
-                              else if (opt.categoryKey === "SOUNDS" || opt.categoryKey === "MEDITATION") onGoToSounds();
-                              else if (opt.categoryKey === "BREATHING") onGoToBreathing();
-                              else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
-                              else if (opt.practiceIndex !== undefined) onStartGuided(opt.categoryKey, opt.practiceIndex);
-                              else onSelectCategory(opt.categoryKey);
-                            }}
-                            className="group w-full p-4 bg-slate-900/40 hover:bg-indigo-950/20 border border-white/5 hover:border-indigo-500/30 rounded-[1.5rem] transition-all text-right flex items-center justify-between active:scale-[0.98] shadow-sm"
-                          >
-                            <div className="space-y-0.5">
-                              <span className="block font-black text-white group-hover:text-indigo-400 transition-colors text-sm">{opt.label}</span>
-                              <span className="block text-[11px] text-slate-400 font-bold">{opt.description}</span>
-                            </div>
-                            <ChevronLeft className="text-slate-500 group-hover:text-indigo-400 transition-colors" size={16} />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div ref={chatEndRef} className="h-4 shrink-0" />
-              </div>
-
-              <div className="p-4 bg-white/[0.01] border-t border-white/5 shrink-0">
-                <form onSubmit={handleSearch} className="relative">
-                  <div className="relative rounded-2xl p-1 flex items-center shadow-lg overflow-hidden bg-slate-900/80 border border-white/5 focus-within:border-indigo-500/30 transition-all duration-300">
-                    <input 
-                      type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-                      placeholder={
-                        recommendation?.needsMoreInfo
-                          ? (displayGender === "f" ? "הוסיפי עוד פרטים..." : "הוסף עוד פרטים...")
-                          : (displayGender === "f" ? "מה תרצי להוסיף?" : "מה תרצה להוסיף?")
-                      }
-                      className="flex-1 bg-transparent px-4 py-3 focus:outline-none font-medium text-white placeholder:text-slate-500 text-sm text-right" dir="rtl"
-                    />
-                    <button type="submit" disabled={isSearching || !searchQuery.trim()} className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all" aria-label="שלח">
-                      {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSearch} className="relative group">
-              <div className={cn("absolute -inset-1 rounded-[2.2rem] blur-md opacity-75 group-hover:opacity-100 transition duration-500", isLight ? "bg-gradient-to-r from-indigo-300/30 to-purple-300/30" : "bg-gradient-to-r from-indigo-500/20 to-purple-500/20")}></div>
-              <div className={cn("relative rounded-[2rem] p-2 flex items-center overflow-hidden min-h-[72px] backdrop-blur-xl border focus-within:border-indigo-500/30 transition-all duration-500 shadow-2xl", isLight ? "bg-white/80 border-slate-200" : "bg-slate-900/60 border-white/10")}>
-                <div className={cn(
-                  "flex-shrink-0 transition-all duration-1000 ease-out overflow-hidden ml-2",
-                  (isMinimized && messages.length === 0) ? "w-10 h-10 opacity-100" : "w-0 opacity-0"
-                )}>
-                  <div className="relative w-10 h-10">
-                    <div className={cn(
-                      "w-full h-full rounded-full border-2 border-indigo-500 shadow-lg flex items-center justify-center p-2 relative overflow-hidden",
-                      isLight ? "bg-indigo-50 text-indigo-600" : "bg-indigo-950/40 text-indigo-400"
-                    )}>
-                      <Logo variant="icon" className="w-full h-full" />
-                    </div>
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-slate-950 rounded-full shadow-lg z-40" />
-                  </div>
-                </div>
-
-                <input 
-                  type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} 
-                  placeholder={placeholderText} 
-                  className={cn("flex-1 bg-transparent px-4 py-5 focus:outline-none font-bold text-sm text-right", isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-slate-500")} dir="rtl"
-                />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      type="submit" 
-                      disabled={isSearching || !searchQuery.trim()} 
-                      className="w-14 h-14 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 transition-all border border-indigo-500/30"
-                      aria-label="שלח לדיאלוג החכם"
-                    >
-                      {isSearching ? <Loader2 className="animate-spin" size={24} /> : <Sparkles size={24} />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>שלח לדיאלוג החכם</TooltipContent>
-                </Tooltip>
-              </div>
-            </form>
-          )}
-        </div>
 
         {/* Main Section */}
         <div className="max-w-xl lg:max-w-5xl mx-auto px-6 lg:px-8 mt-10 space-y-10 lg:space-y-14 pb-20">
@@ -1341,6 +951,7 @@ export default function HomeScreen({
         onOpenChange={setIsProfileOpen}
         profileData={profileData}
         profileRef={profileRef}
+        onUpdateProfile={onUpdateProfile}
       />
 
       <OnboardingDialog
@@ -1348,6 +959,8 @@ export default function HomeScreen({
         profileRef={profileRef}
         gender={displayGender}
         onComplete={(focusAreaKey) => {
+          localStorage.setItem("matzpen_onboardingCompleted", "true");
+          setOnboardingCompleted(true);
           if (focusAreaKey) {
             if (focusAreaKey === "SLEEP") onGoToSounds();
             else if (focusAreaKey === "IMAGERY") onGoToImagery();

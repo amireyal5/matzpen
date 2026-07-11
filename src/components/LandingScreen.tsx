@@ -378,7 +378,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, onGoToPtsdInfo,
 
           <Button
             onClick={onGoToAuth}
-            className="w-full py-8 rounded-[2rem] text-2xl font-black bg-gradient-to-r from-indigo-650 to-purple-650 hover:from-indigo-700 hover:to-purple-700 text-white shadow-2xl shadow-indigo-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group border border-white/10"
+            className="w-full py-8 rounded-[2rem] text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-2xl shadow-indigo-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group border border-white/10"
           >
             בואו נתחיל
             <ArrowLeft className="size-6 transition-transform group-hover:-translate-x-2" />
