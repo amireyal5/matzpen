@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sun, Moon, Play, Pause, Wind } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Play, Pause, Wind, Volume2, VolumeX, Shield, BookText } from "lucide-react";
 import { LegalDialog } from "@/components/LegalDialogs";
 import CrisisHelpDialog from "@/components/CrisisHelpDialog";
 import Logo from "@/components/Logo";
 import InteractiveParticles from "@/components/InteractiveParticles";
-import { cn } from "@/lib/utils";
+import { cn, adjustGender } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -18,6 +18,7 @@ interface LandingScreenProps {
   onComplete: (name: string, gender: "m" | "f") => void;
   onGoToAuth: () => void;
   onGoToAbout: () => void;
+  onGoToPtsdInfo: () => void;
   initialName?: string;
   initialGender?: "m" | "f";
   theme?: "light" | "dark";
@@ -26,7 +27,7 @@ interface LandingScreenProps {
 
 type BreathStep = "inhale" | "hold" | "exhale";
 
-export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light", toggleTheme }: LandingScreenProps) {
+export default function LandingScreen({ onGoToAuth, onGoToAbout, onGoToPtsdInfo, theme = "light", toggleTheme, initialGender }: LandingScreenProps) {
   const isLight = theme === "light";
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
@@ -34,6 +35,83 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
   const [isBreathing, setIsBreathing] = useState(false);
   const [breathStep, setBreathStep] = useState<BreathStep>("inhale");
   const [breathCount, setBreathCount] = useState(4);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const activeOscillatorsRef = useRef<any[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const stopActiveSounds = () => {
+    activeOscillatorsRef.current.forEach(osc => {
+      try { osc.stop(); } catch(e) {}
+    });
+    activeOscillatorsRef.current = [];
+  };
+
+  const playTone = (type: "inhale" | "exhale" | "hold") => {
+    if (isMuted) return;
+    stopActiveSounds();
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContextClass();
+      }
+      const ctx = audioContextRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const now = ctx.currentTime;
+      const duration = 4; // 4 שניות לכל שלב
+
+      let chordFreqs: number[] = [];
+      if (type === "inhale") {
+        chordFreqs = [293.66, 369.99, 440.00, 554.37]; // D4, F#4, A4, C#5 (אקורד שמיימי)
+      } else if (type === "exhale") {
+        chordFreqs = [261.63, 329.63, 392.00, 587.33]; // C4, E4, G4, D5 (מקרקע ומרגיע)
+      } else {
+        chordFreqs = [329.63, 392.00, 493.88]; // E4, G4, B4 (שקט והחזקה)
+      }
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.001, now);
+      masterGain.gain.linearRampToValueAtTime(0.03, now + 0.5);
+      masterGain.gain.setValueAtTime(0.03, now + duration - 0.8);
+      masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(900, now);
+
+      filter.connect(masterGain);
+      masterGain.connect(ctx.destination);
+
+      const oscNodes: any[] = [];
+      chordFreqs.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+        if (type === "inhale") {
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.01, now + duration);
+        } else {
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.99, now + duration);
+        }
+        
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.25, now);
+        osc.connect(oscGain);
+        oscGain.connect(filter);
+        
+        osc.start(now);
+        osc.stop(now + duration);
+        oscNodes.push(osc);
+      });
+
+      activeOscillatorsRef.current = oscNodes;
+    } catch (e) {
+      console.warn("Audio error:", e);
+    }
+  };
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -61,10 +139,27 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
     return () => clearInterval(timer);
   }, [isBreathing]);
 
+  // Audio tone playback effect
+  useEffect(() => {
+    if (!isBreathing) {
+      stopActiveSounds();
+      return;
+    }
+    playTone(breathStep);
+    return () => stopActiveSounds();
+  }, [breathStep, isBreathing, isMuted]);
+
+  const adjustText = (text: string) => {
+    if (initialGender) {
+      return adjustGender(text, initialGender);
+    }
+    return text;
+  };
+
   const getBreathingText = () => {
-    if (breathStep === "inhale") return "שאיפה... נשום פנימה 🌀";
-    if (breathStep === "hold") return "החזקה... להישאר ברגע ✨";
-    return "נשיפה... לשחרר מתח 🌬️";
+    if (breathStep === "inhale") return adjustText("שאיפה... נשום/י פנימה 🌀");
+    if (breathStep === "hold") return adjustText("החזקה... להישאר/י ברגע ✨");
+    return adjustText("נשיפה... לשחרר/י מתח 🌬️");
   };
 
   const getScale = () => {
@@ -184,10 +279,26 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
               : "bg-transparent"
           )} />
 
-          <div className="flex flex-col items-center space-y-6">
-            <div className="flex items-center gap-2">
-              <Wind size={16} className={isLight ? "text-indigo-600 animate-pulse" : "text-indigo-400 animate-pulse"} />
-              <h3 className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-slate-500" : "text-slate-400")}>בועת נשימה להרגעה מהירה</h3>
+          <div className="flex flex-col items-center space-y-6 w-full">
+            <div className="flex items-center justify-between w-full px-2">
+              <div className="flex items-center gap-2">
+                <Wind size={16} className={isLight ? "text-indigo-600 animate-pulse" : "text-indigo-400 animate-pulse"} />
+                <h3 className={cn("text-xs font-black tracking-widest uppercase", isLight ? "text-slate-500" : "text-slate-400")}>בועת נשימה להרגעה מהירה</h3>
+              </div>
+              {isBreathing && (
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className={cn(
+                    "w-8 h-8 rounded-full border flex items-center justify-center transition-all active:scale-90 backdrop-blur-sm",
+                    isMuted 
+                      ? "bg-rose-500/10 border-rose-500/20 text-rose-400" 
+                      : (isLight ? "bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-900" : "bg-white/5 border-white/10 text-slate-350 hover:text-white")
+                  )}
+                  title={isMuted ? "הפעל צלילים" : "השתק צלילים"}
+                >
+                  {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                </button>
+              )}
             </div>
 
             {/* Breathing Bubble */}
@@ -230,10 +341,10 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
 
             <div className="space-y-2">
               <p className={cn("text-sm font-black transition-all min-h-[20px]", isLight ? "text-slate-800" : "text-slate-200")}>
-                {isBreathing ? getBreathingText() : "מרגיש/ה הצפה או מתח כרגע? בוא/י ניקח נשימה יחד."}
+                {isBreathing ? getBreathingText() : adjustText("מרגיש/ה הצפה או מתח כרגע? בוא/י ניקח נשימה יחד.")}
               </p>
               <p className={cn("text-xs font-bold", isLight ? "text-slate-500" : "text-slate-400")}>
-                {isBreathing ? "התמקד/י בקצב ובתנועה של הבועה" : "ללא צורך בהתחברות - תרגיל של דקה להחזרת האיזון"}
+                {isBreathing ? adjustText("התמקד/י בקצב ובתנועה של הבועה") : "ללא צורך בהתחברות - תרגיל של דקה להחזרת האיזון"}
               </p>
             </div>
 
@@ -262,7 +373,7 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
         </div>
 
         {/* Main CTA Section */}
-        <div className="space-y-6 pt-12 pb-16 relative">
+        <div className="space-y-4 pt-12 pb-16 relative">
           <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-[2rem] -z-10 scale-90" aria-hidden="true" />
 
           <Button
@@ -271,6 +382,20 @@ export default function LandingScreen({ onGoToAuth, onGoToAbout, theme = "light"
           >
             בואו נתחיל
             <ArrowLeft className="size-6 transition-transform group-hover:-translate-x-2" />
+          </Button>
+
+          <Button
+            onClick={onGoToPtsdInfo}
+            variant="ghost"
+            className={cn(
+              "w-full py-6 rounded-[2rem] text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 border",
+              isLight 
+                ? "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800" 
+                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-200"
+            )}
+          >
+            <BookText size={16} className="text-indigo-500" />
+            מה זה פוסט טראומה (PTSD)?
           </Button>
         </div>
 

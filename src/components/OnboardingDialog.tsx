@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sunrise, Sun as SunIcon, Sunset, BellOff, X } from "lucide-react";
+import { Sunrise, Sun as SunIcon, Sunset, BellOff, X, AlertCircle, Wind, Moon, Sparkles, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { updateDocumentNonBlocking } from "@/firebase";
-import { CATS } from "@/lib/data";
 import Logo from "@/components/Logo";
 
 interface OnboardingDialogProps {
@@ -16,8 +15,43 @@ interface OnboardingDialogProps {
   onComplete: (focusAreaKey: string | null) => void;
 }
 
-const FOCUS_KEYS = ["SOS", "BODY", "THOUGHTS", "ACCEPTANCE", "SLEEP", "COMPASSION"];
-const FOCUS_OPTIONS = CATS.filter(c => FOCUS_KEYS.includes(c.key));
+const FOCUS_OPTIONS = [
+  {
+    key: "SOS",
+    label: "עזרה מיידית",
+    icon: AlertCircle,
+    hue: "#DC2626",
+    tagLine: "כלים מהירים להפחתת פאניקה",
+  },
+  {
+    key: "BODY",
+    label: "נשימה וגוף",
+    icon: Wind,
+    hue: "#059669",
+    tagLine: "נשימה וקרקוע פיזי מהיר",
+  },
+  {
+    key: "SLEEP",
+    label: "עזרה בשינה",
+    icon: Moon,
+    hue: "#4F46E5",
+    tagLine: "צלילי סביבה ונעימות להרדמות",
+  },
+  {
+    key: "IMAGERY",
+    label: "דמיון מודרך",
+    icon: Sparkles,
+    hue: "#7C3AED",
+    tagLine: "מסעות ויזואליים להרפיה",
+  },
+  {
+    key: "BILATERAL",
+    label: "לנקות את הראש",
+    icon: Zap,
+    hue: "#0D9488",
+    tagLine: "עיבוד בילטרלי להרגעת הצפה",
+  },
+];
 
 const REMINDER_OPTIONS: { key: string; label: string; icon: any }[] = [
   { key: "morning", label: "בבוקר", icon: Sunrise },
@@ -83,11 +117,11 @@ export default function OnboardingDialog({ isOpen, profileRef, gender, onComplet
           {step === 0 ? (
             <div className="space-y-6 animate-in fade-in duration-500">
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-black text-slate-900">ברוך/ה הבא/ה למצפן הרגשי!</h2>
+                <h2 className="text-xl font-black text-slate-900">
+                  {isF ? "ברוכה הבאה למצפן הרגשי!" : "ברוך הבא למצפן הרגשי!"}
+                </h2>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  {isF
-                    ? "כדי שנוכל להתאים לך את החוויה - מה הכי מעניין אותך לעבוד עליו כרגע?"
-                    : "כדי שנוכל להתאים לך את החוויה - מה הכי מעניין אותך לעבוד עליו כרגע?"}
+                  כדי שנוכל להתאים לך את החוויה - מה הכי מעניין אותך לעבוד עליו כרגע?
                 </p>
               </div>
 

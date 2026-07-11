@@ -8,7 +8,7 @@ import { useWakeLock } from "@/hooks/use-wake-lock";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import AmbientVideoBackground from "@/components/AmbientVideoBackground";
 import { GUIDED_IMAGERY_JOURNEYS, GuidedImageryJourney, ImageryStep } from "@/lib/guided-imagery";
-import { cn } from "@/lib/utils";
+import { cn, adjustGender } from "@/lib/utils";
 import Image from "next/image";
 import { useUser } from "@/firebase";
 
@@ -16,6 +16,7 @@ interface GuidedImageryScreenProps {
   onBack: () => void;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
+  gender: "m" | "f";
 }
 
 const JOURNEY_ICONS = { forest: Trees, ocean: Waves, clouds: Cloud };
@@ -88,7 +89,7 @@ function JourneyCard({ journey, onStart }: { journey: GuidedImageryJourney; onSt
   );
 }
 
-export default function GuidedImageryScreen({ onBack, theme = "light", toggleTheme }: GuidedImageryScreenProps) {
+export default function GuidedImageryScreen({ onBack, theme = "light", toggleTheme, gender }: GuidedImageryScreenProps) {
   const { user } = useUser();
   const isLight = theme === "light";
   useWakeLock(true);
@@ -141,13 +142,13 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       return;
     }
 
-    if (step.audio) {
+    if (step.audio && gender === "m") {
       const audio = new Audio(step.audio);
       narrationAudioRef.current = audio;
       audio.muted = isNarrationMuted;
       audio.play().catch(err => console.log("Audio play error:", err));
     } else if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(step.text);
+      const utterance = new SpeechSynthesisUtterance(adjustGender(step.text, gender));
       utterance.lang = "he-IL";
       utterance.rate = 0.95;
       utterance.pitch = 1;
@@ -156,7 +157,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
       if (voice) utterance.voice = voice;
       window.speechSynthesis.speak(utterance);
     }
-  }, [voices, isNarrationMuted]);
+  }, [voices, isNarrationMuted, gender]);
 
   // מקריא קטע טקסט רק אם ההקראה לא הושתקה - לשימוש בזרימה הרגילה של המסע
   const speakStep = useCallback((step?: ImageryStep) => {
@@ -500,7 +501,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
                 <div className="space-y-2">
                   <h2 className="text-3xl font-black text-white drop-shadow-lg">המסע הסתיים</h2>
                   <p className="text-slate-200 font-bold max-w-xs mx-auto text-xs leading-relaxed drop-shadow">
-                    קח רגע נוסף לפני שתחזור לפעילות. שמור איתך את התחושה שיצרת לעצמך.
+                    {adjustGender("קח/י רגע נוסף לפני שתחזור/י לפעילות. שמור/י איתך את התחושה שיצרת לעצמך.", gender)}
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 pt-4 items-center">

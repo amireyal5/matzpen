@@ -9,7 +9,7 @@ import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 import { SoundId } from "@/lib/ambient-sound-engine";
 import { AMBIENT_VIDEOS } from "@/lib/ambient-videos";
 import AmbientVideoBackground from "@/components/AmbientVideoBackground";
-import { cn } from "@/lib/utils";
+import { cn, adjustGender } from "@/lib/utils";
 import Image from "next/image";
 
 import { BREATHING_EXERCISES, BreathingExercise } from "@/lib/breathing-exercises";
@@ -28,6 +28,7 @@ interface BreathingScreenProps {
   initialBreathingId?: string;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
+  gender: "m" | "f";
 }
 
 const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/upload/v1751467502/userImages/pch7nqycdv0ezsxtfus6.jpg";
@@ -35,9 +36,10 @@ const PROFESSIONAL_PHOTO_URL = "https://res.cloudinary.com/dcdadfrpi/image/uploa
 interface BreathingCardProps {
   exercise: BreathingExercise;
   onStart: (exercise: BreathingExercise) => void;
+  gender: "m" | "f";
 }
 
-function BreathingCard({ exercise, onStart }: BreathingCardProps) {
+function BreathingCard({ exercise, onStart, gender }: BreathingCardProps) {
   const [imageError, setImageError] = useState(false);
   const Icon = exercise.style === "glow-circle" ? Sun :
                exercise.style === "flower" ? Flower2 :
@@ -91,7 +93,7 @@ function BreathingCard({ exercise, onStart }: BreathingCardProps) {
         <div className="flex flex-wrap gap-1 flex-1 justify-start">
           {exercise.pattern.map((p, idx) => (
             <span key={idx} className="text-[8px] text-slate-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 font-semibold">
-              {p.type === "inhale" ? "שאף" : p.type === "hold" ? "החזק" : "נשוף"} ({p.duration}ש׳)
+              {p.type === "inhale" ? (gender === "f" ? "שאפי" : "שאף") : p.type === "hold" ? (gender === "f" ? "החזיקי" : "החזק") : (gender === "f" ? "נשפי" : "נשוף")} ({p.duration}ש׳)
             </span>
           ))}
         </div>
@@ -108,7 +110,7 @@ function BreathingCard({ exercise, onStart }: BreathingCardProps) {
   );
 }
 
-export default function BreathingScreen({ onBack, initialBreathingId, theme = "light", toggleTheme }: BreathingScreenProps) {
+export default function BreathingScreen({ onBack, initialBreathingId, theme = "light", toggleTheme, gender }: BreathingScreenProps) {
   const isLight = theme === "light";
   useWakeLock(true);
 
@@ -446,6 +448,7 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
                 key={exercise.id}
                 exercise={exercise}
                 onStart={startBreathing}
+                gender={gender}
               />
             ))}
           </div>
@@ -714,7 +717,7 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
 
                 <div className="text-center space-y-4">
                   <h2 className="text-3xl font-black text-white tracking-tight animate-pulse min-h-[3rem]">
-                    {activeExercise.pattern[currentStepIndex].label}
+                    {adjustGender(activeExercise.pattern[currentStepIndex].label, gender)}
                   </h2>
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-5xl font-black text-emerald-400">

@@ -74,23 +74,23 @@ const CATEGORIES: Category[] = [
     accent: '#60A5FA',
     affirmations: [
       { 
-        text: "אני בטוח כאן ועכשיו.", 
+        text: "אני בטוח כאן ועכשיו", 
         audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2Fmp3.%D7%90%D7%A0%D7%99%20%D7%91%D7%98%D7%95%D7%97%20%D7%9B%D7%90%D7%9F%20%D7%95%D7%A2%D7%9B%D7%A9%D7%99%D7%95.mp3?alt=media&token=70f8d22f-637c-4627-ab30-1b2a71626afa" 
       },
       { 
-        text: "הנשימה שלי היא העוגן שלי.", 
+        text: "הנשימה שלי היא העוגן שלי", 
         audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%99%D7%9E%D7%94%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%99%D7%90%20%D7%94%D7%A2%D7%95%D7%92%D7%9F%20%D7%A9%D7%9C%D7%99.mp3?alt=media&token=72105974-72f0-4d89-aece-40d23bacccab" 
       },
       { 
-        text: "אני מאפשר למחשבות לחלוף.", 
+        text: "אני מאפשר למחשבות לחלוף", 
         audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%90%D7%A0%D7%99%20%D7%9E%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%AA%20%D7%9C%D7%97%D7%9C%D7%95%D7%A3.mp3?alt=media&token=f7b93f1a-c436-48b0-a170-4956aee29cc5" 
       },
       { 
-        text: "הגוף שלי חוזר לאיזון.", 
+        text: "הגוף שלי חוזר לאיזון", 
         audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%92%D7%95%D7%93%D7%A3%20%D7%A9%D7%9C%D7%99%20%D7%97%D7%95%D7%96%D7%A8%20%D7%9C%D7%90%D7%99%D7%96%D7%95%D7%9F.mp3?alt=media&token=9a142133-cc21-4114-92ee-eb71b0bbcddd" 
       },
       { 
-        text: "השקט שבי חזק מכל סערה בחוץ.", 
+        text: "השקט שבי חזק מכל סערה בחוץ", 
         audioUrl: "https://firebasestorage.googleapis.com/v0/b/studio-7313343264-8d6d7.firebasestorage.app/o/%D7%95%D7%99%D7%A1%D7%95%D7%AA%20%D7%95%D7%97%D7%A8%D7%93%D7%94%2F%D7%94%D7%A0%D7%A9%D7%A7%D7%98%20%D7%A9%D7%9B%D7%99%20%D7%97%D7%96%D7%A7%20%D7%9E%D7%9B%D7%9C%20%D7%A1%D7%A2%D7%A8%D7%94%20%D7%91%D7%97%D7%95%D7%A5.mp3?alt=media&token=05d601a2-2f54-4772-8b31-f416c6010eec" 
       }
     ],
@@ -105,10 +105,10 @@ const CATEGORIES: Category[] = [
     color: 'from-amber-600/90 via-orange-900/95 to-black',
     accent: '#FBBF24',
     affirmations: [
-      { text: "יש בי את הכוח להתמודד.", audioUrl: "" },
-      { text: "אני סומך על עצמי.", audioUrl: "" },
-      { text: "הערך שלי יציב וקיים.", audioUrl: "" },
-      { text: "אני בוחר להאמין ביכולות שלי היום.", audioUrl: "" }
+      { text: "יש בי את הכוח להתמודד", audioUrl: "" },
+      { text: "אני סומך על עצמי", audioUrl: "" },
+      { text: "הערך שלי יציב וקיים", audioUrl: "" },
+      { text: "אני בוחר להאמין ביכולות שלי היום", audioUrl: "" }
     ],
     voiceTone: "בטון חם, יציב ומעודד. זרימה אטית.",
     blsSpeed: 5000
@@ -121,10 +121,10 @@ const CATEGORIES: Category[] = [
     color: 'from-purple-900/90 via-rose-950/95 to-black',
     accent: '#C084FC',
     affirmations: [
-      { text: "אני מוגן וכאן עכשיו.", audioUrl: "" },
-      { text: "מה שהיה שייך לעבר, כעת אני בטוח.", audioUrl: "" },
-      { text: "הגוף שלי זוכר אך כעת אני מנהל אותו.", audioUrl: "" },
-      { text: "הנשימה מחזירה אותי לרגע הזה.", audioUrl: "" }
+      { text: "אני נמצא במקום בטוח עכשיו", audioUrl: "" },
+      { text: "מה שהיה שייך לעבר, כעת אני בטוח", audioUrl: "" },
+      { text: "הגוף שלי זוכר אך כעת אני מנהל אותו", audioUrl: "" },
+      { text: "הנשימה מחזירה אותי לרגע הזה", audioUrl: "" }
     ],
     voiceTone: "בטון מרגיע, איטי ומקרקע מאוד. זרימה שקטה.",
     blsSpeed: 6000
@@ -364,7 +364,9 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   const getGenderAffirmation = (text: string) => {
     if (gender === 'f') {
       return text
-        .replace("בטוח", "בטוחה")
+        .replace("אני בטוח", "אני בטוחה")
+        .replace("כעת אני בטוח", "כעת אני בטוחה")
+        .replace("אני נמצא", "אני נמצאת")
         .replace("מוגן", "מוגנת")
         .replace("מנהל אותו", "מנהלת אותו")
         .replace("סומך", "סומכת");
@@ -677,36 +679,52 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
   const adjustGender = (text: string) => {
     if (gender === 'f') {
       return text
-        .replace("התמקד/י", "התמקדי")
-        .replace("עקוב/י", "עקבי")
-        .replace("קח/י", "קחי")
-        .replace("שחרר/י", "שחררי")
-        .replace("מצא/ו", "מצאי")
-        .replace("הקשב/י", "הקשיבי")
-        .replace("שים/י", "שימי")
-        .replace("נסה/י", "נסי")
-        .replace("קרב/י", "קרבי")
-        .replace("בחר/י", "בחרי")
-        .replace("התאמ/י", "התאימי")
-        .replace("התכונן/י", "התכונני")
-        .replace("הרכב/י", "הרכיבי")
-        .replace("תרגל/י", "תרגלי");
+        .replace(/התמקד\/י/g, "התמקדי")
+        .replace(/עקוב\/י/g, "עקבי")
+        .replace(/קח\/י/g, "קחי")
+        .replace(/שחרר\/י/g, "שחררי")
+        .replace(/מצא\/ו/g, "מצאי")
+        .replace(/הקשב\/י/g, "הקשיבי")
+        .replace(/שים\/י/g, "שימי")
+        .replace(/נסה\/י/g, "נסי")
+        .replace(/קרב\/י/g, "קרבי")
+        .replace(/בחר\/י/g, "בחרי")
+        .replace(/התאמ\/י/g, "התאימי")
+        .replace(/התכונן\/י/g, "התכונני")
+        .replace(/הרכב\/י/g, "הרכיבי")
+        .replace(/תרגל\/י/g, "תרגלי")
+        .replace(/אפשר\/י/g, "אפשרי")
+        .replace(/נשום\/נשמי/g, "נשמי")
+        .replace(/מבין\/ה/g, "מבינה")
+        .replace(/מעבד\/ת/g, "מעבדת")
+        .replace(/המטפל\/ת/g, "המטפלת")
+        .replace(/מרגיש\/ה/g, "מרגישה")
+        .replace(/מוכן\/ה/g, "מוכנה")
+        .replace(/רוצה\/ה/g, "רוצה");
     }
     return text
-      .replace("התמקד/י", "התמקד")
-      .replace("עקוב/י", "עקוב")
-      .replace("קח/י", "קח")
-      .replace("שחרר/י", "שחרר")
-      .replace("מצא/ו", "מצא")
-      .replace("הקשב/י", "הקשב")
-      .replace("שים/י", "שים")
-      .replace("נסה/י", "נסה")
-      .replace("קרב/י", "קרב")
-      .replace("בחר/י", "בחר")
-      .replace("התאמ/י", "התאם")
-      .replace("התכונן/י", "התכונן")
-      .replace("הרכב/י", "הרכב")
-      .replace("תרגל/י", "תרגל");
+      .replace(/התמקד\/י/g, "התמקד")
+      .replace(/עקוב\/י/g, "עקוב")
+      .replace(/קח\/י/g, "קח")
+      .replace(/שחרר\/י/g, "שחרר")
+      .replace(/מצא\/ו/g, "מצא")
+      .replace(/הקשב\/י/g, "הקשב")
+      .replace(/שים\/י/g, "שים")
+      .replace(/נסה\/י/g, "נסה")
+      .replace(/קרב\/י/g, "קרב")
+      .replace(/בחר\/י/g, "בחר")
+      .replace(/התאמ\/י/g, "התאם")
+      .replace(/התכונן\/י/g, "התכונן")
+      .replace(/הרכב\/י/g, "הרכב")
+      .replace(/תרגל\/י/g, "תרגל")
+      .replace(/אפשר\/י/g, "אפשר")
+      .replace(/נשום\/נשמי/g, "נשום")
+      .replace(/מבין\/ה/g, "מבין")
+      .replace(/מעבד\/ת/g, "מעבד")
+      .replace(/המטפל\/ת/g, "המטפל")
+      .replace(/מרגיש\/ה/g, "מרגיש")
+      .replace(/מוכן\/ה/g, "מוכן")
+      .replace(/רוצה\/ה/g, "רוצה");
   };
 
   const getSudsNextStepExplanation = () => {
@@ -1410,7 +1428,7 @@ export default function BilateralProcessing({ gender, onBack, theme = "light", t
                     <h2 className="text-lg md:text-2xl font-black text-slate-300 opacity-60 leading-tight mb-8">
                       {currentAffText}
                     </h2>
-                    <p className="text-white/40 text-xs font-medium">עקוב/י במבטך אחר תנועת הכדור האטית לביסוס המשאב בגוף</p>
+                    <p className="text-white/40 text-xs font-medium">{adjustGender("עקוב/י במבטך אחר תנועת הכדור האטית לביסוס המשאב בגוף")}</p>
                   </div>
                 )}
                 {resourcePhase === 'breath' && (

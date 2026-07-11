@@ -15,13 +15,15 @@ import BreathingScreen from "@/components/BreathingScreen";
 import GuidedImageryScreen from "@/components/GuidedImageryScreen";
 import BilateralProcessing from "@/components/BilateralProcessing";
 import ClinicalAssessment from "@/components/ClinicalAssessment";
+import CalmingHubScreen from "@/components/CalmingHubScreen";
+import PtsdInfoScreen from "@/components/PtsdInfoScreen";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { onMessageListener } from "@/firebase/messaging";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery" | "assessment";
+type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery" | "assessment" | "calming-hub" | "ptsd-info";
 
 interface HistoryState {
   screen: Screen;
@@ -155,7 +157,7 @@ function AppContent() {
       let initialPracticeIdx = undefined;
       let initialBreathingParams = undefined;
 
-      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery", "assessment"].includes(storedScreen)) {
+      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery", "assessment", "calming-hub", "ptsd-info"].includes(storedScreen)) {
         const storedCatKey = localStorage.getItem("matzpen_catKey");
         const storedPracticeIdx = localStorage.getItem("matzpen_practiceIdx");
         const storedBreathingParams = localStorage.getItem("matzpen_breathingParams");
@@ -247,7 +249,7 @@ function AppContent() {
   }, [profileData, user, isUserLoading, screen]);
 
   useEffect(() => {
-    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about") {
+    if (isHydrated && !isUserLoading && !user && screen !== "landing" && screen !== "auth" && screen !== "about" && screen !== "ptsd-info") {
       navigateTo("landing", undefined, true);
     }
   }, [user, isUserLoading, isHydrated, screen]);
@@ -261,7 +263,11 @@ function AppContent() {
   };
 
   const handleSelectCategory = (key: string) => {
-    navigateTo("deck", { catKey: key });
+    if (key === "JOURNAL") {
+      navigateTo("journal");
+    } else {
+      navigateTo("deck", { catKey: key });
+    }
   };
 
   const handleStartGuided = (catKey: string, practiceIdx: number) => {
@@ -295,6 +301,7 @@ function AppContent() {
             onComplete={() => navigateTo("auth")}
             onGoToAuth={handleGoToAuth}
             onGoToAbout={() => navigateTo("about")}
+            onGoToPtsdInfo={() => navigateTo("ptsd-info")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -332,7 +339,9 @@ function AppContent() {
             }}
             onGoToBilateral={() => navigateTo("bilateral")}
             onGoToImagery={() => navigateTo("imagery")}
+            onGoToCalmingHub={() => navigateTo("calming-hub")}
             onGoToAssessment={(type) => navigateTo("assessment", { assessmentType: type })}
+            onGoToPtsdInfo={() => navigateTo("ptsd-info")}
             onBack={() => handleBack("landing")} 
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
@@ -384,6 +393,7 @@ function AppContent() {
             }}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+            gender={gender}
             {...breathingParams}
           />
         )}
@@ -400,6 +410,25 @@ function AppContent() {
             onBack={() => handleBack("home")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+            gender={gender}
+          />
+        )}
+        {(screen === "calming-hub" && user) && (
+          <CalmingHubScreen
+            onBack={() => handleBack("home")}
+            onGoToBreathing={(breathingId) => {
+              navigateTo("breathing", { breathingParams: { initialBreathingId: breathingId } });
+            }}
+            onGoToImagery={() => navigateTo("imagery")}
+            onGoToSounds={(soundId) => {
+              if (soundId) ambientMixer.play(soundId as any);
+              navigateTo("sounds");
+            }}
+            onGoToBilateral={() => navigateTo("bilateral")}
+            name={name}
+            gender={gender}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
         )}
         {/* Assessment screen disabled for PTSD focus - archived
@@ -413,6 +442,13 @@ function AppContent() {
           />
         )}
         */}
+        {screen === "ptsd-info" && (
+          <PtsdInfoScreen
+            onBack={() => handleBack(user ? "home" : "landing")}
+            theme={theme}
+            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+          />
+        )}
       </main>
     </div>
   );

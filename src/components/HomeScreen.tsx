@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CATS, BANK } from "@/lib/data";
-import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy, Cloud, Target, Heart } from "lucide-react";
+import { Compass, Sparkles, User as UserIcon, Anchor, BookText, Flower2, Zap, ArrowLeft, ChevronLeft, Phone, AlertTriangle, UserPlus, X, MessageCircle, Loader2, Play, Music, Wind, Moon, Sun, Brain, LifeBuoy, Cloud, Target, Heart, Shield } from "lucide-react";
 import { getRecommendation, RecommendationOutput } from "@/ai/flows/recommendation-flow";
 import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from "@/firebase";
 import Image from "next/image";
@@ -31,7 +31,9 @@ interface HomeScreenProps {
   onGoToBreathing: (breathingId?: string) => void;
   onGoToBilateral: () => void;
   onGoToImagery: () => void;
+  onGoToCalmingHub: () => void;
   onGoToAssessment: (type: "gad7" | "phq9") => void;
+  onGoToPtsdInfo: () => void;
   onBack: () => void;
   theme?: "light" | "dark";
   toggleTheme?: () => void;
@@ -390,7 +392,9 @@ export default function HomeScreen({
   onGoToBreathing, 
   onGoToBilateral,
   onGoToImagery,
+  onGoToCalmingHub,
   onGoToAssessment,
+  onGoToPtsdInfo,
   onBack,
   theme = "light",
   toggleTheme
@@ -794,9 +798,9 @@ export default function HomeScreen({
         )}
         */}
 
-        {/* Clinical Assessment Bento Section - Archived for PTSD focus
+        {/* Clinical Assessment & Cognitive Tools Bento Section - Archived for PTSD focus
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20 mb-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
               onClick={() => onGoToAssessment("gad7")}
               className={cn(
@@ -838,9 +842,54 @@ export default function HomeScreen({
                 </p>
               </div>
             </button>
+
+            <button
+              onClick={onGoToJournal}
+              className={cn(
+                "rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm text-right flex flex-col justify-between h-32 transition-all active:scale-95 group hover:border-amber-400/50",
+                isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5"
+              )}
+            >
+              <div className="flex justify-between items-start w-full">
+                <span className={cn("text-[9px] font-black uppercase tracking-widest", isLight ? "text-amber-600" : "text-amber-400")}>
+                  עבודה קוגניטיבית
+                </span>
+                <Brain size={16} className="text-amber-455 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black">יומן מחשבות (אפר"ת)</h4>
+                <p className={cn("text-[10px] font-bold leading-normal", isLight ? "text-slate-400" : "text-slate-500")}>
+                  פירוק לופים מחשבתיים וניסוח פרשנות מאוזנת
+                </p>
+              </div>
+            </button>
           </div>
         </div>
         */}
+
+        {/* PTSD Information Row */}
+        <div className="max-w-md mx-auto px-6 relative z-20 mb-6">
+          <button
+            onClick={onGoToPtsdInfo}
+            className={cn(
+              "w-full rounded-[2rem] p-5 border backdrop-blur-xl shadow-sm text-right flex items-center justify-between transition-all active:scale-95 group hover:border-indigo-500/50",
+              isLight ? "bg-white/70 border-slate-200" : "bg-slate-900/40 border-white/5"
+            )}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                <BookText size={24} />
+              </div>
+              <div className="text-right">
+                <h4 className="text-sm font-black text-slate-800 dark:text-slate-200">להבין פוסט-טראומה (PTSD)</h4>
+                <p className={cn("text-[10px] font-bold leading-normal", isLight ? "text-slate-500" : "text-slate-400")}>
+                  מידע, סימפטומים נפוצים ודרכי התמודדות
+                </p>
+              </div>
+            </div>
+            <ChevronLeft size={20} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
+          </button>
+        </div>
 
         {/* Intelligent Dialogue Section */}
         <div className="max-w-xl lg:max-w-4xl mx-auto px-6 relative z-20">
@@ -991,7 +1040,7 @@ export default function HomeScreen({
                           <button 
                             key={i}
                             onClick={() => {
-                              if (opt.categoryKey === "JOURNAL") onGoToBilateral();
+                              if (opt.categoryKey === "JOURNAL") onGoToJournal();
                               else if (opt.categoryKey === "SOUNDS" || opt.categoryKey === "MEDITATION") onGoToSounds();
                               else if (opt.categoryKey === "BREATHING") onGoToBreathing();
                               else if (opt.categoryKey === "BILATERAL") onGoToBilateral();
@@ -1089,7 +1138,7 @@ export default function HomeScreen({
 
               {/* Goal 1: עזרה להירגע */}
               <button
-                onClick={() => onGoToBreathing("ptsd-grounding")}
+                onClick={onGoToCalmingHub}
                 className={cn(
                   "w-full p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg transition-all duration-300 flex flex-col justify-between text-right active:scale-95 group relative overflow-hidden min-h-[160px]",
                   isLight 
@@ -1109,7 +1158,7 @@ export default function HomeScreen({
                 <div className="space-y-1 mt-4 z-10">
                   <h4 className={cn("text-sm font-black leading-tight", isLight ? "text-slate-900" : "text-white")}>עזרה להירגע</h4>
                   <p className={cn("text-[10px] font-bold leading-normal opacity-90", isLight ? "text-slate-500" : "text-slate-400")}>
-                    נשימה מודרכת להאטת דופק מהירה
+                    4 כלים מהירים להפחתת מתח וויסות הצפה
                   </p>
                 </div>
               </button>
@@ -1299,7 +1348,12 @@ export default function HomeScreen({
         profileRef={profileRef}
         gender={displayGender}
         onComplete={(focusAreaKey) => {
-          if (focusAreaKey) onSelectCategory(focusAreaKey);
+          if (focusAreaKey) {
+            if (focusAreaKey === "SLEEP") onGoToSounds();
+            else if (focusAreaKey === "IMAGERY") onGoToImagery();
+            else if (focusAreaKey === "BILATERAL") onGoToBilateral();
+            else onSelectCategory(focusAreaKey);
+          }
         }}
       />
     </div>
