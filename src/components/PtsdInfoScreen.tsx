@@ -68,6 +68,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
   const [currentMain, setCurrentMain] = useState(0);
   const [isIrtDialogOpen, setIsIrtDialogOpen] = useState(false);
   const [subTopicId, setSubTopicId] = useState<string | null>(null);
+  const [activeCardTab, setActiveCardTab] = useState<"dontDo" | "doInstead">("doInstead");
 
   const mainPages: MainPage[] = [
     {
@@ -301,11 +302,18 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
   const page = mainPages[currentMain];
   const activeSubTopic = subTopicId ? subTopics[subTopicId] : null;
 
-  const openSubTopic = (id: string) => setSubTopicId(id);
-  const closeSubTopic = () => setSubTopicId(null);
+  const openSubTopic = (id: string) => {
+    setActiveCardTab("doInstead");
+    setSubTopicId(id);
+  };
+  const closeSubTopic = () => {
+    setActiveCardTab("doInstead");
+    setSubTopicId(null);
+  };
 
   const handleNext = () => {
     if (currentMain < totalMain - 1) {
+      setActiveCardTab("doInstead");
       setSubTopicId(null);
       setCurrentMain((prev) => prev + 1);
     }
@@ -313,26 +321,28 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
 
   const handlePrev = () => {
     if (currentMain > 0) {
+      setActiveCardTab("doInstead");
       setSubTopicId(null);
       setCurrentMain((prev) => prev - 1);
     }
   };
 
   const goToMain = (idx: number) => {
+    setActiveCardTab("doInstead");
     setSubTopicId(null);
     setCurrentMain(idx);
   };
 
   return (
-    <div className={cn("min-h-screen flex flex-col p-6 selection:bg-indigo-500 transition-colors duration-500 overflow-y-auto", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-slate-50")} dir="rtl">
+    <div className={cn("min-h-screen flex flex-col p-4 sm:p-6 selection:bg-indigo-500 transition-colors duration-500 overflow-y-auto", isLight ? "bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900" : "bg-slate-950 text-slate-50")} dir="rtl">
       {/* Background Decor */}
       <div className={cn("fixed top-0 right-0 w-96 h-96 blur-[120px] rounded-full pointer-events-none", isLight ? "bg-indigo-200/40" : "bg-indigo-600/10")} />
       <div className={cn("fixed bottom-0 left-0 w-96 h-96 blur-[120px] rounded-full pointer-events-none", isLight ? "bg-purple-200/30" : "bg-purple-600/10")} />
 
-      <div className="w-full max-w-xl lg:max-w-3xl mx-auto flex-1 flex flex-col justify-between py-6 relative z-10">
+      <div className="w-full max-w-xl lg:max-w-3xl mx-auto flex-1 flex flex-col justify-between py-2 sm:py-6 relative z-10">
 
         {/* Top Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8">
           <div className="flex items-center gap-3">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden p-1.5 border", isLight ? "bg-white border-slate-200" : "bg-white/5 border-white/5")}>
               <Logo variant="icon" />
@@ -353,8 +363,8 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
         </div>
 
         {/* Card Container */}
-        <div className="flex-1 flex flex-col justify-center my-4">
-          <div className={cn("rounded-[2.5rem] p-8 md:p-10 border transition-all duration-500 shadow-xl relative overflow-hidden", isLight ? "glass-panel" : "dark-glass-panel")}>
+        <div className="flex-1 flex flex-col justify-center my-2 sm:my-4">
+          <div className={cn("rounded-3xl sm:rounded-[2.5rem] p-0 sm:p-8 md:p-10 border-0 sm:border transition-all duration-500 shadow-none sm:shadow-xl relative overflow-hidden", isLight ? "bg-transparent sm:glass-panel" : "bg-transparent sm:dark-glass-panel")}>
 
             {activeSubTopic ? (
               <>
@@ -362,7 +372,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
                 <button
                   onClick={closeSubTopic}
                   className={cn(
-                    "flex items-center gap-1.5 mb-6 text-[11px] font-black uppercase tracking-wider transition-colors group",
+                    "flex items-center gap-1.5 mb-4 sm:mb-6 text-[11px] font-black uppercase tracking-wider transition-colors group",
                     isLight ? "text-slate-400 hover:text-indigo-600" : "text-slate-500 hover:text-indigo-400"
                   )}
                 >
@@ -370,69 +380,114 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
                   <span>חזרה {page.navLabel ?? `ל${page.title}`}</span>
                 </button>
 
-                <div className="flex items-center gap-4 mb-6 md:mb-8">
-                  <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md", activeSubTopic.iconBg)}>
-                    <activeSubTopic.icon className={activeSubTopic.iconColor} size={28} />
+                <div className="flex items-center gap-4 mb-4 sm:mb-8">
+                  <div className={cn("w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-md", activeSubTopic.iconBg)}>
+                    <activeSubTopic.icon className={cn("w-5 h-5 sm:w-7 sm:h-7", activeSubTopic.iconColor)} />
                   </div>
                   <div className="text-right">
                     <span className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">הרחבת מידע</span>
-                    <h2 className={cn("text-xl md:text-2xl lg:text-3xl font-black leading-tight mt-0.5", isLight ? "text-slate-900" : "text-white")}>
+                    <h2 className={cn("text-lg sm:text-xl md:text-2xl lg:text-3xl font-black leading-tight mt-0.5", isLight ? "text-slate-900" : "text-white")}>
                       {activeSubTopic.title}
                     </h2>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <p className={cn("text-base md:text-lg lg:text-xl leading-relaxed font-bold text-right text-pretty", isLight ? "text-slate-700" : "text-slate-350")}>
+                  <p className={cn("text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed font-bold text-right text-pretty", isLight ? "text-slate-700" : "text-slate-350")}>
                     {activeSubTopic.content}
                   </p>
 
                   {(activeSubTopic.dontDo || activeSubTopic.doInstead) && (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {activeSubTopic.dontDo && (
-                        <div className={cn("p-4 rounded-2xl border", isLight ? "bg-rose-50/60 border-rose-200" : "bg-rose-500/5 border-rose-500/20")}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <XCircle size={16} className="text-rose-500 shrink-0" />
-                            <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">מה בדרך כלל לא עוזר</span>
-                          </div>
-                          <ul className="space-y-2">
-                            {activeSubTopic.dontDo.map((d, i) => (
-                              <li key={i} className={cn("text-sm font-bold leading-relaxed text-right", isLight ? "text-slate-700" : "text-slate-300")}>
-                                {d}
-                              </li>
-                            ))}
-                          </ul>
+                    <div className="space-y-3">
+                      {/* Mobile tab selector */}
+                      {activeSubTopic.dontDo && activeSubTopic.doInstead && (
+                        <div className="flex sm:hidden p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 mb-2 border border-slate-200/50 dark:border-white/5">
+                          <button
+                            onClick={() => setActiveCardTab("doInstead")}
+                            className={cn(
+                              "flex-1 py-2 text-center text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5",
+                              activeCardTab === "doInstead"
+                                ? "bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-350"
+                            )}
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>מה כן עוזר</span>
+                          </button>
+                          <button
+                            onClick={() => setActiveCardTab("dontDo")}
+                            className={cn(
+                              "flex-1 py-2 text-center text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5",
+                              activeCardTab === "dontDo"
+                                ? "bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 shadow-sm"
+                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-350"
+                            )}
+                          >
+                            <XCircle size={13} />
+                            <span>מה פחות עוזר</span>
+                          </button>
                         </div>
                       )}
-                      {activeSubTopic.doInstead && (
-                        <div className={cn("p-4 rounded-2xl border", isLight ? "bg-emerald-50/60 border-emerald-200" : "bg-emerald-500/5 border-emerald-500/20")}>
-                          <div className="flex items-center gap-2 mb-3">
-                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">מה כן עוזר</span>
+
+                      {/* Content Cards */}
+                      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+                        {activeSubTopic.dontDo && (
+                          <div
+                            className={cn(
+                              "p-4 rounded-2xl border transition-all duration-300",
+                              isLight ? "bg-rose-50/60 border-rose-200" : "bg-rose-500/5 border-rose-500/20",
+                              activeSubTopic.doInstead ? (activeCardTab === "dontDo" ? "block" : "hidden sm:block") : "block"
+                            )}
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <XCircle size={16} className="text-rose-500 shrink-0" />
+                              <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">מה בדרך כלל לא עוזר</span>
+                            </div>
+                            <ul className="space-y-2">
+                              {activeSubTopic.dontDo.map((d, i) => (
+                                <li key={i} className={cn("text-xs sm:text-sm font-bold leading-relaxed text-right", isLight ? "text-slate-700" : "text-slate-300")}>
+                                  {d}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="space-y-2">
-                            {activeSubTopic.doInstead.map((d, i) => (
-                              <li key={i} className={cn("text-sm font-bold leading-relaxed text-right flex flex-col items-start gap-1", isLight ? "text-slate-700" : "text-slate-300")}>
-                                <span>{d}</span>
-                                {activeSubTopic.id === "sleep" && i === 3 && (
-                                  <button
-                                    onClick={() => setIsIrtDialogOpen(true)}
-                                    className="mt-1 text-[10px] font-black text-indigo-650 dark:text-indigo-400 hover:underline bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all self-start"
-                                  >
-                                    <Info size={11} />
-                                    דרכי טיפול בסיוטי לילה
-                                  </button>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                        )}
+                        {activeSubTopic.doInstead && (
+                          <div
+                            className={cn(
+                              "p-4 rounded-2xl border transition-all duration-300",
+                              isLight ? "bg-emerald-50/60 border-emerald-200" : "bg-emerald-500/5 border-emerald-500/20",
+                              activeSubTopic.dontDo ? (activeCardTab === "doInstead" ? "block" : "hidden sm:block") : "block"
+                            )}
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">מה כן עוזר</span>
+                            </div>
+                            <ul className="space-y-2">
+                              {activeSubTopic.doInstead.map((d, i) => (
+                                <li key={i} className={cn("text-xs sm:text-sm font-bold leading-relaxed text-right flex flex-col items-start gap-1", isLight ? "text-slate-700" : "text-slate-300")}>
+                                  <span>{d}</span>
+                                  {activeSubTopic.id === "sleep" && i === 3 && (
+                                    <button
+                                      onClick={() => setIsIrtDialogOpen(true)}
+                                      className="mt-1 text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:underline bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all self-start"
+                                    >
+                                      <Info size={11} />
+                                      דרכי טיפול בסיוטי לילה
+                                    </button>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {activeSubTopic.highlight && (
-                    <div className={cn("p-5 rounded-2xl border-l-4 font-black text-sm md:text-base leading-relaxed bg-slate-900/5 dark:bg-white/5", "border-indigo-500 text-indigo-600 dark:text-indigo-400")}>
+                    <div className={cn("p-4 sm:p-5 rounded-2xl border-l-4 font-black text-xs sm:text-sm md:text-base leading-relaxed bg-slate-900/5 dark:bg-white/5", "border-indigo-500 text-indigo-600 dark:text-indigo-400")}>
                       {activeSubTopic.highlight}
                     </div>
                   )}
@@ -441,47 +496,49 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
             ) : (
               <>
                 {/* Header of the main page */}
-                <div className="flex items-center gap-4 mb-6 md:mb-8">
-                  <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md", page.iconBg)}>
-                    <page.icon className={page.iconColor} size={28} />
+                <div className="flex items-center gap-4 mb-4 sm:mb-8">
+                  <div className={cn("w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-md", page.iconBg)}>
+                    <page.icon className={cn("w-5 h-5 sm:w-7 sm:h-7", page.iconColor)} />
                   </div>
                   <div className="text-right">
                     <span className="block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">נושא {page.id + 1} מתוך {totalMain}</span>
-                    <h2 className={cn("text-xl md:text-2xl lg:text-3xl font-black leading-tight mt-0.5", isLight ? "text-slate-900" : "text-white")}>
+                    <h2 className={cn("text-lg sm:text-xl md:text-2xl lg:text-3xl font-black leading-tight mt-0.5", isLight ? "text-slate-900" : "text-white")}>
                       {page.title}
                     </h2>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <p className={cn("text-base md:text-lg leading-relaxed font-bold text-right text-pretty", isLight ? "text-slate-700" : "text-slate-350")}>
+                  <p className={cn("text-sm sm:text-base md:text-lg leading-relaxed font-bold text-right text-pretty", isLight ? "text-slate-700" : "text-slate-350")}>
                     {page.intro}
                   </p>
 
                   {page.bridge && (
-                    <div className={cn("flex items-start gap-3 p-4 rounded-2xl border", isLight ? "bg-indigo-50/60 border-indigo-200" : "bg-indigo-500/5 border-indigo-500/20")}>
-                      <ArrowDownCircle size={20} className="text-indigo-500 shrink-0 mt-0.5" />
-                      <p className={cn("text-sm md:text-base font-bold leading-relaxed text-right", isLight ? "text-indigo-900" : "text-indigo-300")}>
+                    <div className={cn("flex items-start gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl border", isLight ? "bg-indigo-50/60 border-indigo-200" : "bg-indigo-500/5 border-indigo-500/20")}>
+                      <ArrowDownCircle className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0 mt-0.5" />
+                      <p className={cn("text-xs sm:text-sm md:text-base font-bold leading-relaxed text-right", isLight ? "text-indigo-900" : "text-indigo-300")}>
                         {page.bridge}
                       </p>
                     </div>
                   )}
 
                   {page.symptoms && (
-                    <div className={cn("p-5 rounded-2xl", isLight ? "bg-slate-900/5" : "bg-white/5")}>
+                    <div className={cn("p-3 sm:p-5 rounded-xl sm:rounded-2xl", isLight ? "bg-slate-900/5" : "bg-white/5")}>
                       <div className="flex items-center gap-2 mb-3">
                         <ListChecks size={16} className={page.iconColor} />
                         <span className={cn("text-[11px] font-black uppercase tracking-wider", isLight ? "text-slate-500" : "text-slate-400")}>איך זה מתבטא</span>
                       </div>
-                      <ul className="space-y-2.5">
+                      <ul className="space-y-2 sm:space-y-2.5">
                         {page.symptoms.map((s, i) => (
-                          <li key={i} className={cn("text-sm md:text-base font-bold leading-relaxed text-right flex items-start gap-2.5", isLight ? "text-slate-700" : "text-slate-300")}>
-                            <span className={cn("mt-1.5 w-1.5 h-1.5 rounded-full shrink-0", page.iconColor.replace("text-", "bg-"))} />
-                            <span className="flex-1">{s}</span>
+                          <li key={i} className="flex flex-col gap-1">
+                            <div className={cn("text-xs sm:text-sm md:text-base font-bold leading-relaxed text-right flex items-start gap-2.5", isLight ? "text-slate-700" : "text-slate-300")}>
+                              <span className={cn("mt-1.5 w-1.5 h-1.5 rounded-full shrink-0", page.iconColor.replace("text-", "bg-"))} />
+                              <span className="flex-1">{s}</span>
+                            </div>
                             {page.id === 1 && i === 1 && (
                               <button
                                 onClick={() => setIsIrtDialogOpen(true)}
-                                className="mr-2 text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:underline bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-all shrink-0"
+                                className="mr-5 text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:underline bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all self-start mt-0.5 shrink-0"
                               >
                                 <Info size={10} />
                                 דרכי טיפול בסיוטים
@@ -495,25 +552,27 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
 
                   {page.relatedTopics && page.relatedTopics.length > 0 && (
                     <div>
-                      <span className={cn("block text-[11px] font-black uppercase tracking-wider mb-2.5", isLight ? "text-slate-400" : "text-slate-500")}>להרחבת מידע</span>
-                      <div className="grid gap-2.5">
-                        {page.relatedTopics.map((topicId) => {
+                      <span className={cn("block text-[11px] font-black uppercase tracking-wider mb-2", isLight ? "text-slate-400" : "text-slate-500")}>להרחבת מידע</span>
+                      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-1 gap-2">
+                        {page.relatedTopics.map((topicId, index) => {
                           const t = subTopics[topicId];
                           if (!t) return null;
+                          const isLastOdd = index === page.relatedTopics.length - 1 && page.relatedTopics.length % 2 !== 0;
                           return (
                             <button
                               key={topicId}
                               onClick={() => openSubTopic(topicId)}
                               className={cn(
-                                "w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-right group active:scale-[0.98]",
+                                "flex items-center gap-2.5 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all text-right group active:scale-[0.98]",
+                                isLastOdd ? "col-span-1 min-[380px]:col-span-2 lg:col-span-1" : "col-span-1",
                                 isLight ? "bg-white border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50" : "bg-white/5 border-white/5 hover:border-indigo-500/30 hover:bg-white/10"
                               )}
                             >
-                              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", t.iconBg)}>
-                                <t.icon className={t.iconColor} size={18} />
+                              <div className={cn("w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", t.iconBg)}>
+                                <t.icon className={cn("w-4 h-4 sm:w-[18px] sm:h-[18px]", t.iconColor)} />
                               </div>
-                              <span className={cn("flex-1 text-sm font-black", isLight ? "text-slate-800" : "text-slate-200")}>{t.title}</span>
-                              <ChevronLeft size={16} className={cn("shrink-0 transition-transform group-hover:-translate-x-0.5", isLight ? "text-slate-300" : "text-slate-600")} />
+                              <span className={cn("flex-1 text-xs sm:text-sm font-black leading-tight", isLight ? "text-slate-800" : "text-slate-200")}>{t.title}</span>
+                              <ChevronLeft size={14} className={cn("shrink-0 transition-transform group-hover:-translate-x-0.5", isLight ? "text-slate-300" : "text-slate-600")} />
                             </button>
                           );
                         })}
@@ -532,7 +591,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
             onClick={activeSubTopic ? closeSubTopic : handlePrev}
             disabled={!activeSubTopic && currentMain === 0}
             className={cn(
-              "px-5 py-6 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all border shrink-0",
+              "px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all border shrink-0",
               !activeSubTopic && currentMain === 0
                 ? "opacity-30 cursor-not-allowed"
                 : (isLight ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50" : "bg-slate-900 border-white/5 text-slate-300 hover:bg-slate-800")
@@ -543,7 +602,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
           </Button>
 
           {/* Progress dots (main pages only) */}
-          <div className="hidden xs:flex items-center gap-1.5">
+          <div className="hidden min-[380px]:flex items-center gap-1.5">
             {mainPages.map((p, idx) => (
               <button
                 key={p.id}
@@ -560,7 +619,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
           {activeSubTopic ? (
             <Button
               onClick={closeSubTopic}
-              className="px-5 py-6 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
+              className="px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
             >
               חזרה לנושא
               <ArrowLeft size={14} />
@@ -568,7 +627,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
           ) : currentMain < totalMain - 1 ? (
             <Button
               onClick={handleNext}
-              className="px-5 py-6 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
+              className="px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
             >
               המשך
               <ArrowLeft size={14} />
@@ -576,7 +635,7 @@ export default function PtsdInfoScreen({ onBack, theme = "light", toggleTheme }:
           ) : (
             <Button
               onClick={onBack}
-              className="px-5 py-6 rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+              className="px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl text-xs font-black shadow-md flex items-center gap-2 active:scale-95 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
             >
               הבנתי, תודה
             </Button>
