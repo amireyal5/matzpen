@@ -42,6 +42,15 @@ export function useAmbientMixer() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const endTimeRef = useRef<number | null>(null);
 
+  // הגדרות שידור (Cast) לרמקולים חכמים
+  const [castState, setCastState] = useState<"disconnected" | "connecting" | "connected">("disconnected");
+  const remoteCleanupRef = useRef<(() => void) | null>(null);
+
+  const isCastSupported = typeof window !== "undefined" && (
+    !!(window as any).RemotePlayback || 
+    !!(HTMLMediaElement.prototype as any).webkitShowPlaybackTargetPicker
+  );
+
   // סנכרון עם ה-Media Session API של מערכת ההפעלה
   useEffect(() => {
     if (typeof window === "undefined" || !("mediaSession" in navigator)) return;
@@ -105,6 +114,9 @@ export function useAmbientMixer() {
   // עצירה מוחלטת ואיפוס זמן
   const stop = useCallback((id: SoundId) => {
     clearFade(id);
+    remoteCleanupRef.current?.();
+    remoteCleanupRef.current = null;
+    setCastState("disconnected");
     const audio = activeAudiosRef.current[id];
     if (!audio) {
       setTrackStates((prev) => ({
@@ -213,6 +225,35 @@ export function useAmbientMixer() {
       activeAudiosRef.current[id] = audio;
     }
 
+    // ניקוי מאזינים קודמים אם קיימים
+    remoteCleanupRef.current?.();
+    remoteCleanupRef.current = null;
+
+    // הגדרת מאזיני שידור (Cast) לאודיו הנוכחי
+    const remote = (audio as any).remote;
+    if (remote && typeof remote.addEventListener === "function") {
+      const updateState = () => {
+        setCastState(remote.state);
+      };
+      remote.addEventListener("statechange", updateState);
+      updateState();
+      remoteCleanupRef.current = () => {
+        remote.removeEventListener("statechange", updateState);
+      };
+    } else if (typeof (audio as any).addEventListener === "function" && "webkitCurrentPlaybackTargetIsWireless" in audio) {
+      const updateSafariState = () => {
+        const isWireless = (audio as any).webkitCurrentPlaybackTargetIsWireless;
+        setCastState(isWireless ? "connected" : "disconnected");
+      };
+      audio.addEventListener("webkitcurrentplaybacktargetiswirelesschanged", updateSafariState);
+      updateSafariState();
+      remoteCleanupRef.current = () => {
+        audio.removeEventListener("webkitcurrentplaybacktargetiswirelesschanged", updateSafariState);
+      };
+    } else {
+      setCastState("disconnected");
+    }
+
     // הגדרת לופ לפי בחירת המשתמש ברצועה זו
     const trackLoop = currentTrackState.isLoopEnabled;
     audio.loop = trackLoop;
@@ -318,6 +359,7 @@ export function useAmbientMixer() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       Object.values(fadeTimersRef.current).forEach((t) => t && clearInterval(t));
+      remoteCleanupRef.current?.();
       Object.values(activeAudiosRef.current).forEach((audio) => {
         if (audio) {
           try {
@@ -336,6 +378,22 @@ export function useAmbientMixer() {
     (sound) => trackStates[sound.id].playState === "playing"
   );
 
+  const castTrack = useCallback((id: SoundId) => {
+    const audio = activeAudiosRef.current[id];
+    if (!audio) return;
+
+    const remote = (audio as any).remote;
+    if (remote && typeof remote.prompt === "function") {
+      remote.prompt().catch((err: any) => {
+        console.warn("Remote playback prompt failed:", err);
+      });
+    } else if (typeof (audio as any).webkitShowPlaybackTargetPicker === "function") {
+      (audio as any).webkitShowPlaybackTargetPicker();
+    } else {
+      alert("הדפדפן שלך אינו תומך בשידור ישיר למכשירים חכמים. מומלץ להשתמש בדפדפן כרום או ספארי.");
+    }
+  }, []);
+
   return {
     trackStates,
     play,
@@ -348,5 +406,8 @@ export function useAmbientMixer() {
     toggleTrackLoop,
     timeLeft,
     startTimer,
+    castTrack,
+    castState,
+    isCastSupported,
   };
 }

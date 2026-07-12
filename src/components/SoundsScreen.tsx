@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, Flower2, Play, Sparkles, Disc3, Bell, Heart, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, Timer, X } from "lucide-react";
+import { ArrowRight, Flower2, Play, Sparkles, Disc3, Bell, Heart, Sun, Moon, Wind, Music, VolumeX, Volume2, Pause, Repeat, Timer, X, Cast } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useWakeLock } from "@/hooks/use-wake-lock";
@@ -173,6 +173,9 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
     toggleTrackLoop,
     timeLeft,
     startTimer,
+    castTrack,
+    castState,
+    isCastSupported,
   } = mixer;
 
   useEffect(() => {
@@ -428,6 +431,23 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
               </div>
             )}
 
+            {/* סטטוס שידור פעיל */}
+            {castState !== "disconnected" && (
+              <div className="text-center">
+                {castState === "connected" ? (
+                  <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 justify-center shadow-md animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    משדר כעת לרמקול חכם / טלוויזיה
+                  </span>
+                ) : (
+                  <span className="text-xs font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full inline-flex items-center gap-1.5 justify-center shadow-md animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    מתחבר למכשיר חיצוני...
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* כפתורי בקרה ראשיים */}
             <div className="flex items-center justify-center gap-6">
               {/* כפתור לולאה */}
@@ -443,6 +463,24 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
               >
                 <Repeat size={18} className={trackStates[activeSound.id].isLoopEnabled && trackStates[activeSound.id].playState === "playing" ? "animate-[spin_10s_linear_infinite]" : ""} />
               </button>
+
+              {/* כפתור שידור (Cast) */}
+              {isCastSupported && (
+                <button
+                  onClick={() => castTrack(activeSound.id)}
+                  className={cn(
+                    "w-12 h-12 rounded-full border flex items-center justify-center transition-all active:scale-95 backdrop-blur-md shadow-lg",
+                    castState === "connected"
+                      ? "bg-emerald-500/25 text-emerald-300 border-emerald-500/40 shadow-md shadow-emerald-500/10"
+                      : castState === "connecting"
+                      ? "bg-amber-500/25 text-amber-300 border-amber-500/40 shadow-md shadow-amber-500/10"
+                      : "bg-black/40 text-white border-white/15 hover:bg-black/55"
+                  )}
+                  title="שידור לרמקול או טלוויזיה חכמה"
+                >
+                  <Cast size={18} className={castState === "connecting" ? "animate-pulse" : ""} />
+                </button>
+              )}
 
               {/* הפעלה / השהיה */}
               {trackStates[activeSound.id].playState === "playing" ? (
