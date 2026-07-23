@@ -378,7 +378,7 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
+      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-32 md:pb-16">
         <div className="relative pt-4">
           <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full transition-opacity opacity-60" />
           <div className="relative w-28 h-28 rounded-[2.5rem] bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-2xl">
@@ -401,16 +401,6 @@ export default function GuidedImageryScreen({ onBack, theme = "light", toggleThe
           </div>
         </div>
       </main>
-
-      <footer className="p-8 max-w-lg mx-auto w-full z-10">
-        <Button
-          onClick={onBack}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"
-        >
-          <Sparkles size={20} />
-          חזרה לכלים
-        </Button>
-      </footer>
 
       {/* נגן המסע - תצוגה מלאה */}
       {activeJourney && (

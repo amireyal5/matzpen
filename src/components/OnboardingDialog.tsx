@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sunrise, Sun as SunIcon, Sunset, BellOff, X, AlertCircle, Wind, Moon, Sparkles, Zap } from "lucide-react";
+import { Sunrise, Sun as SunIcon, Sunset, BellOff, X, Wind, Sparkles, Music } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,25 +17,11 @@ interface OnboardingDialogProps {
 
 const FOCUS_OPTIONS = [
   {
-    key: "SOS",
-    label: "עזרה מיידית",
-    icon: AlertCircle,
-    hue: "#DC2626",
-    tagLine: "כלים מהירים להפחתת פאניקה",
-  },
-  {
     key: "BODY",
     label: "נשימה וגוף",
     icon: Wind,
     hue: "#059669",
     tagLine: "נשימה וקרקוע פיזי מהיר",
-  },
-  {
-    key: "SLEEP",
-    label: "עזרה בשינה",
-    icon: Moon,
-    hue: "#4F46E5",
-    tagLine: "צלילי סביבה ונעימות להרדמות",
   },
   {
     key: "IMAGERY",
@@ -45,11 +31,11 @@ const FOCUS_OPTIONS = [
     tagLine: "מסעות ויזואליים להרפיה",
   },
   {
-    key: "BILATERAL",
-    label: "לנקות את הראש",
-    icon: Zap,
-    hue: "#0D9488",
-    tagLine: "עיבוד בילטרלי להרגעת הצפה",
+    key: "SOUNDS",
+    label: "מוזיקה וצלילים",
+    icon: Music,
+    hue: "#4F46E5",
+    tagLine: "צלילי רקע ותדרים מרגיעים",
   },
 ];
 

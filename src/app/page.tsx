@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import LandingScreen from "@/components/LandingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import DeckScreen from "@/components/DeckScreen";
 import AuthScreen from "@/components/AuthScreen";
@@ -17,13 +16,15 @@ import BilateralProcessing from "@/components/BilateralProcessing";
 import ClinicalAssessment from "@/components/ClinicalAssessment";
 import CalmingHubScreen from "@/components/CalmingHubScreen";
 import PtsdInfoScreen from "@/components/PtsdInfoScreen";
+import ActivitySwitcher, { ActivityId } from "@/components/ActivitySwitcher";
+import InstallPwaPrompt from "@/components/InstallPwaPrompt";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { onMessageListener } from "@/firebase/messaging";
 import { useAmbientMixer } from "@/hooks/use-ambient-mixer";
 
-type Screen = "landing" | "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery" | "assessment" | "calming-hub" | "ptsd-info";
+type Screen = "auth" | "home" | "deck" | "about" | "guided" | "journal" | "sounds" | "breathing" | "bilateral" | "imagery" | "assessment" | "calming-hub" | "ptsd-info";
 
 interface HistoryState {
   screen: Screen;
@@ -37,7 +38,7 @@ interface HistoryState {
 }
 
 function AppContent() {
-  const [screen, setScreen] = useState<Screen>("landing");
+  const [screen, setScreen] = useState<Screen>("auth");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [showSplash, setShowSplash] = useState(true);
   const [activeCatKey, setActiveCatKey] = useState("SOS");
@@ -164,7 +165,7 @@ function AppContent() {
       let initialPracticeIdx = undefined;
       let initialBreathingParams = undefined;
 
-      if (storedScreen && ["landing", "auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery", "assessment", "calming-hub", "ptsd-info"].includes(storedScreen)) {
+      if (storedScreen && ["auth", "home", "deck", "about", "guided", "journal", "sounds", "breathing", "bilateral", "imagery", "assessment", "calming-hub", "ptsd-info"].includes(storedScreen)) {
         const storedCatKey = localStorage.getItem("matzpen_catKey");
         const storedPracticeIdx = localStorage.getItem("matzpen_practiceIdx");
         const storedBreathingParams = localStorage.getItem("matzpen_breathingParams");
@@ -190,11 +191,11 @@ function AppContent() {
         }
         setScreen(storedScreen);
       } else {
-        initialScreen = "landing";
+        initialScreen = "auth";
       }
 
       window.history.replaceState({
-        screen: initialScreen || "landing",
+        screen: initialScreen || "auth",
         index: 0,
         catKey: initialCatKey,
         practiceIdx: initialPracticeIdx,
@@ -232,10 +233,6 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleGoToAuth = () => {
-    navigateTo("home");
-  };
-
   const handleAuthSuccess = () => {
     navigateTo("home", undefined, true);
   };
@@ -271,19 +268,12 @@ function AppContent() {
   return (
     <div className={theme === "light" ? "light" : "dark"}>
       <main className={`min-h-screen transition-colors duration-500 ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-white"}`}>
-        {screen === "landing" && (
-          <LandingScreen
-            onComplete={() => navigateTo("auth")}
-            onGoToAuth={handleGoToAuth}
-            onGoToAbout={() => navigateTo("about")}
-            onGoToPtsdInfo={() => navigateTo("ptsd-info")}
-            theme={theme}
-            toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-          />
+        {screen === "home" && (
+          <InstallPwaPrompt theme={theme} />
         )}
         {screen === "about" && (
           <AboutScreen
-            onBack={() => handleBack("landing")}
+            onBack={() => handleBack("auth")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -291,7 +281,7 @@ function AppContent() {
         {screen === "auth" && (
           <AuthScreen
             onSuccess={handleAuthSuccess}
-            onBack={() => handleBack("landing")}
+            onBack={() => handleBack("auth")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -323,7 +313,7 @@ function AppContent() {
             onGoToCalmingHub={() => navigateTo("calming-hub")}
             onGoToAssessment={(type) => navigateTo("assessment", { assessmentType: type })}
             onGoToPtsdInfo={() => navigateTo("ptsd-info")}
-            onBack={() => handleBack("landing")} 
+            onBack={() => handleBack("auth")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />
@@ -384,6 +374,14 @@ function AppContent() {
             gender={localGender}
           />
         )}
+        {(screen === "breathing" || screen === "imagery" || screen === "sounds") && (
+          <ActivitySwitcher
+            current={screen as ActivityId}
+            onNavigate={(next) => navigateTo(next)}
+            onGoHome={() => handleBack("home")}
+            theme={theme}
+          />
+        )}
         {screen === "calming-hub" && (
           <CalmingHubScreen
             onBack={() => handleBack("home")}
@@ -404,7 +402,7 @@ function AppContent() {
         )}
         {screen === "ptsd-info" && (
           <PtsdInfoScreen
-            onBack={() => handleBack(localName ? "home" : "landing")}
+            onBack={() => handleBack(localName ? "home" : "auth")}
             theme={theme}
             toggleTheme={() => setTheme(prev => prev === "light" ? "dark" : "light")}
           />

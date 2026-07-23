@@ -49,8 +49,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
     }, 500);
   };
 
-  const completedCount = profileData?.completed?.length || 0;
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl w-full max-h-[90vh] rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white [&>button]:hidden isolate translate-z-0 flex flex-col" dir="rtl">
@@ -121,11 +119,6 @@ export default function ProfileDialog({ isOpen, onOpenChange, profileData, profi
                   </div>
                 </RadioGroup>
               </div>
-            </div>
-
-            <div className="bg-slate-50/80 p-5 rounded-3xl border border-slate-100 text-center space-y-1 shadow-sm">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">תרגילים שבוצעו</p>
-              <p className="text-2xl font-black text-slate-900">{completedCount}</p>
             </div>
 
             <div className="space-y-4 pt-4">

@@ -261,7 +261,7 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-6 pb-16">
+      <main className="relative z-10 flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-6 pb-32 md:pb-16">
         <div className="w-full space-y-6 animate-in fade-in duration-300 flex flex-col items-center">
           <div className="text-center space-y-3">
             <h2 className={cn("text-3xl font-black tracking-tight leading-tight transition-colors", isLight ? "text-slate-900" : "text-white")}>צלילים לשלווה פנימית</h2>
@@ -337,16 +337,6 @@ export default function SoundsScreen({ onBack, mixer, theme = "light", toggleThe
           )}
         </div>
       </main>
-
-      <footer className="relative z-10 p-8 max-w-lg mx-auto w-full">
-        <Button
-          onClick={onBack}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"
-        >
-          <Sparkles size={20} />
-          חזרה לכלים
-        </Button>
-      </footer>
 
       {/* מודל נגן מוזיקה אינטראקטיבי מלא */}
       {activeSound && (

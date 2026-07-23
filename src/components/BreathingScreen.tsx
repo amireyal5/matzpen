@@ -225,25 +225,26 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
       
       const filter = ctx.createBiquadFilter();
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(1400, now);
+      filter.frequency.setValueAtTime(1100, now);
 
       const rippleGain = ctx.createGain();
-      rippleGain.gain.setValueAtTime(0.65, now);
+      rippleGain.gain.setValueAtTime(0.75, now);
 
+      // LFO איטי ועדין היוצר "נשימה" רכה בטקסטורה, במקום רטט מהיר ומורגש
       const lfo = ctx.createOscillator();
-      lfo.frequency.setValueAtTime(2.0, now);
-      
+      lfo.frequency.setValueAtTime(0.15, now);
+
       const lfoGain = ctx.createGain();
-      lfoGain.gain.setValueAtTime(0.35, now);
-      
+      lfoGain.gain.setValueAtTime(0.1, now);
+
       lfo.connect(lfoGain);
       lfoGain.connect(rippleGain.gain);
 
       const masterGain = ctx.createGain();
       masterGain.gain.setValueAtTime(0.001, now);
-      
-      masterGain.gain.linearRampToValueAtTime(0.06, now + 0.4);
-      masterGain.gain.setValueAtTime(0.06, now + duration - 0.7);
+
+      masterGain.gain.linearRampToValueAtTime(0.05, now + 0.6);
+      masterGain.gain.setValueAtTime(0.05, now + duration - 0.9);
       masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
       
       filter.connect(rippleGain);
@@ -425,7 +426,7 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-16">
+      <main className="flex-1 flex flex-col items-center p-6 max-w-4xl lg:max-w-5xl mx-auto w-full space-y-8 pb-32 md:pb-16">
         <div className="relative pt-4">
           <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full transition-opacity opacity-60" />
           <div className="relative w-28 h-28 rounded-[2.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shadow-2xl">
@@ -480,16 +481,6 @@ export default function BreathingScreen({ onBack, initialBreathingId, theme = "l
           </div>
         </div>
       </main>
-
-      <footer className="p-8 max-w-lg mx-auto w-full z-10">
-        <Button
-          onClick={onBack}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black h-16 rounded-[1.5rem] text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"
-        >
-          <Sparkles size={20} />
-          חזרה לכלים
-        </Button>
-      </footer>
 
       {/* מודל תרגול נשימה אינטראקטיבי */}
       {activeExercise && (

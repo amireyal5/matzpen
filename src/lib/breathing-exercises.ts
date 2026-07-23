@@ -22,11 +22,11 @@ export const BREATHING_EXERCISES: BreathingExercise[] = [
     id: "ptsd-grounding",
     title: "ויסות הצפה (קרקוע מרגיע)",
     description: "תרגיל נשימה מווסת ללא עצירות נשימה, להרגעת מערכת העצבים והפחתת עוררות יתר. משלב אוטומטית מוזיקת שלווה סביבתית ברקע.",
-    rhythmText: "שאף 4 ש׳ • נשוף 6 ש׳",
+    rhythmText: "שאף 4 ש׳ • נשוף 8 ש׳",
     style: "grounding-glow",
     pattern: [
       { type: "inhale", label: "שאף אוויר בעדינות...", duration: 4 },
-      { type: "exhale", label: "נשוף והרפה את הגוף...", duration: 6 }
+      { type: "exhale", label: "נשוף והרפה את הגוף...", duration: 8 }
     ],
     totalDuration: 180,
     bgGradient: "from-amber-950 via-slate-900 to-slate-950",
@@ -37,12 +37,12 @@ export const BREATHING_EXERCISES: BreathingExercise[] = [
     id: "calm-circle",
     title: "נשימה מרגיעה (מעגל זוהר)",
     description: "תרגול נשימה מינימליסטי להפחתת מתח מיידית והרגעת מערכת העצבים.",
-    rhythmText: "שאף 4 ש׳ • החזק 4 ש׳ • נשוף 4 ש׳",
+    rhythmText: "שאף 4 ש׳ • החזק 3 ש׳ • נשוף 6 ש׳",
     style: "glow-circle",
     pattern: [
       { type: "inhale", label: "שאף אוויר...", duration: 4 },
-      { type: "hold", label: "החזק את הנשימה...", duration: 4 },
-      { type: "exhale", label: "נשוף לאט...", duration: 4 }
+      { type: "hold", label: "החזק את הנשימה...", duration: 3 },
+      { type: "exhale", label: "נשוף לאט...", duration: 6 }
     ],
     totalDuration: 120,
     bgGradient: "from-blue-950 via-slate-900 to-slate-950",
